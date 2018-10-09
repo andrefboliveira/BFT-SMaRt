@@ -16,39 +16,34 @@
  */
 package bftsmart.tom;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
-
 import bftsmart.communication.ServerCommunicationSystem;
-import bftsmart.tom.core.ExecutionManager;
 import bftsmart.consensus.messages.MessageFactory;
 import bftsmart.consensus.roles.Acceptor;
 import bftsmart.consensus.roles.Proposer;
 import bftsmart.reconfiguration.ReconfigureReply;
 import bftsmart.reconfiguration.ServerViewController;
 import bftsmart.reconfiguration.VMMessage;
+import bftsmart.tom.core.ExecutionManager;
 import bftsmart.tom.core.ReplyManager;
 import bftsmart.tom.core.TOMLayer;
 import bftsmart.tom.core.messages.TOMMessage;
 import bftsmart.tom.core.messages.TOMMessageType;
 import bftsmart.tom.leaderchange.CertifiedDecision;
-import bftsmart.tom.server.BatchExecutable;
-import bftsmart.tom.server.Executable;
-import bftsmart.tom.server.Recoverable;
-import bftsmart.tom.server.Replier;
-import bftsmart.tom.server.RequestVerifier;
-import bftsmart.tom.server.SingleExecutable;
-
+import bftsmart.tom.server.*;
 import bftsmart.tom.server.defaultservices.DefaultReplier;
 import bftsmart.tom.util.KeyLoader;
+import bftsmart.tom.util.ReconfigThread.JoinThread;
+import bftsmart.tom.util.ReconfigThread.RemoveThread;
 import bftsmart.tom.util.ShutdownHookThread;
 import bftsmart.tom.util.TOMUtil;
-import java.security.Provider;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.security.Provider;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * This class receives messages from DeliveryThread and manages the execution
@@ -153,12 +148,26 @@ public class ServiceReplica {
 
         if (this.SVController.isInCurrentView()) {
             logger.info("In current view: " + this.SVController.getCurrentView());
-            initTOMLayer(); // initiaze the TOM layer
+            initTOMLayer(); // initialize the TOM layer
+
+
+            Thread askToRemove = new Thread(new RemoveThread(this.id));
+            askToRemove.start();
+
+
+
         } else {
             logger.info("Not in current view: " + this.SVController.getCurrentView());
-            
+
             //Not in the initial view, just waiting for the view where the join has been executed
-            logger.info("Waiting for the TTP: " + this.SVController.getCurrentView());
+//            logger.info("Waiting for the TTP: " + this.SVController.getCurrentView());
+
+
+            Thread askToJoin = new Thread(new JoinThread(this.id, this.SVController.getCurrentView()));
+            askToJoin.start();
+
+
+
             waitTTPJoinMsgLock.lock();
             try {
                 canProceed.awaitUninterruptibly();
