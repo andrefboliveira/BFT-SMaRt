@@ -14,7 +14,7 @@ import bftsmart.reconfiguration.VMServices;
 public class DefaultVMServices extends VMServices {
     
     public static void main(String[] args) throws InterruptedException {
-
+/*
         if(args.length == 1){
             System.out.println("####Tpp Service[Disjoint]####");
 
@@ -30,7 +30,7 @@ public class DefaultVMServices extends VMServices {
             String ipAddress = args[1];
             int port = Integer.parseInt(args[2]);
 
-            (new DefaultVMServices()).addServer(smartId, ipAddress, port);
+            (new DefaultVMServices()).addServer(smartId, ipAddress, port, replicaCertificates, currentView);
 
         }else{
             System.out.println("Usage: java -jar TppServices <smart id> [ip address] [port]");
@@ -39,7 +39,7 @@ public class DefaultVMServices extends VMServices {
 
         Thread.sleep(2000);//2s
         
-
+*/
         System.exit(0);
     }
 }

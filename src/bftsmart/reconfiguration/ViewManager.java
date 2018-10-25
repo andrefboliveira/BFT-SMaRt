@@ -15,23 +15,18 @@ limitations under the License.
 */
 package bftsmart.reconfiguration;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Scanner;
-import java.util.StringTokenizer;
-
 import bftsmart.communication.server.ServerConnection;
+import bftsmart.reconfiguration.util.TOMConfiguration;
 import bftsmart.reconfiguration.views.View;
 import bftsmart.tom.util.KeyLoader;
-import java.security.Provider;
-
+import bftsmart.tom.util.ReconfigThread.PartialCertificate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.*;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.StringTokenizer;
 
 /**
  *
@@ -49,12 +44,14 @@ public class ViewManager {
     //in the system will execute the reconfiguration request
     private List<Integer> addIds = new LinkedList<Integer>();
 
-    public ViewManager(KeyLoader loader) {
-        this("", loader);
+    public ViewManager(int id, KeyLoader loader) {
+        this(id, "", loader);
     }
 
-    public ViewManager(String configHome, KeyLoader loader) {
+    public ViewManager(int processId, String configHome, KeyLoader loader) {
+//        this.id = processId;
         this.id = loadID(configHome);
+
         this.controller = new ServerViewController(id, configHome, loader);
         this.rec = new Reconfiguration(id, configHome, loader);
     }
@@ -95,9 +92,10 @@ public class ViewManager {
         }
     }
 
-    public void addServer(int id, String ip, int port) {
+
+    public void addServer(int id, String ip, int port, List<PartialCertificate> replicaCertificates) {
         this.controller.getStaticConf().addHostInfo(id, ip, port);
-        rec.addServer(id, ip, port);
+        rec.addServer(id, ip, port, replicaCertificates);
         addIds.add(id);
     }
 
@@ -109,6 +107,22 @@ public class ViewManager {
         rec.setF(f);
     }
 
+    public void executeUpdates(TOMConfiguration configuration) {
+        connect();
+        ReconfigureReply r = rec.execute(configuration);
+        View v = r.getView();
+        logger.info("New view f: " + v.getF());
+
+        VMMessage msg = new VMMessage(id, r);
+
+        if (addIds.size() > 0) { 
+            sendResponse(addIds.toArray(new Integer[1]), msg);
+            addIds.clear();
+        }
+
+
+    }
+
     public void executeUpdates() {
         connect();
         ReconfigureReply r = rec.execute();
@@ -117,7 +131,7 @@ public class ViewManager {
 
         VMMessage msg = new VMMessage(id, r);
 
-        if (addIds.size() > 0) { 
+        if (addIds.size() > 0) {
             sendResponse(addIds.toArray(new Integer[1]), msg);
             addIds.clear();
         }

@@ -15,11 +15,14 @@ limitations under the License.
 */
 package bftsmart.reconfiguration;
 
+import bftsmart.reconfiguration.util.TOMConfiguration;
 import bftsmart.tom.ServiceProxy;
 import bftsmart.tom.core.messages.TOMMessageType;
 import bftsmart.tom.util.KeyLoader;
+import bftsmart.tom.util.ReconfigThread.PartialCertificate;
 import bftsmart.tom.util.TOMUtil;
-import java.security.Provider;
+
+import java.util.List;
 
 /**
  *
@@ -49,8 +52,8 @@ public class Reconfiguration {
         }
     }
     
-    public void addServer(int id, String ip, int port){
-        this.setReconfiguration(ServerViewController.ADD_SERVER, id + ":" + ip + ":" + port);
+    public void addServer(int id, String ip, int port, List<PartialCertificate> replicaCertificates){
+        this.setReconfiguration(replicaCertificates, ServerViewController.ADD_SERVER, id + ":" + ip + ":" + port);
     }
     
     public void removeServer(int id){
@@ -59,9 +62,16 @@ public class Reconfiguration {
     
 
     public void setF(int f){
-      this.setReconfiguration(ServerViewController.CHANGE_F,String.valueOf(f));  
+      this.setReconfiguration(ServerViewController.CHANGE_F,String.valueOf(f));
     }
-    
+
+    public void setReconfiguration(List<PartialCertificate> replicaCertificates, int prop, String value){
+        if(request == null){
+            //request = new ReconfigureRequest(proxy.getViewManager().getStaticConf().getProcessId());
+            request = new ReconfigureRequest(id, replicaCertificates);
+        }
+        request.setProperty(prop, value);
+    }
     
     public void setReconfiguration(int prop, String value){
         if(request == null){
@@ -70,8 +80,21 @@ public class Reconfiguration {
         }
         request.setProperty(prop, value);
     }
-    
+
     public ReconfigureReply execute(){
+        byte[] signature = TOMUtil.signMessage(proxy.getViewManager().getStaticConf().getPrivateKey(),
+                request.toString().getBytes());
+
+        request.setSignature(signature);
+        byte[] reply = proxy.invoke(TOMUtil.getBytes(request), TOMMessageType.RECONFIG);
+        request = null;
+        return (ReconfigureReply)TOMUtil.getObject(reply);
+    }
+
+    public ReconfigureReply execute(TOMConfiguration configuration){
+//        byte[] signature = TOMUtil.signMessage(configuration.getPrivateKey(),
+//        request.toString().getBytes());
+
         byte[] signature = TOMUtil.signMessage(proxy.getViewManager().getStaticConf().getPrivateKey(),
                                                                             request.toString().getBytes());
         request.setSignature(signature);

@@ -15,35 +15,33 @@ limitations under the License.
 */
 package bftsmart.reconfiguration;
 
-import bftsmart.reconfiguration.views.View;
-
 /**
  *
  * @author eduardo
  */
 public class ReconfigurationTest {
 
-    public ReconfigurationTest() {
+   /* public ReconfigurationTest() {
     }
 
     public void run(int id){
-       /* ServiceProxy proxy = new ServiceProxy(id);
-        
-        ReconfigureRequest request = new ReconfigureRequest(id);
-        request.setProperty("f","1");
-        
-        System.out.println("Going to send a reconf!!!");
-        
-        byte[] reply = proxy.invoke(TOMUtil.getBytes(request), ReconfigurationManager.TOM_RECONFIG_REQUEST, false);
-        
-        ReconfigureReply r = (ReconfigureReply)TOMUtil.getObject(reply);*/
+//       /* ServiceProxy proxy = new ServiceProxy(id);
+//
+//        ReconfigureRequest request = new ReconfigureRequest(id);
+//        request.setProperty("f","1");
+//
+//        System.out.println("Going to send a reconf!!!");
+//
+//        byte[] reply = proxy.invoke(TOMUtil.getBytes(request), ReconfigurationManager.TOM_RECONFIG_REQUEST, false);
+//
+//        ReconfigureReply r = (ReconfigureReply)TOMUtil.getObject(reply);* /
         
         Reconfiguration rec = new Reconfiguration(id, "", null);
         
         //rec.setReconfiguration(ReconfigurationManager.CHANGE_F,"1");
         rec.setF(2);
         
-        ReconfigureReply r = rec.execute();
+        ReconfigureReply r = rec.execute(currentView);
         
         
         
@@ -54,13 +52,12 @@ public class ReconfigurationTest {
         rec.close();
    }
     
-    
+
     
     public static void main(String[] args){
         new ReconfigurationTest().run(Integer.parseInt(args[0]));
     }
     
-    
-    
-    
-}
+
+
+*/}

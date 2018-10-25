@@ -55,7 +55,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * need to organize the replies in batches.
  */
 public class ServiceReplica {
-    
+
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     // replica ID
@@ -151,7 +151,9 @@ public class ServiceReplica {
             initTOMLayer(); // initialize the TOM layer
 
 
+//            Thread askToRemove = new Thread(new RemoveThread(this.id, this.SVController.getStaticConf()));
             Thread askToRemove = new Thread(new RemoveThread(this.id));
+
             askToRemove.start();
 
 
@@ -163,7 +165,9 @@ public class ServiceReplica {
 //            logger.info("Waiting for the TTP: " + this.SVController.getCurrentView());
 
 
+//            Thread askToJoin = new Thread(new JoinThread(this.id, this.SVController.getStaticConf(), this.SVController.getCurrentView()));
             Thread askToJoin = new Thread(new JoinThread(this.id, this.SVController.getCurrentView()));
+
             askToJoin.start();
 
 

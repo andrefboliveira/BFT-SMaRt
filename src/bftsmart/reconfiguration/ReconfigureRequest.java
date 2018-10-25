@@ -15,12 +15,15 @@ limitations under the License.
 */
 package bftsmart.reconfiguration;
 
+import bftsmart.tom.util.ReconfigThread.PartialCertificate;
+
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  *
@@ -28,7 +31,10 @@ import java.util.Iterator;
  */
 public class ReconfigureRequest implements Externalizable{
 
+
     private int sender;
+    private List<PartialCertificate> replicaCertificates;
+
     private Hashtable<Integer,String> properties = new Hashtable<Integer,String>();
     private byte[] signature;
     
@@ -38,6 +44,11 @@ public class ReconfigureRequest implements Externalizable{
     
     public ReconfigureRequest(int sender) {
         this.sender = sender;
+    }
+
+    public ReconfigureRequest(int id, List<PartialCertificate> replicaCertificates) {
+        this.sender = sender;
+        this.replicaCertificates = replicaCertificates;
     }
 
     public void setSignature(byte[] signature) {
@@ -59,8 +70,11 @@ public class ReconfigureRequest implements Externalizable{
     public void setProperty(int prop, String value){
         this.properties.put(prop, value);
     }
-    
-     @Override
+
+    private static final long serialVersionUID = 3075554814378799672L;
+
+
+    @Override
     public void writeExternal(ObjectOutput out) throws IOException {
         out.writeInt(sender);
         

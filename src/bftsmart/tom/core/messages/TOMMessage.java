@@ -15,23 +15,18 @@ limitations under the License.
 */
 package bftsmart.tom.core.messages;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInput;
-import java.io.DataInputStream;
-import java.io.DataOutput;
-import java.io.DataOutputStream;
-import java.io.Externalizable;
-import java.io.IOException;
-
 import bftsmart.communication.SystemMessage;
 import bftsmart.tom.util.DebugInfo;
 import org.slf4j.LoggerFactory;
+
+import java.io.*;
 
 /**
  * This class represents a total ordered message
  */
 public class TOMMessage extends SystemMessage implements Externalizable, Comparable, Cloneable {
+
+	private static final long serialVersionUID = 6754423355909664311L;
 
 	//******* EDUARDO BEGIN **************//
 	private int viewID; //current sender view
@@ -187,6 +182,10 @@ public class TOMMessage extends SystemMessage implements Externalizable, Compara
 	 */
 	public byte[] getContent() {
 		return content;
+	}
+
+	public void setContent(byte[] content) {
+		this.content = content;
 	}
 
 	/**

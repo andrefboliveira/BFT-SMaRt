@@ -15,7 +15,11 @@ limitations under the License.
 */
 package bftsmart.reconfiguration;
 
+import bftsmart.reconfiguration.util.TOMConfiguration;
 import bftsmart.tom.util.KeyLoader;
+import bftsmart.tom.util.ReconfigThread.PartialCertificate;
+
+import java.util.List;
 
 /**
  * This class is used by the trusted client to add and remove replicas from the group
@@ -49,17 +53,27 @@ public class VMServices {
     
     /**
      * Adds a new server to the group
-     * 
      * @param id ID of the server to be added (needs to match the value in config/hosts.config)
      * @param ipAddress IP address of the server to be added (needs to match the value in config/hosts.config)
      * @param port Port of the server to be added (needs to match the value in config/hosts.config)
+     * @param replicaCertificates
      */
-    public void addServer(int id, String ipAddress, int port) {
+    public void addServer(int id, String ipAddress, int port, List<PartialCertificate> replicaCertificates, TOMConfiguration configuration) {
         
-        ViewManager viewManager = new ViewManager(configDir, keyLoader);
+        ViewManager viewManager = new ViewManager(id, configDir, keyLoader);
         
-        viewManager.addServer(id, ipAddress,port);
+        viewManager.addServer(id, ipAddress, port, replicaCertificates);
         
+        execute(viewManager, configuration);
+
+    }
+
+    public void addServer(int id, String ipAddress, int port, List<PartialCertificate> replicaCertificates) {
+
+        ViewManager viewManager = new ViewManager(id, configDir, keyLoader);
+
+        viewManager.addServer(id, ipAddress, port, replicaCertificates);
+
         execute(viewManager);
 
     }
@@ -69,20 +83,37 @@ public class VMServices {
      * 
      * @param id ID of the server to be removed 
      */
-    public void removeServer (int id) {
+    public void removeServer (int id, TOMConfiguration configuration) {
         
-        ViewManager viewManager = new ViewManager(keyLoader);
+        ViewManager viewManager = new ViewManager(id, keyLoader);
         
         viewManager.removeServer(id);
         
+        execute(viewManager, configuration);
+
+    }
+
+    public void removeServer (int id) {
+
+        ViewManager viewManager = new ViewManager(id, keyLoader);
+
+        viewManager.removeServer(id);
+
         execute(viewManager);
 
     }
     
+    private void execute(ViewManager viewManager, TOMConfiguration configuration) {
+        
+        viewManager.executeUpdates(configuration);
+        
+        viewManager.close();
+    }
+
     private void execute(ViewManager viewManager) {
-        
+
         viewManager.executeUpdates();
-        
+
         viewManager.close();
     }
 }
