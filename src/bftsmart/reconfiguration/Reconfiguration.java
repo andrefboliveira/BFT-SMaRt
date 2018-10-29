@@ -15,11 +15,12 @@ limitations under the License.
 */
 package bftsmart.reconfiguration;
 
+import bftsmart.reconfiguration.util.TOMConfiguration;
 import bftsmart.tom.ServiceProxy;
 import bftsmart.tom.core.messages.TOMMessageType;
 import bftsmart.tom.util.KeyLoader;
+import bftsmart.tom.util.ReconfigThread.FullCertificate;
 import bftsmart.tom.util.TOMUtil;
-import java.security.Provider;
 
 /**
  *
@@ -29,13 +30,16 @@ public class Reconfiguration {
 
     private ReconfigureRequest request;
     private ServiceProxy proxy;
-    private int id;
-    
+    private int idTTP;
+    private int joiningReplicaID;
+
+
     private KeyLoader keyLoader;
     private String configDir;
-    
-    public Reconfiguration(int id, String configDir, KeyLoader loader) {
-        this.id = id;
+
+    public Reconfiguration(int joiningReplicaID, int idTTP, String configDir, KeyLoader loader) {
+        this.idTTP = idTTP;
+        this.joiningReplicaID = joiningReplicaID;
         
         this.keyLoader = loader;
         this.configDir = configDir;
@@ -45,12 +49,13 @@ public class Reconfiguration {
     
     public void connect(){
         if(proxy == null){
-            proxy = new ServiceProxy(id, configDir, null, null, keyLoader);
+            proxy = new ServiceProxy(idTTP, configDir, null, null, keyLoader);
         }
     }
-    
-    public void addServer(int id, String ip, int port){
+
+    public void addServer(int id, String ip, int port, FullCertificate fullCertificate) {
         this.setReconfiguration(ServerViewController.ADD_SERVER, id + ":" + ip + ":" + port);
+        this.request.setFullCertificate(fullCertificate);
     }
     
     public void removeServer(int id){
@@ -66,14 +71,16 @@ public class Reconfiguration {
     public void setReconfiguration(int prop, String value){
         if(request == null){
             //request = new ReconfigureRequest(proxy.getViewManager().getStaticConf().getProcessId());
-            request = new ReconfigureRequest(id);
+            request = new ReconfigureRequest(this.joiningReplicaID);
         }
         request.setProperty(prop, value);
     }
-    
-    public ReconfigureReply execute(){
-        byte[] signature = TOMUtil.signMessage(proxy.getViewManager().getStaticConf().getPrivateKey(),
-                                                                            request.toString().getBytes());
+
+    public ReconfigureReply execute(TOMConfiguration joiningReplicaConfig) {
+
+        byte[] signature = TOMUtil.signMessage(joiningReplicaConfig.getPrivateKey(),
+                request.toString().getBytes());
+
         request.setSignature(signature);
         byte[] reply = proxy.invoke(TOMUtil.getBytes(request), TOMMessageType.RECONFIG);
         request = null;

@@ -15,7 +15,9 @@ limitations under the License.
 */
 package bftsmart.reconfiguration;
 
+import bftsmart.reconfiguration.util.TOMConfiguration;
 import bftsmart.tom.util.KeyLoader;
+import bftsmart.tom.util.ReconfigThread.FullCertificate;
 
 /**
  * This class is used by the trusted client to add and remove replicas from the group
@@ -49,18 +51,19 @@ public class VMServices {
     
     /**
      * Adds a new server to the group
-     * 
      * @param id ID of the server to be added (needs to match the value in config/hosts.config)
      * @param ipAddress IP address of the server to be added (needs to match the value in config/hosts.config)
      * @param port Port of the server to be added (needs to match the value in config/hosts.config)
+     * @param joiningReplicaConfig
+     * @param fullCertificate
      */
-    public void addServer(int id, String ipAddress, int port) {
-        
-        ViewManager viewManager = new ViewManager(configDir, keyLoader);
-        
-        viewManager.addServer(id, ipAddress,port);
-        
-        execute(viewManager);
+    public void addServer(int id, String ipAddress, int port, TOMConfiguration joiningReplicaConfig, FullCertificate fullCertificate) {
+
+        ViewManager viewManager = new ViewManager(joiningReplicaConfig.getProcessId(), joiningReplicaConfig.getTTPId(), configDir, keyLoader);
+
+        viewManager.addServer(id, ipAddress, port, fullCertificate);
+
+        execute(viewManager, joiningReplicaConfig);
 
     }
     
@@ -69,19 +72,19 @@ public class VMServices {
      * 
      * @param id ID of the server to be removed 
      */
-    public void removeServer (int id) {
-        
-        ViewManager viewManager = new ViewManager(keyLoader);
+    public void removeServer(int id, TOMConfiguration joiningReplicaConfig) {
+
+        ViewManager viewManager = new ViewManager(joiningReplicaConfig.getProcessId(), joiningReplicaConfig.getTTPId(), keyLoader);
         
         viewManager.removeServer(id);
-        
-        execute(viewManager);
+
+        execute(viewManager, joiningReplicaConfig);
 
     }
-    
-    private void execute(ViewManager viewManager) {
-        
-        viewManager.executeUpdates();
+
+    private void execute(ViewManager viewManager, TOMConfiguration joiningReplicaConfig) {
+
+        viewManager.executeUpdates(joiningReplicaConfig);
         
         viewManager.close();
     }

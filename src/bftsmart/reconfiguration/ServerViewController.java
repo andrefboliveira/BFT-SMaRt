@@ -15,21 +15,22 @@ limitations under the License.
 */
 package bftsmart.reconfiguration;
 
-import java.net.InetSocketAddress;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.StringTokenizer;
-
 import bftsmart.reconfiguration.views.View;
 import bftsmart.tom.core.TOMLayer;
 import bftsmart.tom.core.messages.TOMMessage;
 import bftsmart.tom.util.KeyLoader;
+import bftsmart.tom.util.ReconfigThread.FullCertificate;
+import bftsmart.tom.util.ReconfigThread.PartialCertificate;
 import bftsmart.tom.util.TOMUtil;
-import java.security.Provider;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.StringTokenizer;
 
 /**
  *
@@ -126,6 +127,21 @@ public class ServerViewController extends ViewController {
                             if(id != request.getSender()){
                                 add = false;
                             }
+
+                            FullCertificate fullCertificate = request.getFullCertificate();
+
+                            for (PartialCertificate replicaCertificate : fullCertificate.getReplicaCertificates()) {
+                                boolean correctSignature = TOMUtil.verifySignature(replicaCertificate.getPubKey(),
+                                        fullCertificate.getMessage().getBytes(StandardCharsets.UTF_8),
+                                        replicaCertificate.getSignature());
+
+                                if (!correctSignature) {
+                                    add = false;
+                                    break;
+
+                                }
+                            }
+
                         }else{
                             add = false;
                         }

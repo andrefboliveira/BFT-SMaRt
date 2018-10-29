@@ -15,23 +15,19 @@ limitations under the License.
 */
 package bftsmart.reconfiguration;
 
-import java.io.BufferedReader;
+import bftsmart.communication.server.ServerConnection;
+import bftsmart.reconfiguration.util.TOMConfiguration;
+import bftsmart.reconfiguration.views.View;
+import bftsmart.tom.util.KeyLoader;
+import bftsmart.tom.util.ReconfigThread.FullCertificate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.ByteArrayOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Scanner;
-import java.util.StringTokenizer;
-
-import bftsmart.communication.server.ServerConnection;
-import bftsmart.reconfiguration.views.View;
-import bftsmart.tom.util.KeyLoader;
-import java.security.Provider;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -40,8 +36,8 @@ import org.slf4j.LoggerFactory;
 public class ViewManager {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
-    
-    private int id;
+
+    private int idTTP;
     private Reconfiguration rec = null;
     //private Hashtable<Integer, ServerConnection> connections = new Hashtable<Integer, ServerConnection>();
     private ServerViewController controller;
@@ -49,55 +45,24 @@ public class ViewManager {
     //in the system will execute the reconfiguration request
     private List<Integer> addIds = new LinkedList<Integer>();
 
-    public ViewManager(KeyLoader loader) {
-        this("", loader);
+    public ViewManager(int joiningReplicaID, int idTTP, KeyLoader loader) {
+        this(joiningReplicaID, idTTP, "", loader);
     }
 
-    public ViewManager(String configHome, KeyLoader loader) {
-        this.id = loadID(configHome);
-        this.controller = new ServerViewController(id, configHome, loader);
-        this.rec = new Reconfiguration(id, configHome, loader);
+    public ViewManager(int joiningReplicaID, int idTTP, String configHome, KeyLoader loader) {
+        this.idTTP = idTTP;
+        this.controller = new ServerViewController(this.idTTP, configHome, loader);
+        this.rec = new Reconfiguration(joiningReplicaID, this.idTTP, configHome, loader);
     }
 
     public void connect(){
         this.rec.connect();
     }
-    
-    private int loadID(String configHome) {
-        try {
-            String path = "";
-            String sep = System.getProperty("file.separator");
-            if (configHome == null || configHome.equals("")) {
-                path = "config" + sep + "system.config";
-            } else {
-                path = configHome + sep + "system.config";
-            }
-            FileReader fr = new FileReader(path);
-            BufferedReader rd = new BufferedReader(fr);
-            String line = null;
-            while ((line = rd.readLine()) != null) {
-                if (!line.startsWith("#")) {
-                    StringTokenizer str = new StringTokenizer(line, "=");
-                    if (str.countTokens() > 1
-                            && str.nextToken().trim().equals("system.ttp.id")) {
-                        fr.close();
-                        rd.close();
-                        return Integer.parseInt(str.nextToken().trim());
-                    }
-                }
-            }
-            fr.close();
-            rd.close();
-            return -1;
-        } catch (Exception e) {
-            logger.error("Could not load ID", e);
-            return -1;
-        }
-    }
 
-    public void addServer(int id, String ip, int port) {
+
+    public void addServer(int id, String ip, int port, FullCertificate fullCertificate) {
         this.controller.getStaticConf().addHostInfo(id, ip, port);
-        rec.addServer(id, ip, port);
+        rec.addServer(id, ip, port, fullCertificate);
         addIds.add(id);
     }
 
@@ -109,13 +74,13 @@ public class ViewManager {
         rec.setF(f);
     }
 
-    public void executeUpdates() {
+    public void executeUpdates(TOMConfiguration joiningReplicaConfig) {
         connect();
-        ReconfigureReply r = rec.execute();
+        ReconfigureReply r = rec.execute(joiningReplicaConfig);
         View v = r.getView();
         logger.info("New view f: " + v.getF());
 
-        VMMessage msg = new VMMessage(id, r);
+        VMMessage msg = new VMMessage(idTTP, r);
 
         if (addIds.size() > 0) { 
             sendResponse(addIds.toArray(new Integer[1]), msg);
@@ -143,7 +108,7 @@ public class ViewManager {
         for (Integer i : targets) {
             //br.ufsc.das.tom.util.Logger.println("(ServersCommunicationLayer.send) Sending msg to replica "+i);
             try {
-                if (i.intValue() != id) {
+                if (i.intValue() != idTTP) {
                     getConnection(i.intValue()).send(data, true);
                 }
             } catch (InterruptedException ex) {

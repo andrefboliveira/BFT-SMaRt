@@ -151,10 +151,6 @@ public class ServiceReplica {
             initTOMLayer(); // initialize the TOM layer
 
 
-            Thread askToRemove = new Thread(new RemoveThread(this.id));
-            askToRemove.start();
-
-
 
         } else {
             logger.info("Not in current view: " + this.SVController.getCurrentView());
@@ -163,7 +159,8 @@ public class ServiceReplica {
 //            logger.info("Waiting for the TTP: " + this.SVController.getCurrentView());
 
 
-            Thread askToJoin = new Thread(new JoinThread(this.id, this.SVController.getCurrentView()));
+					Thread askToJoin = new Thread(new JoinThread(this.id, this.SVController.getStaticConf(), this.SVController.getCurrentView()));
+//            Thread askToJoin = new Thread(new JoinThread(this.id, this.SVController.getCurrentView()));
             askToJoin.start();
 
 
@@ -177,6 +174,11 @@ public class ServiceReplica {
             
         }
         initReplica();
+
+			//            Thread askToRemove = new Thread(new RemoveThread(this.id));
+			Thread askToRemove = new Thread(new RemoveThread(this.id, this.SVController.getStaticConf()));
+
+			askToRemove.start();
     }
 
     /**

@@ -22,16 +22,19 @@ public class JoinThread implements Runnable {
 
 
 	private final int id;
+	private TOMConfiguration joiningReplicaConfig;
 	private View currentView;
 
 	static String requestString = "ASK_JOIN";
 	static String replyString = "YES";
 
 
-	public JoinThread(int id, View currentView) {
+	public JoinThread(int id, TOMConfiguration joiningReplicaConfig, View currentView) {
 		this.id = id;
+		this.joiningReplicaConfig = joiningReplicaConfig;
 		this.currentView = currentView;
 	}
+
 
 	@Override
 	public void run() {
@@ -42,6 +45,11 @@ public class JoinThread implements Runnable {
 			Scanner sc = new Scanner(System.in);
 //			String userReply = sc.next();
 			String userReply = "JOIN";
+			try {
+				Thread.sleep(2000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 
 			if (userReply.equalsIgnoreCase("JOIN")) {
 
@@ -63,15 +71,13 @@ public class JoinThread implements Runnable {
 
 		ServiceProxy client = new ServiceProxy(7003, null,
 
-//		ServiceProxy client = new ServiceProxy(configuration.getTTPId(), configuration.getConfigHome(),
+//		ServiceProxy client = new ServiceProxy(joiningReplicaConfig.getTTPId(), joiningReplicaConfig.getConfigHome(),
 						new Comparator<byte[]>() {
 							@Override
 							public int compare(byte[] o1, byte[] o2) {
 								String reply1 = null;
 								String reply2 = null;
 
-								System.out.println(o1);
-								System.out.println(o2);
 								try {
 									try (ByteArrayInputStream byteIn = new ByteArrayInputStream(o1);
 											 ObjectInputStream objIn = new ObjectInputStream(byteIn)) {
@@ -124,10 +130,10 @@ public class JoinThread implements Runnable {
 												certificate.add(replicaReply.getPartialCertificate());
 
 
-												System.out.println("message: " + message);
+//												System.out.println("message: " + message);
 
 
-												System.out.println("pubkey: " + replicaReply.getPartialCertificate().getPubKey());
+//												System.out.println("pubkey: " + replicaReply.getPartialCertificate().getPubKey());
 
 											}
 
@@ -180,13 +186,12 @@ public class JoinThread implements Runnable {
 			try (ByteArrayInputStream byteIn = new ByteArrayInputStream(reply);
 					 ObjectInputStream objIn = new ObjectInputStream(byteIn)) {
 
-				FullCertificate replicaReply = (FullCertificate) objIn.readObject();
-				String stringReply = replicaReply.getMessage();
+				FullCertificate fullCertificate = (FullCertificate) objIn.readObject();
+				String stringReply = fullCertificate.getMessage();
 
 
 				if (replyString.equalsIgnoreCase(stringReply)) {
-//					addReplica(configuration, currentView, replicaReply.getReplicaCertificates());
-					addReplica(currentView, replicaReply.getReplicaCertificates());
+					addReplica(fullCertificate);
 
 				}
 			}
@@ -199,15 +204,14 @@ public class JoinThread implements Runnable {
 		}
 	}
 
-	public static void serverReconfigRequest(String input, ObjectOutput out, TOMConfiguration replicaConf) throws IOException {
-		System.out.println("Here");
+	public static void serverReconfigRequest(String input, ObjectOutput out, TOMConfiguration executingReplicaConf) throws IOException {
 		if (input.equals(requestString)) {
 
 			byte[] message = replyString.getBytes(StandardCharsets.UTF_8);
 
-			PublicKey pubKey = replicaConf.getPublicKey();
+			PublicKey pubKey = executingReplicaConf.getPublicKey();
 
-			byte[] signature = TOMUtil.signMessage(replicaConf.getPrivateKey(),
+			byte[] signature = TOMUtil.signMessage(executingReplicaConf.getPrivateKey(),
 							message);
 
 
@@ -216,41 +220,47 @@ public class JoinThread implements Runnable {
 
 			out.writeObject(reply);
 
-			System.out.println("(Request) PubKey: " + Arrays.toString(pubKey.getEncoded()));
-			System.out.println("(Request) Signature: " + Arrays.toString(signature));
+//			System.out.println("(Request) PubKey: " + Arrays.toString(pubKey.getEncoded()));
+//			System.out.println("(Request) Signature: " + Arrays.toString(signature));
 		}
 
 	}
 
 
-	private void addReplica(View currentView, List<PartialCertificate> replicaCertificates) {
+	private void addReplica(FullCertificate fullCertificate) {
 //		int suggestedID = Arrays.stream(currentView.getProcesses()).max().getAsInt() + 1;
 //		System.out.println("Enter ID (ID suggested " + suggestedID + "): ");
 ////                            int newID = sc.nextInt();
 //		int newID = suggestedID;
 
+/*
 
-		String suggestedIP = suggestNewIP(currentView).getHostAddress();
+		String suggestedIP = suggestNewIP().getHostAddress();
 		System.out.println("Enter IP (IP suggested " + suggestedIP + "): ");
 //                            String newIP = sc.next();
 		String newIP = suggestedIP;
 
-		int suggestedPort = suggestPort(currentView);
+		int suggestedPort = suggestPort();
 		System.out.println("Enter Port (Port suggested " + suggestedPort + "): ");
 //                            int newPort = sc.nextInt();
 		int newPort = suggestedPort;
+*/
 
+//		int newID = suggestedID;
+
+		String newIP = joiningReplicaConfig.getLocalAddress(this.id).getHostName();
+		int newPort = joiningReplicaConfig.getPort(this.id);
 
 		System.out.println("Adding Server: " + this.id + "(/" + newIP + ":" + newPort + ")");
 
 		VMServices reconfigServices = new VMServices();
 
-//		reconfigServices.addServer(this.id, newIP, newPort, replicaCertificates);
-		reconfigServices.addServer(this.id, newIP, newPort);
+		reconfigServices.addServer(this.id, newIP, newPort, this.joiningReplicaConfig, fullCertificate);
+
 
 	}
 
-	private InetAddress suggestNewIP(View currentView) {
+	private InetAddress suggestNewIP() {
 //		JaroWinklerDistance measureDistance = new JaroWinklerDistance();
 
 		double maxSimilarity = Double.NEGATIVE_INFINITY;
@@ -307,7 +317,7 @@ public class JoinThread implements Runnable {
 						&& splitSourceIP[2].equals(splitTargetIP[2]);
 	}
 
-	private int suggestPort(View currentView) {
+	private int suggestPort() {
 		int[] ports = Arrays.stream(currentView.getProcesses()).map(id -> currentView.getAddress(id).getPort()).toArray();
 
 		return ports[ports.length - 1] + (ports[1] - ports[0]);

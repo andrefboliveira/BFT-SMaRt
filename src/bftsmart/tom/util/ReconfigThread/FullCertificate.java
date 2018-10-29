@@ -24,7 +24,6 @@ public class FullCertificate implements Serializable {
 	}
 
 	private static final long serialVersionUID = 8423132992633434574L;
-
 	private void writeObject(ObjectOutputStream oos) throws IOException {
 		oos.defaultWriteObject();
 

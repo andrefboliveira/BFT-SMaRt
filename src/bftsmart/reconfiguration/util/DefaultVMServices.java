@@ -14,7 +14,7 @@ import bftsmart.reconfiguration.VMServices;
 public class DefaultVMServices extends VMServices {
     
     public static void main(String[] args) throws InterruptedException {
-
+/*
         if(args.length == 1){
             System.out.println("####Tpp Service[Disjoint]####");
 
@@ -39,7 +39,7 @@ public class DefaultVMServices extends VMServices {
 
         Thread.sleep(2000);//2s
         
-
+*/
         System.exit(0);
     }
 }

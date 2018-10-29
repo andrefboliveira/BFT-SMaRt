@@ -15,6 +15,8 @@ limitations under the License.
 */
 package bftsmart.reconfiguration;
 
+import bftsmart.tom.util.ReconfigThread.FullCertificate;
+
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -31,7 +33,7 @@ public class ReconfigureRequest implements Externalizable{
     private int sender;
     private Hashtable<Integer,String> properties = new Hashtable<Integer,String>();
     private byte[] signature;
-    
+    FullCertificate fullCertificate;
     
     public ReconfigureRequest() {
     }
@@ -59,8 +61,18 @@ public class ReconfigureRequest implements Externalizable{
     public void setProperty(int prop, String value){
         this.properties.put(prop, value);
     }
-    
-     @Override
+
+    public FullCertificate getFullCertificate() {
+        return fullCertificate;
+    }
+
+    public void setFullCertificate(FullCertificate fullCertificate) {
+        this.fullCertificate = fullCertificate;
+    }
+
+    private static final long serialVersionUID = 3075554814378799672L;
+
+    @Override
     public void writeExternal(ObjectOutput out) throws IOException {
         out.writeInt(sender);
         
@@ -81,6 +93,10 @@ public class ReconfigureRequest implements Externalizable{
         
         out.writeInt(signature.length);
         out.write(signature);
+
+        if (properties.containsKey(ServerViewController.ADD_SERVER)) {
+            out.writeObject(fullCertificate);
+        }
        
     }
 
@@ -99,6 +115,10 @@ public class ReconfigureRequest implements Externalizable{
         
         this.signature = new byte[in.readInt()];
         in.read(this.signature);
+
+        if (properties.containsKey(ServerViewController.ADD_SERVER)) {
+            this.fullCertificate = (FullCertificate) in.readObject();
+        }
         
     }
     
