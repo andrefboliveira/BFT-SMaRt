@@ -7,23 +7,39 @@ import java.io.Serializable;
 import java.util.List;
 
 public class FullCertificate implements Serializable {
-	private String message;
+	private String receivedMessage;
+	private int joiningReplicaID;
+	private long consensusTimestamp;
+
 	private List<PartialCertificate> replicaCertificates;
 
-	public FullCertificate(String message, List<PartialCertificate> replicaCertificates) {
-		this.message = message;
+
+	public FullCertificate(String receivedMessage, int joiningReplicaID, long consensusTimestamp, List<PartialCertificate> replicaCertificates) {
+		this.receivedMessage = receivedMessage;
+		this.joiningReplicaID = joiningReplicaID;
+		this.consensusTimestamp = consensusTimestamp;
 		this.replicaCertificates = replicaCertificates;
 	}
 
-	public String getMessage() {
-		return message;
+	public String getReceivedMessage() {
+		return receivedMessage;
+	}
+
+	public int getJoiningReplicaID() {
+		return joiningReplicaID;
+	}
+
+	public long getConsensusTimestamp() {
+		return consensusTimestamp;
 	}
 
 	public List<PartialCertificate> getReplicaCertificates() {
 		return replicaCertificates;
 	}
 
-	private static final long serialVersionUID = 8423132992633434574L;
+	private static final long serialVersionUID = -4518009693757393043L;
+
+
 	private void writeObject(ObjectOutputStream oos) throws IOException {
 		oos.defaultWriteObject();
 

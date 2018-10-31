@@ -70,7 +70,8 @@ public class ReconfigureRequest implements Externalizable{
         this.fullCertificate = fullCertificate;
     }
 
-    private static final long serialVersionUID = 3075554814378799672L;
+    private static final long serialVersionUID = 297390811111704769L;
+
 
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {

@@ -15,6 +15,7 @@ limitations under the License.
 */
 package bftsmart.reconfiguration;
 
+import bftsmart.reconfiguration.util.TOMConfiguration;
 import bftsmart.reconfiguration.views.View;
 import bftsmart.tom.core.TOMLayer;
 import bftsmart.tom.core.messages.TOMMessage;
@@ -25,8 +26,11 @@ import bftsmart.tom.util.TOMUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.net.InetSocketAddress;
-import java.nio.charset.StandardCharsets;
+import java.security.PublicKey;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -108,7 +112,7 @@ public class ServerViewController extends ViewController {
         return !this.updates.isEmpty();
     }
 
-    public void enqueueUpdate(TOMMessage up) {
+    public void enqueueUpdate(TOMMessage up, long currentTimestamp) {
         ReconfigureRequest request = (ReconfigureRequest) TOMUtil.getObject(up.getContent());
         if (TOMUtil.verifySignature(getStaticConf().getPublicKey(request.getSender()),
                 request.toString().getBytes(), request.getSignature())) {
@@ -128,18 +132,50 @@ public class ServerViewController extends ViewController {
                                 add = false;
                             }
 
+
                             FullCertificate fullCertificate = request.getFullCertificate();
 
+                            if (fullCertificate.getJoiningReplicaID() != request.getSender()) {
+                                add = false;
+                            }
+
+                            TOMConfiguration conf = new TOMConfiguration(fullCertificate.getJoiningReplicaID(), null);
+
                             for (PartialCertificate replicaCertificate : fullCertificate.getReplicaCertificates()) {
-                                boolean correctSignature = TOMUtil.verifySignature(replicaCertificate.getPubKey(),
-                                        fullCertificate.getMessage().getBytes(StandardCharsets.UTF_8),
-                                        replicaCertificate.getSignature());
 
-                                if (!correctSignature) {
-                                    add = false;
-                                    break;
+                                PublicKey signingPubKey = conf.getPublicKey(replicaCertificate.getSigningReplicaID());
 
+                                try (ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
+                                     ObjectOutputStream objOut = new ObjectOutputStream(byteOut);) {
+                                    objOut.writeInt(fullCertificate.getJoiningReplicaID());
+                                    objOut.writeLong(fullCertificate.getConsensusTimestamp());
+                                    objOut.write(fullCertificate.getReceivedMessage().getBytes());
+                                    objOut.write(replicaCertificate.getSigningReplicaID());
+
+
+                                    objOut.flush();
+                                    byteOut.flush();
+
+//                                    getReceivedMessage().getBytes(StandardCharsets.UTF_8)
+
+
+                                    boolean correctSignature = TOMUtil.verifySignature(signingPubKey,
+                                            byteOut.toByteArray(),
+                                            replicaCertificate.getSignature());
+
+
+                                    if (!correctSignature) {
+                                        add = false;
+                                        break;
+
+                                    }
+
+
+                                } catch (IOException e) {
+                                    e.printStackTrace();
                                 }
+
+
                             }
 
                         }else{
