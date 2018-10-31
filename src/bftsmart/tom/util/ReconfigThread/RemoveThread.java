@@ -29,6 +29,12 @@ public class RemoveThread implements Runnable{
 				VMServices reconfigServices = new VMServices();
 				reconfigServices.removeServer(this.id, this.joiningReplicaConfig);
 
+				try {
+					Thread.sleep(2000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+
 				System.exit(0);
 
 				break;

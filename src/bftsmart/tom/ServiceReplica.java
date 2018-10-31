@@ -361,7 +361,8 @@ public class ServiceReplica {
                                 throw new UnsupportedOperationException("Non-existent interface");
                             }   break;
                         case RECONFIG:
-                            SVController.enqueueUpdate(request);
+                            // firstRequest.timestamp;
+                            SVController.enqueueUpdate(request, firstRequest.timestamp);
                             break;
                         default: //this code should never be executed
                             throw new RuntimeException("Should never reach here!");

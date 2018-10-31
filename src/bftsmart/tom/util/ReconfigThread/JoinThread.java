@@ -13,8 +13,6 @@ import java.io.*;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
-import java.nio.charset.StandardCharsets;
-import java.security.PublicKey;
 import java.util.*;
 
 
@@ -72,111 +70,124 @@ public class JoinThread implements Runnable {
 		ServiceProxy client = new ServiceProxy(7003, null,
 
 //		ServiceProxy client = new ServiceProxy(joiningReplicaConfig.getTTPId(), joiningReplicaConfig.getConfigHome(),
-						new Comparator<byte[]>() {
-							@Override
-							public int compare(byte[] o1, byte[] o2) {
-								String reply1 = null;
-								String reply2 = null;
+				new Comparator<byte[]>() {
+					@Override
+					public int compare(byte[] o1, byte[] o2) {
+						CoreCertificate reply1 = null;
+						CoreCertificate reply2 = null;
 
-								try {
-									try (ByteArrayInputStream byteIn = new ByteArrayInputStream(o1);
-											 ObjectInputStream objIn = new ObjectInputStream(byteIn)) {
-										ReplicaReconfigReply replicaReply1 = (ReplicaReconfigReply) objIn.readObject();
+						try {
+							try (ByteArrayInputStream byteIn = new ByteArrayInputStream(o1);
+							     ObjectInputStream objIn = new ObjectInputStream(byteIn)) {
+								ReplicaReconfigReply replicaReply1 = (ReplicaReconfigReply) objIn.readObject();
 
-										reply1 = replicaReply1.getMessage();
+								reply1 = replicaReply1.getCertificateValues();
 
-									}
-
-									try (ByteArrayInputStream byteIn = new ByteArrayInputStream(o2);
-											 ObjectInputStream objIn = new ObjectInputStream(byteIn)) {
-
-										ReplicaReconfigReply replicaReply2 = (ReplicaReconfigReply) objIn.readObject();
-
-										reply2 = replicaReply2.getMessage();
-									}
-
-								} catch (IOException | ClassNotFoundException e) {
-									e.printStackTrace();
-								}
-
-
-								return reply1.equals(reply2) ? 0 : -1;
 							}
-						},
-						new Extractor() {
 
-							@Override
-							public TOMMessage extractResponse(TOMMessage[] replies, int sameContent, int lastReceived) {
+							try (ByteArrayInputStream byteIn = new ByteArrayInputStream(o2);
+							     ObjectInputStream objIn = new ObjectInputStream(byteIn)) {
 
-								TOMMessage newReply = null;
-								byte[] newContent = new byte[0];
+								ReplicaReconfigReply replicaReply2 = (ReplicaReconfigReply) objIn.readObject();
 
-								String message = null;
-								List<PartialCertificate> certificate = new ArrayList<PartialCertificate>();
-								try {
-
-									for (TOMMessage reply : replies) {
-										if (reply != null) {
-											byte[] content = reply.getContent();
-
-											try (ByteArrayInputStream byteIn = new ByteArrayInputStream(content);
-													 ObjectInputStream objIn = new ObjectInputStream(byteIn)) {
-
-												ReplicaReconfigReply replicaReply = (ReplicaReconfigReply) objIn.readObject();
-
-
-												message = replicaReply.getMessage();
-
-												certificate.add(replicaReply.getPartialCertificate());
-
-
-//												System.out.println("message: " + message);
-
-
-//												System.out.println("pubkey: " + replicaReply.getPartialCertificate().getPubKey());
-
-											}
-
-										}
-
-									}
-
-
-									try (ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
-											 ObjectOutputStream objOut = new ObjectOutputStream(byteOut);) {
-
-										FullCertificate fullCertificate = new FullCertificate(message, certificate);
-
-										objOut.writeObject(fullCertificate);
-
-										objOut.flush();
-										byteOut.flush();
-
-										newContent = byteOut.toByteArray();
-									}
-
-								} catch (IOException | ClassNotFoundException e) {
-									e.printStackTrace();
-
-								}
-
-								try {
-									newReply = (TOMMessage) replies[lastReceived].clone();
-									newReply.setContent(newContent);
-								} catch (CloneNotSupportedException e) {
-									e.printStackTrace();
-								}
-
-								return newReply;
+								reply2 = replicaReply2.getCertificateValues();
 							}
-						}, null);
+
+						} catch (IOException | ClassNotFoundException e) {
+							e.printStackTrace();
+						}
+
+
+						return reply1.getReceivedMessage().equals(reply2.getReceivedMessage())
+								&& reply1.getJoiningReplicaID() == reply2.getJoiningReplicaID()
+								&& reply1.getConsensusTimestamp() == reply2.getConsensusTimestamp()
+								? 0 : -1;
+					}
+				},
+				new Extractor() {
+
+					@Override
+					public TOMMessage extractResponse(TOMMessage[] replies, int sameContent, int lastReceived) {
+
+						TOMMessage newReply = null;
+						byte[] newContent = new byte[0];
+
+
+						try {
+
+							List<PartialCertificate> certificate = new ArrayList<PartialCertificate>();
+
+							String message = null;
+							int joiningReplicaID = -1;
+							long consensusTimestamp = -1;
+
+
+							for (TOMMessage reply : replies) {
+								if (reply != null) {
+									byte[] content = reply.getContent();
+
+									try (ByteArrayInputStream byteIn = new ByteArrayInputStream(content);
+									     ObjectInputStream objIn = new ObjectInputStream(byteIn)) {
+
+										ReplicaReconfigReply replicaReply = (ReplicaReconfigReply) objIn.readObject();
+
+
+										CoreCertificate certificateValues = replicaReply.getCertificateValues();
+
+										joiningReplicaID = certificateValues.getJoiningReplicaID();
+										consensusTimestamp = certificateValues.getConsensusTimestamp();
+										message = certificateValues.getReceivedMessage();
+
+										PartialCertificate partialCertificate = new PartialCertificate(certificateValues.getExecutingReplicaID(), replicaReply.getSignature());
+
+
+										certificate.add(partialCertificate);
+
+
+									}
+
+								}
+
+							}
+
+
+							try (ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
+							     ObjectOutputStream objOut = new ObjectOutputStream(byteOut);) {
+
+								FullCertificate fullCertificate = new FullCertificate(message, joiningReplicaID,
+										consensusTimestamp, certificate);
+
+								objOut.writeObject(fullCertificate);
+
+								objOut.flush();
+								byteOut.flush();
+
+								newContent = byteOut.toByteArray();
+							}
+
+						} catch (IOException | ClassNotFoundException e) {
+							e.printStackTrace();
+
+						}
+
+						try {
+							newReply = (TOMMessage) replies[lastReceived].clone();
+							newReply.setContent(newContent);
+						} catch (CloneNotSupportedException e) {
+							e.printStackTrace();
+						}
+
+						return newReply;
+					}
+				}, null);
 
 		try (ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
-				 ObjectOutputStream objOut = new ObjectOutputStream(byteOut);) {
+		     ObjectOutputStream objOut = new ObjectOutputStream(byteOut);) {
 
 			objOut.writeObject(MapRequestTypeTest.RECONFIG);
 
 			objOut.writeUTF(requestString);
+			objOut.writeInt(this.id);
 
 			objOut.flush();
 			byteOut.flush();
@@ -184,10 +195,10 @@ public class JoinThread implements Runnable {
 			byte[] reply = client.invokeOrdered(byteOut.toByteArray());
 
 			try (ByteArrayInputStream byteIn = new ByteArrayInputStream(reply);
-					 ObjectInputStream objIn = new ObjectInputStream(byteIn)) {
+			     ObjectInputStream objIn = new ObjectInputStream(byteIn)) {
 
 				FullCertificate fullCertificate = (FullCertificate) objIn.readObject();
-				String stringReply = fullCertificate.getMessage();
+				String stringReply = fullCertificate.getReceivedMessage();
 
 
 				if (replyString.equalsIgnoreCase(stringReply)) {
@@ -204,24 +215,34 @@ public class JoinThread implements Runnable {
 		}
 	}
 
-	public static void serverReconfigRequest(String input, ObjectOutput out, TOMConfiguration executingReplicaConf) throws IOException {
+	public static void serverReconfigRequest(String input, ObjectOutput out, int joiningReplicaID, long consensusTimestamp, TOMConfiguration executingReplicaConf) throws IOException {
 		if (input.equals(requestString)) {
 
-			byte[] message = replyString.getBytes(StandardCharsets.UTF_8);
 
-			PublicKey pubKey = executingReplicaConf.getPublicKey();
+			CoreCertificate certificateValues = new CoreCertificate(joiningReplicaID, consensusTimestamp, replyString, executingReplicaConf.getProcessId());
 
-			byte[] signature = TOMUtil.signMessage(executingReplicaConf.getPrivateKey(),
-							message);
+			byte[] signature;
+
+			try (ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
+			     ObjectOutputStream objOut = new ObjectOutputStream(byteOut);) {
+
+				certificateValues.serialize(objOut);
 
 
-			PartialCertificate partialCertificate = new PartialCertificate(pubKey, signature);
-			ReplicaReconfigReply reply = new ReplicaReconfigReply(replyString, partialCertificate);
+				objOut.flush();
+				byteOut.flush();
+
+
+				signature = TOMUtil.signMessage(executingReplicaConf.getPrivateKey(),
+						byteOut.toByteArray());
+			}
+
+
+			ReplicaReconfigReply reply = new ReplicaReconfigReply(certificateValues, signature);
 
 			out.writeObject(reply);
 
-//			System.out.println("(Request) PubKey: " + Arrays.toString(pubKey.getEncoded()));
-//			System.out.println("(Request) Signature: " + Arrays.toString(signature));
+
 		}
 
 	}
@@ -313,8 +334,8 @@ public class JoinThread implements Runnable {
 
 
 		return splitSourceIP[0].equals(splitTargetIP[0])
-						&& splitSourceIP[1].equals(splitTargetIP[1])
-						&& splitSourceIP[2].equals(splitTargetIP[2]);
+				&& splitSourceIP[1].equals(splitTargetIP[1])
+				&& splitSourceIP[2].equals(splitTargetIP[2]);
 	}
 
 	private int suggestPort() {

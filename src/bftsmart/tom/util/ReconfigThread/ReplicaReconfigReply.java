@@ -7,23 +7,25 @@ import java.io.Serializable;
 
 public class ReplicaReconfigReply implements Serializable {
 
-	private String message;
-	private PartialCertificate partialCertificate;
 
-	public ReplicaReconfigReply(String message, PartialCertificate partialCertificate) {
-		this.message = message;
-		this.partialCertificate = partialCertificate;
+	private final CoreCertificate certificateValues;
+	private final byte[] signature;
+
+	public ReplicaReconfigReply(CoreCertificate certificateValues, byte[] signature) {
+		this.certificateValues = certificateValues;
+		this.signature = signature;
+
 	}
 
-	public String getMessage() {
-		return message;
+	public CoreCertificate getCertificateValues() {
+		return certificateValues;
 	}
 
-	public PartialCertificate getPartialCertificate() {
-		return partialCertificate;
+	public byte[] getSignature() {
+		return signature;
 	}
 
-	private static final long serialVersionUID = 8753106719081595831L;
+	private static final long serialVersionUID = -155287492936914604L;
 
 	private void writeObject(ObjectOutputStream oos) throws IOException {
 		oos.defaultWriteObject();

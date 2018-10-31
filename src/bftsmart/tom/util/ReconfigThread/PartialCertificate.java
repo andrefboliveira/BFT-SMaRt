@@ -4,42 +4,35 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.security.PublicKey;
 
 public class PartialCertificate implements Serializable {
 
-	private PublicKey pubKey;
+	private int signingReplicaID;
 	private byte[] signature;
 
-	public PartialCertificate(PublicKey pubKey, byte[] signature) {
-		this.pubKey = pubKey;
+	public PartialCertificate(int signingReplicaID, byte[] signature) {
+		this.signingReplicaID = signingReplicaID;
 		this.signature = signature;
 	}
 
-	public PublicKey getPubKey() {
-		return pubKey;
+	public int getSigningReplicaID() {
+		return signingReplicaID;
 	}
 
 	public byte[] getSignature() {
 		return signature;
 	}
 
-	private static final long serialVersionUID = -7538880909110693295L;
+	private static final long serialVersionUID = 6992126703443504960L;
 
 
 	private void writeObject(ObjectOutputStream oos) throws IOException {
 		oos.defaultWriteObject();
 
-//		oos.writeObject(pubKey);
-//		oos.writeObject(signature);
-
 	}
 
 	private void readObject(ObjectInputStream ois) throws ClassNotFoundException, IOException {
 		ois.defaultReadObject();
-
-//		PublicKey pubKey = (PublicKey) ois.readObject();
-//		byte[] signature = (byte[]) ois.readObject();
 
 	}
 }
