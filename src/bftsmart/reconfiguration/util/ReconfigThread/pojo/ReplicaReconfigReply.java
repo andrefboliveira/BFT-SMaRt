@@ -1,4 +1,4 @@
-package bftsmart.tom.util.ReconfigThread;
+package bftsmart.reconfiguration.util.ReconfigThread.pojo;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;

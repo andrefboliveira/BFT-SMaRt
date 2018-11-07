@@ -15,13 +15,6 @@ limitations under the License.
 */
 package bftsmart.tom.core;
 
-import java.util.ArrayList;
-import java.util.concurrent.LinkedBlockingQueue;
-
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
 import bftsmart.consensus.Decision;
 import bftsmart.reconfiguration.ServerViewController;
 import bftsmart.statemanagement.ApplicationState;
@@ -32,9 +25,14 @@ import bftsmart.tom.core.messages.TOMMessageType;
 import bftsmart.tom.leaderchange.CertifiedDecision;
 import bftsmart.tom.server.Recoverable;
 import bftsmart.tom.util.BatchReader;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * This class implements a thread which will deliver totally ordered requests to the application
@@ -321,7 +319,8 @@ public final class DeliveryThread extends Thread {
 
             tomLayer.getCommunication().updateServersConnections();
         } else {
-            receiver.restart();
+//            receiver.restart();
+	        receiver.kill();
         }
     }
 

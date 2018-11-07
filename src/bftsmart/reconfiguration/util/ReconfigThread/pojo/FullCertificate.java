@@ -1,4 +1,4 @@
-package bftsmart.tom.util.ReconfigThread;
+package bftsmart.reconfiguration.util.ReconfigThread.pojo;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -8,15 +8,15 @@ import java.util.List;
 
 public class FullCertificate implements Serializable {
 	private String receivedMessage;
-	private int joiningReplicaID;
+	private int toReconfigureReplicaID;
 	private long consensusTimestamp;
 
 	private List<PartialCertificate> replicaCertificates;
 
 
-	public FullCertificate(String receivedMessage, int joiningReplicaID, long consensusTimestamp, List<PartialCertificate> replicaCertificates) {
+	public FullCertificate(String receivedMessage, int toReconfigureReplicaID, long consensusTimestamp, List<PartialCertificate> replicaCertificates) {
 		this.receivedMessage = receivedMessage;
-		this.joiningReplicaID = joiningReplicaID;
+		this.toReconfigureReplicaID = toReconfigureReplicaID;
 		this.consensusTimestamp = consensusTimestamp;
 		this.replicaCertificates = replicaCertificates;
 	}
@@ -25,8 +25,8 @@ public class FullCertificate implements Serializable {
 		return receivedMessage;
 	}
 
-	public int getJoiningReplicaID() {
-		return joiningReplicaID;
+	public int getToReconfigureReplicaID() {
+		return toReconfigureReplicaID;
 	}
 
 	public long getConsensusTimestamp() {

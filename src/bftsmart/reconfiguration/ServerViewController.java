@@ -15,13 +15,13 @@
  */
 package bftsmart.reconfiguration;
 
+import bftsmart.reconfiguration.util.ReconfigThread.pojo.FullCertificate;
+import bftsmart.reconfiguration.util.ReconfigThread.pojo.PartialCertificate;
 import bftsmart.reconfiguration.util.TOMConfiguration;
 import bftsmart.reconfiguration.views.View;
 import bftsmart.tom.core.TOMLayer;
 import bftsmart.tom.core.messages.TOMMessage;
 import bftsmart.tom.util.KeyLoader;
-import bftsmart.tom.util.ReconfigThread.FullCertificate;
-import bftsmart.tom.util.ReconfigThread.PartialCertificate;
 import bftsmart.tom.util.TOMUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -138,7 +138,7 @@ public class ServerViewController extends ViewController {
 
 
 							// Check if the certificate was sent by the joining replica
-							if (fullCertificate.getJoiningReplicaID() != request.getSender()) {
+							if (fullCertificate.getToReconfigureReplicaID() != request.getSender()) {
 								add = false;
 							}
 
@@ -151,7 +151,7 @@ public class ServerViewController extends ViewController {
 								add = false;
 							}
 
-							TOMConfiguration conf = new TOMConfiguration(fullCertificate.getJoiningReplicaID(), null);
+							TOMConfiguration conf = new TOMConfiguration(fullCertificate.getToReconfigureReplicaID(), null);
 
 							// Check the signatures of the certificate
 
@@ -161,7 +161,7 @@ public class ServerViewController extends ViewController {
 
 								try (ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
 								     ObjectOutputStream objOut = new ObjectOutputStream(byteOut);) {
-									objOut.writeInt(fullCertificate.getJoiningReplicaID());
+									objOut.writeInt(fullCertificate.getToReconfigureReplicaID());
 									objOut.writeLong(fullCertificate.getConsensusTimestamp());
 									objOut.writeInt(replicaCertificate.getSigningReplicaID());
 									objOut.writeUTF(fullCertificate.getReceivedMessage());
@@ -196,7 +196,56 @@ public class ServerViewController extends ViewController {
 					} else if (key == REMOVE_SERVER) {
 						if (isCurrentViewMember(Integer.parseInt(value))) {
 							if (Integer.parseInt(value) != request.getSender()) {
-								add = false;
+
+								FullCertificate fullCertificate = request.getFullCertificate();
+
+								long deltaTime = 10000;
+
+								// Check if the time of the certificate is ok:
+								// - check if the certificate was created before it was sent
+								// - check if the age of the certificate is smaller than a delta
+								if (currentTimestamp < fullCertificate.getConsensusTimestamp() || fullCertificate.getConsensusTimestamp() + deltaTime < currentTimestamp) {
+									add = false;
+								}
+
+								TOMConfiguration conf = new TOMConfiguration(fullCertificate.getToReconfigureReplicaID(), null);
+
+								// Check the signatures of the certificate
+
+								for (PartialCertificate replicaCertificate : fullCertificate.getReplicaCertificates()) {
+
+									PublicKey signingPubKey = conf.getPublicKey(replicaCertificate.getSigningReplicaID());
+
+									try (ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
+									     ObjectOutputStream objOut = new ObjectOutputStream(byteOut);) {
+										objOut.writeInt(fullCertificate.getToReconfigureReplicaID());
+										objOut.writeLong(fullCertificate.getConsensusTimestamp());
+										objOut.writeInt(replicaCertificate.getSigningReplicaID());
+										objOut.writeUTF(fullCertificate.getReceivedMessage());
+
+
+										objOut.flush();
+										byteOut.flush();
+
+//                                    getReceivedMessage().getBytes(StandardCharsets.UTF_8)
+
+
+										boolean correctSignature = TOMUtil.verifySignature(signingPubKey,
+												byteOut.toByteArray(),
+												replicaCertificate.getSignature());
+
+										if (!correctSignature) {
+											add = false;
+											break;
+
+										}
+
+
+									} catch (IOException e) {
+										e.printStackTrace();
+									}
+								}
+
 							}
 						} else {
 							add = false;

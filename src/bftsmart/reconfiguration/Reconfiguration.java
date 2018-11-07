@@ -15,11 +15,11 @@ limitations under the License.
 */
 package bftsmart.reconfiguration;
 
+import bftsmart.reconfiguration.util.ReconfigThread.pojo.FullCertificate;
 import bftsmart.reconfiguration.util.TOMConfiguration;
 import bftsmart.tom.ServiceProxy;
 import bftsmart.tom.core.messages.TOMMessageType;
 import bftsmart.tom.util.KeyLoader;
-import bftsmart.tom.util.ReconfigThread.FullCertificate;
 import bftsmart.tom.util.TOMUtil;
 
 /**
@@ -31,15 +31,15 @@ public class Reconfiguration {
     private ReconfigureRequest request;
     private ServiceProxy proxy;
     private int idTTP;
-    private int joiningReplicaID;
+    private int reconfiguredReplicaID;
 
 
     private KeyLoader keyLoader;
     private String configDir;
 
-    public Reconfiguration(int joiningReplicaID, int idTTP, String configDir, KeyLoader loader) {
+    public Reconfiguration(int reconfiguredReplicaID, int idTTP, String configDir, KeyLoader loader) {
         this.idTTP = idTTP;
-        this.joiningReplicaID = joiningReplicaID;
+        this.reconfiguredReplicaID = reconfiguredReplicaID;
         
         this.keyLoader = loader;
         this.configDir = configDir;
@@ -61,6 +61,11 @@ public class Reconfiguration {
     public void removeServer(int id){
         this.setReconfiguration(ServerViewController.REMOVE_SERVER, String.valueOf(id));
     }
+
+    public void removeServer(int id, FullCertificate fullCertificate) {
+        this.setReconfiguration(ServerViewController.REMOVE_SERVER, String.valueOf(id));
+        this.request.setFullCertificate(fullCertificate);
+    }
     
 
     public void setF(int f){
@@ -71,14 +76,14 @@ public class Reconfiguration {
     public void setReconfiguration(int prop, String value){
         if(request == null){
             //request = new ReconfigureRequest(proxy.getViewManager().getStaticConf().getProcessId());
-            request = new ReconfigureRequest(this.joiningReplicaID);
+            request = new ReconfigureRequest(this.reconfiguredReplicaID);
         }
         request.setProperty(prop, value);
     }
 
-    public ReconfigureReply execute(TOMConfiguration joiningReplicaConfig) {
+    public ReconfigureReply execute(TOMConfiguration toReconfigureReplicaConfig) {
 
-        byte[] signature = TOMUtil.signMessage(joiningReplicaConfig.getPrivateKey(),
+        byte[] signature = TOMUtil.signMessage(toReconfigureReplicaConfig.getPrivateKey(),
                 request.toString().getBytes());
 
         request.setSignature(signature);

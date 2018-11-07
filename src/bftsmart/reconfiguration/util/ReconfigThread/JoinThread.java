@@ -1,7 +1,11 @@
-package bftsmart.tom.util.ReconfigThread;
+package bftsmart.reconfiguration.util.ReconfigThread;
 
 import bftsmart.demo.test.MapRequestTypeTest;
 import bftsmart.reconfiguration.VMServices;
+import bftsmart.reconfiguration.util.ReconfigThread.pojo.CoreCertificate;
+import bftsmart.reconfiguration.util.ReconfigThread.pojo.FullCertificate;
+import bftsmart.reconfiguration.util.ReconfigThread.pojo.PartialCertificate;
+import bftsmart.reconfiguration.util.ReconfigThread.pojo.ReplicaReconfigReply;
 import bftsmart.reconfiguration.util.TOMConfiguration;
 import bftsmart.reconfiguration.views.View;
 import bftsmart.tom.ServiceProxy;
@@ -41,13 +45,13 @@ public class JoinThread implements Runnable {
 			System.out.println("Type \"JOIN\" to add replica");
 
 			Scanner sc = new Scanner(System.in);
-//			String userReply = sc.next();
-			String userReply = "JOIN";
-			try {
-				Thread.sleep(2000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+			String userReply = sc.next();
+//			String userReply = "JOIN";
+//			try {
+//				Thread.sleep(2000);
+//			} catch (InterruptedException e) {
+//				e.printStackTrace();
+//			}
 
 			if (userReply.equalsIgnoreCase("JOIN")) {
 
@@ -99,7 +103,7 @@ public class JoinThread implements Runnable {
 
 
 						return reply1.getReceivedMessage().equals(reply2.getReceivedMessage())
-								&& reply1.getJoiningReplicaID() == reply2.getJoiningReplicaID()
+								&& reply1.getToReconfigureReplicaID() == reply2.getToReconfigureReplicaID()
 								&& reply1.getConsensusTimestamp() == reply2.getConsensusTimestamp()
 								? 0 : -1;
 					}
@@ -134,7 +138,7 @@ public class JoinThread implements Runnable {
 
 										CoreCertificate certificateValues = replicaReply.getCertificateValues();
 
-										joiningReplicaID = certificateValues.getJoiningReplicaID();
+										joiningReplicaID = certificateValues.getToReconfigureReplicaID();
 										consensusTimestamp = certificateValues.getConsensusTimestamp();
 										message = certificateValues.getReceivedMessage();
 
@@ -184,7 +188,7 @@ public class JoinThread implements Runnable {
 		try (ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
 		     ObjectOutputStream objOut = new ObjectOutputStream(byteOut);) {
 
-			objOut.writeObject(MapRequestTypeTest.RECONFIG);
+			objOut.writeObject(MapRequestTypeTest.RECONFIG_ADD);
 
 			objOut.writeUTF(requestString);
 			objOut.writeInt(this.id);

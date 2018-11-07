@@ -1,4 +1,4 @@
-package bftsmart.tom.util.ReconfigThread;
+package bftsmart.reconfiguration.util.ReconfigThread.pojo;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -8,21 +8,21 @@ import java.io.Serializable;
 public class CoreCertificate implements Serializable {
 
 
-	private int joiningReplicaID;
+	private int toReconfigureReplicaID;
 	private long consensusTimestamp;
 	private int executingReplicaID;
 	private String receivedMessage;
 
-	public CoreCertificate(int joiningReplicaID, long consensusTimestamp, String receivedMessage, int executingReplicaID) {
-		this.joiningReplicaID = joiningReplicaID;
+	public CoreCertificate(int toReconfigureReplicaID, long consensusTimestamp, String receivedMessage, int executingReplicaID) {
+		this.toReconfigureReplicaID = toReconfigureReplicaID;
 		this.consensusTimestamp = consensusTimestamp;
 		this.executingReplicaID = executingReplicaID;
 		this.receivedMessage = receivedMessage;
 	}
 
 
-	public int getJoiningReplicaID() {
-		return joiningReplicaID;
+	public int getToReconfigureReplicaID() {
+		return toReconfigureReplicaID;
 	}
 
 	public long getConsensusTimestamp() {
@@ -39,9 +39,9 @@ public class CoreCertificate implements Serializable {
 
 	private static final long serialVersionUID = 6515433116046450453L;
 
-	void serialize(ObjectOutputStream objOut) throws IOException {
+	public void serialize(ObjectOutputStream objOut) throws IOException {
 
-		objOut.writeInt(this.joiningReplicaID);
+		objOut.writeInt(this.toReconfigureReplicaID);
 		objOut.writeLong(this.consensusTimestamp);
 		objOut.writeInt(this.executingReplicaID);
 		objOut.writeUTF(this.receivedMessage);

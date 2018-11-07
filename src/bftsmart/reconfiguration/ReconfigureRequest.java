@@ -1,21 +1,21 @@
 /**
-Copyright (c) 2007-2013 Alysson Bessani, Eduardo Alchieri, Paulo Sousa, and the authors indicated in the @author tags
+ Copyright (c) 2007-2013 Alysson Bessani, Eduardo Alchieri, Paulo Sousa, and the authors indicated in the @author tags
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
 
-http://www.apache.org/licenses/LICENSE-2.0
+ http://www.apache.org/licenses/LICENSE-2.0
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+ */
 package bftsmart.reconfiguration;
 
-import bftsmart.tom.util.ReconfigThread.FullCertificate;
+import bftsmart.reconfiguration.util.ReconfigThread.pojo.FullCertificate;
 
 import java.io.Externalizable;
 import java.io.IOException;
@@ -34,10 +34,10 @@ public class ReconfigureRequest implements Externalizable{
     private Hashtable<Integer,String> properties = new Hashtable<Integer,String>();
     private byte[] signature;
     FullCertificate fullCertificate;
-    
+
     public ReconfigureRequest() {
     }
-    
+
     public ReconfigureRequest(int sender) {
         this.sender = sender;
     }
@@ -57,7 +57,7 @@ public class ReconfigureRequest implements Externalizable{
     public int getSender() {
         return sender;
     }
-    
+
     public void setProperty(int prop, String value){
         this.properties.put(prop, value);
     }
@@ -76,56 +76,52 @@ public class ReconfigureRequest implements Externalizable{
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
         out.writeInt(sender);
-        
+
         int num = properties.keySet().size();
-        
+
         out.writeInt(num);
-        
+
         Iterator<Integer> it = properties.keySet().iterator() ;
-        
+
         while(it.hasNext()){
             int key = it.next();
             String value = properties.get(key);
-            
+
             out.writeInt(key);
             out.writeUTF(value);
         }
-        
-        
+
+
         out.writeInt(signature.length);
         out.write(signature);
 
-        if (properties.containsKey(ServerViewController.ADD_SERVER)) {
-            out.writeObject(fullCertificate);
-        }
-       
+        out.writeObject(fullCertificate);
+
     }
 
-     
+
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         sender = in.readInt();
-        
+
         int num = in.readInt();
-        
+
         for(int i = 0; i < num; i++){
             int key = in.readInt();
             String value = in.readUTF();
             properties.put(key, value);
         }
-        
+
         this.signature = new byte[in.readInt()];
         in.read(this.signature);
 
-        if (properties.containsKey(ServerViewController.ADD_SERVER)) {
-            this.fullCertificate = (FullCertificate) in.readObject();
-        }
-        
+        this.fullCertificate = (FullCertificate) in.readObject();
+
     }
-    
-    
+
+
     @Override
-     public String toString(){
+    public String toString() {
         String ret = "Sender :"+ sender+";";
         Iterator<Integer> it = properties.keySet().iterator() ;
         while(it.hasNext()){
@@ -134,6 +130,6 @@ public class ReconfigureRequest implements Externalizable{
             ret = ret+key+value;
         }
         return ret;
-     }
-    
+    }
+
 }

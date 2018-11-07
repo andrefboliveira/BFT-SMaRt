@@ -15,9 +15,9 @@ limitations under the License.
 */
 package bftsmart.reconfiguration;
 
+import bftsmart.reconfiguration.util.ReconfigThread.pojo.FullCertificate;
 import bftsmart.reconfiguration.util.TOMConfiguration;
 import bftsmart.tom.util.KeyLoader;
-import bftsmart.tom.util.ReconfigThread.FullCertificate;
 
 /**
  * This class is used by the trusted client to add and remove replicas from the group
@@ -72,19 +72,30 @@ public class VMServices {
      * 
      * @param id ID of the server to be removed 
      */
-    public void removeServer(int id, TOMConfiguration joiningReplicaConfig) {
+    public void removeServer(int id, TOMConfiguration toReconfigureReplicaConfig) {
 
-        ViewManager viewManager = new ViewManager(joiningReplicaConfig.getProcessId(), joiningReplicaConfig.getTTPId(), keyLoader);
-        
+        ViewManager viewManager = new ViewManager(toReconfigureReplicaConfig.getProcessId(), toReconfigureReplicaConfig.getTTPId(), keyLoader);
+
         viewManager.removeServer(id);
 
-        execute(viewManager, joiningReplicaConfig);
+        execute(viewManager, toReconfigureReplicaConfig);
 
     }
 
-    private void execute(ViewManager viewManager, TOMConfiguration joiningReplicaConfig) {
+    public void removeServer(int id, TOMConfiguration toReconfigureReplicaConfig, FullCertificate fullCertificate) {
 
-        viewManager.executeUpdates(joiningReplicaConfig);
+        ViewManager viewManager = new ViewManager(toReconfigureReplicaConfig.getProcessId(), toReconfigureReplicaConfig.getTTPId(), keyLoader);
+
+        viewManager.removeServer(id, fullCertificate);
+
+        execute(viewManager, toReconfigureReplicaConfig);
+
+    }
+
+
+    private void execute(ViewManager viewManager, TOMConfiguration toReconfigureReplicaConfig) {
+
+        viewManager.executeUpdates(toReconfigureReplicaConfig);
         
         viewManager.close();
     }

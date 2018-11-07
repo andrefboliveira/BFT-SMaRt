@@ -1,4 +1,4 @@
-package bftsmart.tom.util.ReconfigThread;
+package bftsmart.reconfiguration.util.ReconfigThread;
 
 public class JoinThread_bak implements Runnable {
 	@Override

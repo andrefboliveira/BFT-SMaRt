@@ -16,10 +16,10 @@ limitations under the License.
 package bftsmart.reconfiguration;
 
 import bftsmart.communication.server.ServerConnection;
+import bftsmart.reconfiguration.util.ReconfigThread.pojo.FullCertificate;
 import bftsmart.reconfiguration.util.TOMConfiguration;
 import bftsmart.reconfiguration.views.View;
 import bftsmart.tom.util.KeyLoader;
-import bftsmart.tom.util.ReconfigThread.FullCertificate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,14 +45,14 @@ public class ViewManager {
     //in the system will execute the reconfiguration request
     private List<Integer> addIds = new LinkedList<Integer>();
 
-    public ViewManager(int joiningReplicaID, int idTTP, KeyLoader loader) {
-        this(joiningReplicaID, idTTP, "", loader);
+    public ViewManager(int reconfiguredReplicaID, int idTTP, KeyLoader loader) {
+        this(reconfiguredReplicaID, idTTP, "", loader);
     }
 
-    public ViewManager(int joiningReplicaID, int idTTP, String configHome, KeyLoader loader) {
+    public ViewManager(int reconfiguredReplicaID, int idTTP, String configHome, KeyLoader loader) {
         this.idTTP = idTTP;
         this.controller = new ServerViewController(this.idTTP, configHome, loader);
-        this.rec = new Reconfiguration(joiningReplicaID, this.idTTP, configHome, loader);
+        this.rec = new Reconfiguration(reconfiguredReplicaID, this.idTTP, configHome, loader);
     }
 
     public void connect(){
@@ -70,13 +70,17 @@ public class ViewManager {
         rec.removeServer(id);
     }
 
+    public void removeServer(int id, FullCertificate fullCertificate) {
+        rec.removeServer(id, fullCertificate);
+    }
+
     public void setF(int f) {
         rec.setF(f);
     }
 
-    public void executeUpdates(TOMConfiguration joiningReplicaConfig) {
+    public void executeUpdates(TOMConfiguration toReconfigureReplicaConfig) {
         connect();
-        ReconfigureReply r = rec.execute(joiningReplicaConfig);
+        ReconfigureReply r = rec.execute(toReconfigureReplicaConfig);
         View v = r.getView();
         logger.info("New view f: " + v.getF());
 
