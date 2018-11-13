@@ -70,8 +70,8 @@ public class ViewManager {
         rec.removeServer(id);
     }
 
-    public void removeServer(int id, FullCertificate fullCertificate) {
-        rec.removeServer(id, fullCertificate);
+    public void forceRemoveServer(int id) {
+        rec.forceRemoveServer(id);
     }
 
     public void setF(int f) {

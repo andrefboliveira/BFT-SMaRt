@@ -62,9 +62,8 @@ public class Reconfiguration {
         this.setReconfiguration(ServerViewController.REMOVE_SERVER, String.valueOf(id));
     }
 
-    public void removeServer(int id, FullCertificate fullCertificate) {
-        this.setReconfiguration(ServerViewController.REMOVE_SERVER, String.valueOf(id));
-        this.request.setFullCertificate(fullCertificate);
+    public void forceRemoveServer(int id) {
+        this.setReconfiguration(ServerViewController.FORCE_REMOVE_SERVER, String.valueOf(id));
     }
     
 

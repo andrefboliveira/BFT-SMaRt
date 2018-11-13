@@ -35,6 +35,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 /**
  *
@@ -46,7 +48,8 @@ public class ServerViewController extends ViewController {
 
 	public static final int ADD_SERVER = 0;
 	public static final int REMOVE_SERVER = 1;
-	public static final int CHANGE_F = 2;
+	public static final int FORCE_REMOVE_SERVER = 2;
+	public static final int CHANGE_F = 3;
 
 	private int quorumBFT; // ((n + f) / 2) replicas
 	private int quorumCFT; // (n / 2) replicas
@@ -55,6 +58,8 @@ public class ServerViewController extends ViewController {
 	private List<TOMMessage> updates = new LinkedList<TOMMessage>();
 	private TOMLayer tomLayer;
 	// protected View initialView;
+
+	private ConcurrentSkipListMap<Integer, ConcurrentSkipListSet<Integer>> askForceRemoveIDsTable;
 
 	public ServerViewController(int procId, KeyLoader loader) {
 		this(procId, "", loader);
@@ -67,6 +72,10 @@ public class ServerViewController extends ViewController {
 
 	public ServerViewController(int procId, String configHome, KeyLoader loader) {
 		super(procId, configHome, loader);
+
+		askForceRemoveIDsTable = new ConcurrentSkipListMap<Integer, ConcurrentSkipListSet<Integer>>();
+
+
 		View cv = getViewStore().readView();
 		if (cv == null) {
 
@@ -133,61 +142,7 @@ public class ServerViewController extends ViewController {
 								add = false;
 							}
 
-
-							FullCertificate fullCertificate = request.getFullCertificate();
-
-
-							// Check if the certificate was sent by the joining replica
-							if (fullCertificate.getToReconfigureReplicaID() != request.getSender()) {
-								add = false;
-							}
-
-							long deltaTime = 10000;
-
-							// Check if the time of the certificate is ok:
-							// - check if the certificate was created before it was sent
-							// - check if the age of the certificate is smaller than a delta
-							if (currentTimestamp < fullCertificate.getConsensusTimestamp() || fullCertificate.getConsensusTimestamp() + deltaTime < currentTimestamp) {
-								add = false;
-							}
-
-							TOMConfiguration conf = new TOMConfiguration(fullCertificate.getToReconfigureReplicaID(), null);
-
-							// Check the signatures of the certificate
-
-							for (PartialCertificate replicaCertificate : fullCertificate.getReplicaCertificates()) {
-
-								PublicKey signingPubKey = conf.getPublicKey(replicaCertificate.getSigningReplicaID());
-
-								try (ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
-								     ObjectOutputStream objOut = new ObjectOutputStream(byteOut);) {
-									objOut.writeInt(fullCertificate.getToReconfigureReplicaID());
-									objOut.writeLong(fullCertificate.getConsensusTimestamp());
-									objOut.writeInt(replicaCertificate.getSigningReplicaID());
-									objOut.writeUTF(fullCertificate.getReceivedMessage());
-
-
-									objOut.flush();
-									byteOut.flush();
-
-//                                    getReceivedMessage().getBytes(StandardCharsets.UTF_8)
-
-
-									boolean correctSignature = TOMUtil.verifySignature(signingPubKey,
-											byteOut.toByteArray(),
-											replicaCertificate.getSignature());
-
-									if (!correctSignature) {
-										add = false;
-										break;
-
-									}
-
-
-								} catch (IOException e) {
-									e.printStackTrace();
-								}
-							}
+							add = validateCertificate(request.getSender(), request.getFullCertificate(), currentTimestamp);
 
 
 						} else {
@@ -195,58 +150,37 @@ public class ServerViewController extends ViewController {
 						}
 					} else if (key == REMOVE_SERVER) {
 						if (isCurrentViewMember(Integer.parseInt(value))) {
+
 							if (Integer.parseInt(value) != request.getSender()) {
-
-								FullCertificate fullCertificate = request.getFullCertificate();
-
-								long deltaTime = 10000;
-
-								// Check if the time of the certificate is ok:
-								// - check if the certificate was created before it was sent
-								// - check if the age of the certificate is smaller than a delta
-								if (currentTimestamp < fullCertificate.getConsensusTimestamp() || fullCertificate.getConsensusTimestamp() + deltaTime < currentTimestamp) {
-									add = false;
-								}
-
-								TOMConfiguration conf = new TOMConfiguration(fullCertificate.getToReconfigureReplicaID(), null);
-
-								// Check the signatures of the certificate
-
-								for (PartialCertificate replicaCertificate : fullCertificate.getReplicaCertificates()) {
-
-									PublicKey signingPubKey = conf.getPublicKey(replicaCertificate.getSigningReplicaID());
-
-									try (ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
-									     ObjectOutputStream objOut = new ObjectOutputStream(byteOut);) {
-										objOut.writeInt(fullCertificate.getToReconfigureReplicaID());
-										objOut.writeLong(fullCertificate.getConsensusTimestamp());
-										objOut.writeInt(replicaCertificate.getSigningReplicaID());
-										objOut.writeUTF(fullCertificate.getReceivedMessage());
-
-
-										objOut.flush();
-										byteOut.flush();
-
-//                                    getReceivedMessage().getBytes(StandardCharsets.UTF_8)
-
-
-										boolean correctSignature = TOMUtil.verifySignature(signingPubKey,
-												byteOut.toByteArray(),
-												replicaCertificate.getSignature());
-
-										if (!correctSignature) {
-											add = false;
-											break;
-
-										}
-
-
-									} catch (IOException e) {
-										e.printStackTrace();
-									}
-								}
-
+								add = false;
 							}
+						} else {
+							add = false;
+						}
+					} else if (key == FORCE_REMOVE_SERVER) {
+						int idToRemove = Integer.parseInt(value);
+						if (isCurrentViewMember(idToRemove)) {
+							System.out.println(idToRemove);
+							add = false;
+
+							int sendingReplicaID = request.getSender();
+							System.out.println(sendingReplicaID);
+							if (isCurrentViewMember(sendingReplicaID)) {
+								ConcurrentSkipListSet<Integer> receivedRequestIDs = askForceRemoveIDsTable.getOrDefault(idToRemove, null);
+								if (receivedRequestIDs == null) {
+									receivedRequestIDs = new ConcurrentSkipListSet<Integer>();
+								}
+								receivedRequestIDs.add(sendingReplicaID);
+
+								askForceRemoveIDsTable.put(idToRemove, receivedRequestIDs);
+							}
+
+							if (askForceRemoveIDsTable.get(idToRemove).size() > 2) {
+								System.out.println("Here in");
+//							if (askForceRemoveIDsTable.get(idToRemove).size() > getCurrentViewF() + 1) {
+								add = true;
+							}
+
 						} else {
 							add = false;
 						}
@@ -259,6 +193,63 @@ public class ServerViewController extends ViewController {
 				}
 			}
 		}
+	}
+
+	private boolean validateCertificate(int sender, FullCertificate fullCertificate, long currentTimestamp) {
+
+
+		// Check if the certificate was sent by the joining replica
+		if (fullCertificate.getToReconfigureReplicaID() != sender) {
+			return false;
+		}
+
+		long deltaTime = 10000;
+
+		// Check if the time of the certificate is ok:
+		// - check if the certificate was created before it was sent
+		// - check if the age of the certificate is smaller than a delta
+		if (currentTimestamp < fullCertificate.getConsensusTimestamp() || fullCertificate.getConsensusTimestamp() + deltaTime < currentTimestamp) {
+			return false;
+		}
+
+		TOMConfiguration conf = new TOMConfiguration(fullCertificate.getToReconfigureReplicaID(), null);
+
+		// Check the signatures of the certificate
+
+		for (PartialCertificate replicaCertificate : fullCertificate.getReplicaCertificates()) {
+
+			PublicKey signingPubKey = conf.getPublicKey(replicaCertificate.getSigningReplicaID());
+
+			try (ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
+			     ObjectOutputStream objOut = new ObjectOutputStream(byteOut);) {
+				objOut.writeInt(fullCertificate.getToReconfigureReplicaID());
+				objOut.writeLong(fullCertificate.getConsensusTimestamp());
+				objOut.writeInt(replicaCertificate.getSigningReplicaID());
+				objOut.writeUTF(fullCertificate.getReceivedMessage());
+
+
+				objOut.flush();
+				byteOut.flush();
+
+//                                    getReceivedMessage().getBytes(StandardCharsets.UTF_8)
+
+
+				boolean correctSignature = TOMUtil.verifySignature(signingPubKey,
+						byteOut.toByteArray(),
+						replicaCertificate.getSignature());
+
+				if (!correctSignature) {
+					return false;
+
+				}
+
+
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
+		return true;
 	}
 
 	public byte[] executeUpdates(int cid) {
@@ -291,10 +282,14 @@ public class ServerViewController extends ViewController {
 							this.getStaticConf().addHostInfo(id, host, port);
 						}
 					}
-				} else if (key == REMOVE_SERVER) {
+				} else if (key == REMOVE_SERVER || key == FORCE_REMOVE_SERVER) {
 					if (isCurrentViewMember(Integer.parseInt(value))) {
 						rSet.add(Integer.parseInt(value));
 					}
+					if (key == FORCE_REMOVE_SERVER) {
+						askForceRemoveIDsTable = new ConcurrentSkipListMap<Integer, ConcurrentSkipListSet<Integer>>();
+					}
+
 				} else if (key == CHANGE_F) {
 					f = Integer.parseInt(value);
 				}

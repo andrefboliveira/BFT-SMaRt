@@ -54,16 +54,16 @@ public class VMServices {
      * @param id ID of the server to be added (needs to match the value in config/hosts.config)
      * @param ipAddress IP address of the server to be added (needs to match the value in config/hosts.config)
      * @param port Port of the server to be added (needs to match the value in config/hosts.config)
-     * @param joiningReplicaConfig
+     * @param toReconfigureReplicaConfig
      * @param fullCertificate
      */
-    public void addServer(int id, String ipAddress, int port, TOMConfiguration joiningReplicaConfig, FullCertificate fullCertificate) {
+    public void addServer(int id, String ipAddress, int port, TOMConfiguration toReconfigureReplicaConfig, FullCertificate fullCertificate) {
 
-        ViewManager viewManager = new ViewManager(joiningReplicaConfig.getProcessId(), joiningReplicaConfig.getTTPId(), configDir, keyLoader);
+        ViewManager viewManager = new ViewManager(toReconfigureReplicaConfig.getProcessId(), toReconfigureReplicaConfig.getTTPId(), configDir, keyLoader);
 
         viewManager.addServer(id, ipAddress, port, fullCertificate);
 
-        execute(viewManager, joiningReplicaConfig);
+        execute(viewManager, toReconfigureReplicaConfig);
 
     }
     
@@ -82,11 +82,11 @@ public class VMServices {
 
     }
 
-    public void removeServer(int id, TOMConfiguration toReconfigureReplicaConfig, FullCertificate fullCertificate) {
+    public void forceRemoveServer(int id, TOMConfiguration toReconfigureReplicaConfig) {
 
         ViewManager viewManager = new ViewManager(toReconfigureReplicaConfig.getProcessId(), toReconfigureReplicaConfig.getTTPId(), keyLoader);
 
-        viewManager.removeServer(id, fullCertificate);
+        viewManager.forceRemoveServer(id);
 
         execute(viewManager, toReconfigureReplicaConfig);
 

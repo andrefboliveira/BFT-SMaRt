@@ -97,19 +97,19 @@ public class ServiceReplica {
     public ServiceReplica(int id, Executable executor, Recoverable recoverer, RequestVerifier verifier) {
         this(id, "", executor, recoverer, verifier, new DefaultReplier(), null);
     }
-    
+
     /**
      * Constructor
-     * 
+     *
      * @see bellow
      */
     public ServiceReplica(int id, Executable executor, Recoverable recoverer, RequestVerifier verifier, Replier replier) {
         this(id, "", executor, recoverer, verifier, replier, null);
     }
-    
+
     /**
      * Constructor
-     * 
+     *
      * @see bellow
      */
     public ServiceReplica(int id, Executable executor, Recoverable recoverer, RequestVerifier verifier, Replier replier, KeyLoader loader, Provider provider) {
@@ -246,7 +246,7 @@ public class ServiceReplica {
 
             @Override
             public void run() {
-                if (tomLayer != null) {   
+                if (tomLayer != null) {
                     tomLayer.shutdown();
 
                     try {
