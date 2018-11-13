@@ -1,6 +1,5 @@
 bin/bftsmart
 config/currentView
-test
 out/
 .idea/
 *.class
