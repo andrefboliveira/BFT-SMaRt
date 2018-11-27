@@ -49,7 +49,7 @@ public class ServerViewController extends ViewController {
 	public static final int ADD_SERVER = 0;
 	public static final int REMOVE_SERVER = 1;
 	public static final int FORCE_REMOVE_SERVER = 2;
-	public static final int CHANGE_F = 3;
+//	public static final int CHANGE_F = 3;
 
 	private int quorumBFT; // ((n + f) / 2) replicas
 	private int quorumCFT; // (n / 2) replicas
@@ -82,6 +82,8 @@ public class ServerViewController extends ViewController {
 			logger.info("Creating current view from configuration file");
 			reconfigureTo(new View(0, getStaticConf().getInitialView(),
 					getStaticConf().getF(), getInitAdddresses()));
+			/*reconfigureTo(new View(0, getStaticConf().getInitialView(),
+					getStaticConf().isBFT(), getInitAdddresses()));*/
 		} else {
 			logger.info("Using view stored on disk");
 			reconfigureTo(cv);
@@ -123,79 +125,110 @@ public class ServerViewController extends ViewController {
 
 	public void enqueueUpdate(TOMMessage up, long currentTimestamp) {
 		ReconfigureRequest request = (ReconfigureRequest) TOMUtil.getObject(up.getContent());
-        if (request != null && request.getSender() == getStaticConf().getTTPId()
-                && TOMUtil.verifySignature(getStaticConf().getPublicKey(request.getSender()),
+
+		if (request != null && TOMUtil.verifySignature(getStaticConf().getPublicKey(request.getSender()),
 				request.toString().getBytes(), request.getSignature())) {
-            //if (request.getSender() == getStaticConf().getTTPId()) {
-				this.updates.add(up);
-            /*} else {
-				boolean add = true;
-				Iterator<Integer> it = request.getProperties().keySet().iterator();
-				while (it.hasNext()) {
-					int key = it.next();
-					String value = request.getProperties().get(key);
-					if (key == ADD_SERVER) {
-						StringTokenizer str = new StringTokenizer(value, ":");
-						if (str.countTokens() > 2) {
-							int id = Integer.parseInt(str.nextToken());
 
-							if (id != request.getSender()) {
-								add = false;
-							}
+			boolean processUpdates = false;
+			Iterator<Integer> it = request.getProperties().keySet().iterator();
+			while (it.hasNext()) {
+				int key = it.next();
 
-							add = validateCertificate(request.getSender(), request.getFullCertificate(), currentTimestamp);
+				switch (key) {
+					case ADD_SERVER:
+						processUpdates = validateAdd(request, currentTimestamp);
+						break;
 
+					case REMOVE_SERVER:
+						processUpdates = validateRemove(request);
+						break;
 
-						} else {
-							add = false;
-						}
-					} else if (key == REMOVE_SERVER) {
-						if (isCurrentViewMember(Integer.parseInt(value))) {
+					case FORCE_REMOVE_SERVER:
+						processUpdates = validateForceRemove(request);
+						break;
 
-							if (Integer.parseInt(value) != request.getSender()) {
-								add = false;
-							}
-						} else {
-							add = false;
-						}
-					} else if (key == FORCE_REMOVE_SERVER) {
-						int idToRemove = Integer.parseInt(value);
-						if (isCurrentViewMember(idToRemove)) {
-							System.out.println(idToRemove);
-							add = false;
+					/*case CHANGE_F:
+						processUpdates = false;
+						break;*/
 
-							int sendingReplicaID = request.getSender();
-							System.out.println(sendingReplicaID);
-							if (isCurrentViewMember(sendingReplicaID)) {
-								ConcurrentSkipListSet<Integer> receivedRequestIDs = askForceRemoveIDsTable.getOrDefault(idToRemove, null);
-								if (receivedRequestIDs == null) {
-									receivedRequestIDs = new ConcurrentSkipListSet<Integer>();
-								}
-								receivedRequestIDs.add(sendingReplicaID);
+					default:
+						processUpdates = false;
+						break;
 
-								askForceRemoveIDsTable.put(idToRemove, receivedRequestIDs);
-							}
-
-							if (askForceRemoveIDsTable.get(idToRemove).size() > 2) {
-								System.out.println("Here in");
-//							if (askForceRemoveIDsTable.get(idToRemove).size() > getCurrentViewF() + 1) {
-								add = true;
-							}
-
-						} else {
-							add = false;
-						}
-					} else if (key == CHANGE_F) {
-						add = false;
-					}
 				}
-				if (add) {
+
+				if (processUpdates) {
 					this.updates.add(up);
+				} else {
+					logger.warn("The reconfiguration from {} was discarded", up.getSender());
 				}
-            }*/
-        } else {
-            logger.warn("Invalid reconfiguration from {}, discarding", up.getSender());
+			}
+		} else {
+			logger.warn("Invalid reconfiguration from {}, discarding", up.getSender());
 		}
+	}
+
+	private boolean validateAdd(ReconfigureRequest request, long currentTimestamp) {
+
+		String value = request.getProperties().get(ADD_SERVER);
+		StringTokenizer str = new StringTokenizer(value, ":");
+
+		if (str.countTokens() > 2) {
+			int id = Integer.parseInt(str.nextToken());
+
+			if (id != request.getSender()) {
+				return false;
+			}
+
+			return validateCertificate(request.getSender(), request.getFullCertificate(), currentTimestamp);
+		}
+
+		return false;
+	}
+
+	private boolean validateRemove(ReconfigureRequest request) {
+		String value = request.getProperties().get(REMOVE_SERVER);
+
+		if (isCurrentViewMember(Integer.parseInt(value))) {
+
+			if (Integer.parseInt(value) != request.getSender()) {
+				return false;
+			} else {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean validateForceRemove(ReconfigureRequest request) {
+		String value = request.getProperties().get(FORCE_REMOVE_SERVER);
+
+		int idToRemove = Integer.parseInt(value);
+
+		if (isCurrentViewMember(idToRemove)) {
+			System.out.println(idToRemove);
+
+			int sendingReplicaID = request.getSender();
+
+			System.out.println(sendingReplicaID);
+			if (isCurrentViewMember(sendingReplicaID)) {
+				ConcurrentSkipListSet<Integer> receivedRequestIDs = askForceRemoveIDsTable.getOrDefault(idToRemove, null);
+				if (receivedRequestIDs == null) {
+					receivedRequestIDs = new ConcurrentSkipListSet<Integer>();
+				}
+				receivedRequestIDs.add(sendingReplicaID);
+
+				askForceRemoveIDsTable.put(idToRemove, receivedRequestIDs);
+			}
+
+			if (askForceRemoveIDsTable.get(idToRemove).size() >= getCurrentViewF() + 1) {
+				System.out.println("Here in");
+				return true;
+			}
+
+		}
+
+		return false;
 	}
 
 	private boolean validateCertificate(int sender, FullCertificate fullCertificate, long currentTimestamp) {
@@ -249,6 +282,7 @@ public class ServerViewController extends ViewController {
 
 			} catch (IOException e) {
 				e.printStackTrace();
+				return false;
 			}
 		}
 
@@ -293,14 +327,15 @@ public class ServerViewController extends ViewController {
 						askForceRemoveIDsTable = new ConcurrentSkipListMap<Integer, ConcurrentSkipListSet<Integer>>();
 					}
 
-				} else if (key == CHANGE_F) {
+				} /*else if (key == CHANGE_F) {
 					f = Integer.parseInt(value);
-				}
+				}*/
 			}
 
 		}
 		//ret = reconfigure(updates.get(i).getContent());
 		return reconfigure(jSetInfo, jSet, rSet, f, cid);
+//		return reconfigure(jSetInfo, jSet, rSet, cid);
 	}
 
 	private boolean contains(int id, List<Integer> list) {
@@ -312,6 +347,7 @@ public class ServerViewController extends ViewController {
 		return false;
 	}
 
+	//	private byte[] reconfigure(List<String> jSetInfo, List<Integer> jSet, List<Integer> rSet, int cid) {
 	private byte[] reconfigure(List<String> jSetInfo, List<Integer> jSet, List<Integer> rSet, int f, int cid) {
 		//ReconfigureRequest request = (ReconfigureRequest) TOMUtil.getObject(req);
 		// Hashtable<Integer, String> props = request.getProperties();
@@ -336,16 +372,18 @@ public class ServerViewController extends ViewController {
 			}
 		}
 
-		if (f < 0) {
+	/*	if (f < 0) {
 			f = currentView.getF();
 		}
-
+*/
 		InetSocketAddress[] addresses = new InetSocketAddress[nextV.length];
 
 		for (int i = 0; i < nextV.length; i++)
 			addresses[i] = getStaticConf().getRemoteAddress(nextV[i]);
 
 		View newV = new View(currentView.getId() + 1, nextV, f, addresses);
+//		View newV = new View(currentView.getId() + 1, nextV, getStaticConf().isBFT(), addresses);
+
 
 		logger.info("New view: " + newV);
 		logger.info("Installed on CID: " + cid);

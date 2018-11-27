@@ -67,10 +67,10 @@ public class Reconfiguration {
     }
     
 
-    public void setF(int f){
+  /*  public void setF(int f){
       this.setReconfiguration(ServerViewController.CHANGE_F,String.valueOf(f));  
     }
-    
+    */
     
     public void setReconfiguration(int prop, String value){
         if(request == null){
@@ -88,6 +88,8 @@ public class Reconfiguration {
         request.setSignature(signature);
         byte[] reply = proxy.invoke(TOMUtil.getBytes(request), TOMMessageType.RECONFIG);
         request = null;
+
+//        reply = (reply.equals(new byte[0])) ? null : reply;
         return (ReconfigureReply)TOMUtil.getObject(reply);
     }
     

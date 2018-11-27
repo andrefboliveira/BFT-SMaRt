@@ -59,7 +59,6 @@ public class ViewManager {
         this.rec.connect();
     }
 
-
     public void addServer(int id, String ip, int port, FullCertificate fullCertificate) {
         this.controller.getStaticConf().addHostInfo(id, ip, port);
         rec.addServer(id, ip, port, fullCertificate);
@@ -74,23 +73,25 @@ public class ViewManager {
         rec.forceRemoveServer(id);
     }
 
-    public void setF(int f) {
+    /*public void setF(int f) {
         rec.setF(f);
-    }
+    }*/
 
     public void executeUpdates(TOMConfiguration toReconfigureReplicaConfig) {
         connect();
         ReconfigureReply r = rec.execute(toReconfigureReplicaConfig);
-        View v = r.getView();
-        logger.info("New view f: " + v.getF());
 
-        VMMessage msg = new VMMessage(idTTP, r);
+        if (r != null) {
+            View v = r.getView();
+            logger.info("New view f: " + v.getF());
 
-        if (addIds.size() > 0) { 
-            sendResponse(addIds.toArray(new Integer[1]), msg);
-            addIds.clear();
+            VMMessage msg = new VMMessage(idTTP, r);
+
+            if (addIds.size() > 0) {
+                sendResponse(addIds.toArray(new Integer[1]), msg);
+                addIds.clear();
+            }
         }
-
 
     }
 

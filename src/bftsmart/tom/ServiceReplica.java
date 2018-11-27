@@ -242,14 +242,19 @@ public class ServiceReplica {
             @Override
             public void run() {
                 if (tomLayer != null) {
-                    tomLayer.shutdown();
-
                     try {
-                        Thread.sleep(1500);
+                        Thread.sleep(SVController.getStaticConf().getRequestTimeout());
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
+                    tomLayer.shutdown();
 
+
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                     System.exit(0);
                 }
             }
