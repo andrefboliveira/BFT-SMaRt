@@ -35,6 +35,7 @@ public class View implements Serializable {
  	private Map<Integer,InetSocketAddress> addresses;
 
 
+/*
  	public View(int id, int[] processes, int f, InetSocketAddress[] addresses){
  		this.id = id;
  		this.processes = processes;
@@ -45,8 +46,8 @@ public class View implements Serializable {
  		Arrays.sort(this.processes);
  		this.f = f;
  	}
+*/
 
-	/*
 		public View(int id, int[] processes, boolean isBFT, InetSocketAddress[] addresses){
 			this.id = id;
 			this.processes = processes;
@@ -57,7 +58,6 @@ public class View implements Serializable {
 			Arrays.sort(this.processes);
 			this.f = calculateF(this.processes.length, isBFT);
 		}
-	*/
 	private int calculateF(int n, boolean isBFT) {
 		int max_faults = (isBFT) ? 3 : 2;
 		return (int) Math.floor((n - 1) / max_faults);

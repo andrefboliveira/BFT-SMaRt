@@ -55,7 +55,9 @@ public class ServerViewController extends ViewController {
 	private int quorumCFT; // (n / 2) replicas
 	private int[] otherProcesses;
 	private int[] lastJoinStet;
-	private List<TOMMessage> updates = new LinkedList<TOMMessage>();
+	private List<TOMMessage> correctUpdates = new LinkedList<TOMMessage>();
+	private List<TOMMessage> discardedUpdates = new LinkedList<TOMMessage>();
+
 	private TOMLayer tomLayer;
 	// protected View initialView;
 
@@ -80,10 +82,10 @@ public class ServerViewController extends ViewController {
 		if (cv == null) {
 
 			logger.info("Creating current view from configuration file");
-			reconfigureTo(new View(0, getStaticConf().getInitialView(),
-					getStaticConf().getF(), getInitAdddresses()));
 			/*reconfigureTo(new View(0, getStaticConf().getInitialView(),
-					getStaticConf().isBFT(), getInitAdddresses()));*/
+					getStaticConf().getF(), getInitAdddresses()));*/
+			reconfigureTo(new View(0, getStaticConf().getInitialView(),
+					getStaticConf().isBFT(), getInitAdddresses()));
 		} else {
 			logger.info("Using view stored on disk");
 			reconfigureTo(cv);
@@ -119,8 +121,12 @@ public class ServerViewController extends ViewController {
 		return this.currentView.getProcesses();
 	}
 
-	public boolean hasUpdates() {
-		return !this.updates.isEmpty();
+	public boolean hasCorrectUpdates() {
+		return !this.correctUpdates.isEmpty();
+	}
+
+	public boolean hasDiscardedUpdates() {
+		return !this.discardedUpdates.isEmpty();
 	}
 
 	public void enqueueUpdate(TOMMessage up, long currentTimestamp) {
@@ -158,8 +164,9 @@ public class ServerViewController extends ViewController {
 				}
 
 				if (processUpdates) {
-					this.updates.add(up);
+					this.correctUpdates.add(up);
 				} else {
+					this.discardedUpdates.add(up);
 					logger.warn("The reconfiguration from {} was discarded", up.getSender());
 				}
 			}
@@ -299,8 +306,8 @@ public class ServerViewController extends ViewController {
 		List<String> jSetInfo = new LinkedList<>();
 
 
-		for (int i = 0; i < updates.size(); i++) {
-			ReconfigureRequest request = (ReconfigureRequest) TOMUtil.getObject(updates.get(i).getContent());
+		for (int i = 0; i < correctUpdates.size(); i++) {
+			ReconfigureRequest request = (ReconfigureRequest) TOMUtil.getObject(correctUpdates.get(i).getContent());
 			Iterator<Integer> it = request.getProperties().keySet().iterator();
 
 			while (it.hasNext()) {
@@ -333,7 +340,7 @@ public class ServerViewController extends ViewController {
 			}
 
 		}
-		//ret = reconfigure(updates.get(i).getContent());
+		//ret = reconfigure(correctUpdates.get(i).getContent());
 		return reconfigure(jSetInfo, jSet, rSet, f, cid);
 //		return reconfigure(jSetInfo, jSet, rSet, cid);
 	}
@@ -381,8 +388,8 @@ public class ServerViewController extends ViewController {
 		for (int i = 0; i < nextV.length; i++)
 			addresses[i] = getStaticConf().getRemoteAddress(nextV[i]);
 
-		View newV = new View(currentView.getId() + 1, nextV, f, addresses);
-//		View newV = new View(currentView.getId() + 1, nextV, getStaticConf().isBFT(), addresses);
+//		View newV = new View(currentView.getId() + 1, nextV, f, addresses);
+		View newV = new View(currentView.getId() + 1, nextV, getStaticConf().isBFT(), addresses);
 
 
 		logger.info("New view: " + newV);
@@ -407,12 +414,21 @@ public class ServerViewController extends ViewController {
 				cid, tomLayer.execManager.getCurrentLeader()));
 	}
 
-	public TOMMessage[] clearUpdates() {
-		TOMMessage[] ret = new TOMMessage[updates.size()];
-		for (int i = 0; i < updates.size(); i++) {
-			ret[i] = updates.get(i);
+	public TOMMessage[] clearCorrectUpdates() {
+		TOMMessage[] ret = new TOMMessage[correctUpdates.size()];
+		for (int i = 0; i < correctUpdates.size(); i++) {
+			ret[i] = correctUpdates.get(i);
 		}
-		updates.clear();
+		correctUpdates.clear();
+		return ret;
+	}
+
+	public TOMMessage[] clearDiscardedUpdates() {
+		TOMMessage[] ret = new TOMMessage[discardedUpdates.size()];
+		for (int i = 0; i < discardedUpdates.size(); i++) {
+			ret[i] = discardedUpdates.get(i);
+		}
+		discardedUpdates.clear();
 		return ret;
 	}
 

@@ -244,14 +244,14 @@ public final class DeliveryThread extends Thread {
 
 						// ******* EDUARDO BEGIN ***********//
 
-						if (controller.hasUpdates()) {
+						if (controller.hasCorrectUpdates()) {
 							processReconfigMessages(lastDecision.getConsensusId());
 						}
 
 						if (hadReconfig) {
-							/*if (!controller.hasUpdates()) {
+							if (controller.hasDiscardedUpdates()) {
 								processUnexecutedReconfigMessages();
-							}*/
+							}
 
 							// set the consensus associated to the last decision as the last executed
 							tomLayer.setLastExec(lastDecision.getConsensusId());
@@ -323,7 +323,7 @@ public final class DeliveryThread extends Thread {
 
 	private void processReconfigMessages(int consId) {
 		byte[] response = controller.executeUpdates(consId);
-		TOMMessage[] dests = controller.clearUpdates();
+		TOMMessage[] dests = controller.clearCorrectUpdates();
 
 		if (controller.getCurrentView().isMember(receiver.getId())) {
 			for (int i = 0; i < dests.length; i++) {
@@ -343,7 +343,7 @@ public final class DeliveryThread extends Thread {
 
 	private void processUnexecutedReconfigMessages() {
 		byte[] response = new byte[0];
-		TOMMessage[] dests = controller.clearUpdates();
+		TOMMessage[] dests = controller.clearDiscardedUpdates();
 
 		if (controller.getCurrentView().isMember(receiver.getId())) {
 			for (int i = 0; i < dests.length; i++) {

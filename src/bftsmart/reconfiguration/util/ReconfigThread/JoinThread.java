@@ -45,13 +45,13 @@ public class JoinThread implements Runnable {
 			System.out.println("Type \"JOIN\" to add replica");
 
 			Scanner sc = new Scanner(System.in);
-			String userReply = sc.next();
-//			String userReply = "JOIN";
-//			try {
-//				Thread.sleep(2000);
-//			} catch (InterruptedException e) {
-//				e.printStackTrace();
-//			}
+//			String userReply = sc.next();
+			String userReply = "JOIN";
+			try {
+				Thread.sleep(2000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 
 			if (userReply.equalsIgnoreCase("JOIN")) {
 

@@ -30,10 +30,10 @@ public class ClientViewController extends ViewController {
         super(procId, loader);
         View cv = getViewStore().readView();
         if(cv == null){
+            /*reconfigureTo(new View(0, getStaticConf().getInitialView(),
+                getStaticConf().getF(), getInitAdddresses()));*/
             reconfigureTo(new View(0, getStaticConf().getInitialView(),
-                getStaticConf().getF(), getInitAdddresses()));
-     /*       reconfigureTo(new View(0, getStaticConf().getInitialView(),
-                    getStaticConf().isBFT(), getInitAdddresses()));*/
+                    getStaticConf().isBFT(), getInitAdddresses()));
         }else{
             reconfigureTo(cv);
         }
@@ -43,10 +43,10 @@ public class ClientViewController extends ViewController {
         super(procId, configHome, loader);
         View cv = getViewStore().readView();
         if(cv == null){
-            reconfigureTo(new View(0, getStaticConf().getInitialView(),
-                getStaticConf().getF(), getInitAdddresses()));
             /*reconfigureTo(new View(0, getStaticConf().getInitialView(),
-                    getStaticConf().isBFT(), getInitAdddresses()));*/
+                getStaticConf().getF(), getInitAdddresses()));*/
+            reconfigureTo(new View(0, getStaticConf().getInitialView(),
+                    getStaticConf().isBFT(), getInitAdddresses()));
         }else{
             reconfigureTo(cv);
         }
