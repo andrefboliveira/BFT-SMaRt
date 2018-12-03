@@ -25,7 +25,6 @@ import bftsmart.reconfiguration.ServerViewController;
 import bftsmart.reconfiguration.VMMessage;
 import bftsmart.reconfiguration.util.ReconfigThread.JoinThread;
 import bftsmart.reconfiguration.util.ReconfigThread.LeaveThread;
-import bftsmart.reconfiguration.util.ReconfigThread.RemoveThread;
 import bftsmart.tom.core.ExecutionManager;
 import bftsmart.tom.core.ReplyManager;
 import bftsmart.tom.core.TOMLayer;
@@ -177,10 +176,10 @@ public class ServiceReplica {
 
         // Thread askToLeave = new Thread(new LeaveThread(this.id));
         Thread askToLeave = new Thread(new LeaveThread(this.id, this.SVController.getStaticConf()));
-//        askToLeave.start();
+	    askToLeave.start();
 
-        Thread askToRemove = new Thread(new RemoveThread(this.SVController.getStaticConf()));
-        askToRemove.start();
+//        Thread askToRemove = new Thread(new RemoveThread(this.SVController.getStaticConf()));
+//        askToRemove.start();
     }
 
     /**

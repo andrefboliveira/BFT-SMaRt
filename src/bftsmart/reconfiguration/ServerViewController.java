@@ -61,6 +61,8 @@ public class ServerViewController extends ViewController {
 	private TOMLayer tomLayer;
 	// protected View initialView;
 
+	private boolean notEnough = false;
+
 	private ConcurrentSkipListMap<Integer, ConcurrentSkipListSet<Integer>> askForceRemoveIDsTable;
 
 	public ServerViewController(int procId, KeyLoader loader) {
@@ -166,8 +168,12 @@ public class ServerViewController extends ViewController {
 				if (processUpdates) {
 					this.correctUpdates.add(up);
 				} else {
-					this.discardedUpdates.add(up);
-					logger.warn("The reconfiguration from {} was discarded", up.getSender());
+					if (notEnough) {
+						this.discardedUpdates.add(up);
+						logger.warn("No reconfiguration was performed");
+					} else {
+						logger.warn("The reconfiguration from {} was discarded", up.getSender());
+					}
 				}
 			}
 		} else {
@@ -229,8 +235,21 @@ public class ServerViewController extends ViewController {
 			}
 
 			if (askForceRemoveIDsTable.get(idToRemove).size() >= getCurrentViewF() + 1) {
-				System.out.println("Here in");
+
+				notEnough = false;
+				logger.warn("Received all required REMOVE requests from distinct servers. Will remove server {}",
+						idToRemove);
+
 				return true;
+
+			} else {
+				notEnough = true;
+
+				logger.warn("Received {} REMOVE request from distinct servers, but {} are needed",
+						askForceRemoveIDsTable.get(idToRemove).size(), getCurrentViewF() + 1);
+
+				return false;
+
 			}
 
 		}

@@ -15,14 +15,13 @@ limitations under the License.
 */
 package bftsmart.reconfiguration.util;
 
+import bftsmart.reconfiguration.views.View;
 import bftsmart.tom.util.KeyLoader;
-import java.security.Provider;
-import java.util.StringTokenizer;
-
-import java.util.regex.Pattern;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.StringTokenizer;
+import java.util.regex.Pattern;
 
 public class TOMConfiguration extends Configuration {
     
@@ -79,14 +78,15 @@ public class TOMConfiguration extends Configuration {
         super.init();
         try {
             n = Integer.parseInt(configs.remove("system.servers.num").toString());
-            String s = (String) configs.remove("system.servers.f");
-            if (s == null) {
+//            String s = (String) configs.remove("system.servers.f");
+           /* if (s == null) {
                 f = (int) Math.ceil((n - 1) / 3);
             } else {
                 f = Integer.parseInt(s);
-            }
+            }*/
 
-            s = (String) configs.remove("system.shutdownhook");
+	        String s = (String) configs.remove("system.shutdownhook");
+//            s = (String) configs.remove("system.shutdownhook");
             shutdownHookEnabled = (s != null) ? Boolean.parseBoolean(s) : false;
 
             s = (String) configs.remove("system.totalordermulticast.period");
@@ -306,6 +306,8 @@ public class TOMConfiguration extends Configuration {
             s = (String) configs.remove("system.bft");
             isBFT = (s != null) ? Boolean.parseBoolean(s) : true;
 
+	        f = View.calculateF(n, isBFT);
+
             s = (String) configs.remove("system.numrepliers");
             if (s == null) {
                 numRepliers = 0;
@@ -377,9 +379,9 @@ public class TOMConfiguration extends Configuration {
         return n;
     }
 
-    public int getF() {
+   /* public int getF() {
         return f;
-    }
+    }*/
     
     public int getPaxosHighMark() {
         return paxosHighMark;
