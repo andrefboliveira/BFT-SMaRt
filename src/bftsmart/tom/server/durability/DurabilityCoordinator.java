@@ -15,6 +15,7 @@ limitations under the License.
  */
 package bftsmart.tom.server.durability;
 
+import bftsmart.reconfiguration.ServerViewController;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
@@ -28,6 +29,7 @@ import bftsmart.statemanagement.durability.CSTState;
 import bftsmart.statemanagement.durability.DurableStateManager;
 import bftsmart.tom.MessageContext;
 import bftsmart.tom.ReplicaContext;
+import bftsmart.tom.core.messages.TOMMessage;
 import bftsmart.tom.server.BatchExecutable;
 import bftsmart.tom.server.Recoverable;
 import bftsmart.tom.server.defaultservices.CommandsInfo;
@@ -63,6 +65,7 @@ public abstract class DurabilityCoordinator implements Recoverable, BatchExecuta
 	private DurableStateLog log;
 
 	private StateManager stateManager;
+        private ServerViewController controller;
 
 	private int lastCkpCID;
 	private int globalCheckpointPeriod;
@@ -96,7 +99,9 @@ public abstract class DurabilityCoordinator implements Recoverable, BatchExecuta
 			
                     if (!noop) {
                         stateLock.lock();
+                        
 			replies = appExecuteBatch(commands, msgCtx);
+                
 			stateLock.unlock();
                     }
                     logger.debug("Storing message batch in the state log for consensus " + cid);
@@ -121,7 +126,7 @@ public abstract class DurabilityCoordinator implements Recoverable, BatchExecuta
 				firstHalfMsgCtx = msgCtx;
 
 			byte[][] firstHalfReplies = new byte[firstHalf.length][];
-			byte[][] secondHalfReplies = new byte[secondHalf.length][];
+                        byte[][] secondHalfReplies = new byte[secondHalf.length][];
 
 			// execute the first half
 			cid = msgCtx[checkpointIndex].getConsensusId();
@@ -129,6 +134,7 @@ public abstract class DurabilityCoordinator implements Recoverable, BatchExecuta
                         if (!noop) {
                             stateLock.lock();
                             firstHalfReplies = appExecuteBatch(firstHalf, firstHalfMsgCtx);
+                            
                             stateLock.unlock();
                         }
                         
@@ -153,7 +159,9 @@ public abstract class DurabilityCoordinator implements Recoverable, BatchExecuta
 				if (!noop) {
                                     
                                     stateLock.lock();
+                                    
                                     secondHalfReplies = appExecuteBatch(secondHalf, secondHalfMsgCtx);
+                                    
                                     stateLock.unlock();
                                     
                                 }
@@ -355,6 +363,7 @@ public abstract class DurabilityCoordinator implements Recoverable, BatchExecuta
 	@Override
 	public void setReplicaContext(ReplicaContext replicaContext) {
 		this.config = replicaContext.getStaticConfiguration();
+                this.controller = replicaContext.getSVController();
 		if(log == null) {
 			globalCheckpointPeriod = config.getGlobalCheckpointPeriod();
 			replicaCkpIndex = getCheckpointPortionIndex();
@@ -433,6 +442,12 @@ public abstract class DurabilityCoordinator implements Recoverable, BatchExecuta
         
         executeBatch(operations, msgCtxs, true);
 
+    }
+    
+    @Override
+    public byte[] takeCheckpointHash(int cid){
+        
+        return computeHash(getSnapshot());
     }
         
     /**

@@ -27,6 +27,7 @@ import bftsmart.statemanagement.StateManager;
 import bftsmart.statemanagement.standard.StandardStateManager;
 import bftsmart.tom.MessageContext;
 import bftsmart.tom.ReplicaContext;
+import bftsmart.tom.core.messages.TOMMessage;
 import bftsmart.tom.server.BatchExecutable;
 import bftsmart.tom.server.Recoverable;
 import bftsmart.tom.server.ServerJoiner;
@@ -422,6 +423,89 @@ public abstract class DefaultRecoverable implements Recoverable, BatchExecutable
 		return replies;
 	}
 
+	/*
+	 * private byte[][] executeBatch(byte[][] commands, MessageContext[] msgCtxs,
+	 * boolean noop) {
+	 * 
+	 * int cid = msgCtxs[msgCtxs.length-1].getConsensusId();
+	 * 
+	 * // As the delivery thread may deliver several consensus at once it is
+	 * necessary // to find if a checkpoint might be taken in the middle of the
+	 * batch execution int[] cids = consensusIds(msgCtxs); int checkpointIndex =
+	 * findCheckpointPosition(cids);
+	 * 
+	 * byte[][] replies = new byte[commands.length][];
+	 * 
+	 * if (checkpointIndex == -1) {
+	 * 
+	 * if (!noop) {
+	 * 
+	 * stateLock.lock();
+	 * 
+	 * replies = appExecuteBatch(commands, msgCtxs, true);
+	 * 
+	 * stateLock.unlock();
+	 * 
+	 * }
+	 * 
+	 * saveCommands(commands, msgCtxs); } else { // there is a replica supposed to
+	 * take the checkpoint. In this case, the commands // must be executed in two
+	 * steps. First the batch of commands containing commands // until the
+	 * checkpoint period is executed and the log saved or checkpoint taken // if
+	 * this replica is the one supposed to take the checkpoint. After the checkpoint
+	 * // or log, the pointer in the log is updated and then the remaining portion
+	 * of the // commands is executed byte[][] firstHalf = new byte[checkpointIndex
+	 * + 1][]; MessageContext[] firstHalfMsgCtx = new
+	 * MessageContext[firstHalf.length]; byte[][] secondHalf = new
+	 * byte[commands.length - (checkpointIndex + 1)][]; MessageContext[]
+	 * secondHalfMsgCtx = new MessageContext[secondHalf.length];
+	 * System.arraycopy(commands, 0, firstHalf, 0, checkpointIndex + 1);
+	 * System.arraycopy(msgCtxs, 0, firstHalfMsgCtx, 0, checkpointIndex + 1); if
+	 * (secondHalf.length > 0) { System.arraycopy(commands, checkpointIndex + 1,
+	 * secondHalf, 0, commands.length - (checkpointIndex + 1));
+	 * System.arraycopy(msgCtxs, checkpointIndex + 1, secondHalfMsgCtx, 0,
+	 * commands.length - (checkpointIndex + 1)); } else { firstHalfMsgCtx = msgCtxs;
+	 * }
+	 * 
+	 * byte[][] firstHalfReplies = new byte[firstHalf.length][]; byte[][]
+	 * secondHalfReplies = new byte[secondHalf.length][];
+	 * 
+	 * // execute the first half cid = msgCtxs[checkpointIndex].getConsensusId();
+	 * 
+	 * if (!noop) { stateLock.lock();
+	 * 
+	 * firstHalfReplies = appExecuteBatch(firstHalf, firstHalfMsgCtx, true);
+	 * 
+	 * stateLock.unlock(); }
+	 * 
+	 * logger.info("Performing checkpoint for consensus " + cid); stateLock.lock();
+	 * byte[] snapshot = getSnapshot(); stateLock.unlock(); saveState(snapshot,
+	 * cid);
+	 * 
+	 * System.arraycopy(firstHalfReplies, 0, replies, 0, firstHalfReplies.length);
+	 * 
+	 * // execute the second half if it exists if (secondHalf.length > 0) { //
+	 * System.out.println("----THERE IS A SECOND HALF----"); cid =
+	 * msgCtxs[msgCtxs.length - 1].getConsensusId();
+	 * 
+	 * if (!noop) { stateLock.lock();
+	 * 
+	 * secondHalfReplies = appExecuteBatch(secondHalf, secondHalfMsgCtx, true);
+	 * 
+	 * stateLock.unlock(); }
+	 * 
+	 * logger.debug("Storing message batch in the state log for consensus " + cid);
+	 * saveCommands(secondHalf, secondHalfMsgCtx);
+	 * 
+	 * System.arraycopy(secondHalfReplies, 0, replies, firstHalfReplies.length,
+	 * secondHalfReplies.length); }
+	 * 
+	 * }
+	 * 
+	 * if (cids != null && cids.length > 0) {
+	 * getStateManager().setLastCID(cids[cids.length - 1]); } return replies; }
+	 */
+
 	private final byte[] computeHash(byte[] data) {
 		byte[] ret = null;
 		hashLock.lock();
@@ -722,7 +806,5 @@ public abstract class DefaultRecoverable implements Recoverable, BatchExecutable
 	 * @return the reply for the request issued by the client
 	 */
 	public abstract byte[] appExecuteUnordered(byte[] command, MessageContext msgCtx);
-
-
-
+	
 }
