@@ -12,7 +12,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 public class MapServerTest<K, V> extends DefaultRecoverable {
 
 	private final ServiceReplica replica;
@@ -212,5 +211,10 @@ public class MapServerTest<K, V> extends DefaultRecoverable {
 		} catch (IOException | ClassNotFoundException e) {
 			logger.log(Level.SEVERE, "Error while installing snapshot", e);
 		}
+	}
+
+	@Override
+	public byte[] takeCheckpointHash(int cid) {
+		return new byte[0];
 	}
 }
