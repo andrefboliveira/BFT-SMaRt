@@ -221,7 +221,7 @@ public class JoinThread_bak implements Runnable {
 
 
 		} catch (IOException  e) {
-			System.out.println("Exception creating JOIN request: " + e.getReceivedMessage());
+			System.out.println("Exception creating JOIN request: " + e.getInputProof());
 		}
 	}
 

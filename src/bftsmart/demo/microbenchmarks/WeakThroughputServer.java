@@ -18,7 +18,7 @@ package bftsmart.demo.microbenchmarks;
 import bftsmart.tom.MessageContext;
 import bftsmart.tom.ServiceReplica;
 import bftsmart.tom.server.defaultservices.CommandsInfo;
-import bftsmart.tom.server.defaultservices.DefaultRecoverable;
+import bftsmart.tom.server.defaultservices.blockchain.WeakBlockchainRecoverable;
 import bftsmart.tom.util.Storage;
 import bftsmart.tom.util.TOMUtil;
 import java.io.ByteArrayInputStream;
@@ -45,7 +45,7 @@ import java.util.logging.Logger;
 /**
  * Simple server that just acknowledge the reception of a request.
  */
-public final class ThroughputLatencyServer extends DefaultRecoverable{
+public final class WeakThroughputServer extends WeakBlockchainRecoverable {
     
     private int interval;
     private byte[] reply;
@@ -73,7 +73,7 @@ public final class ThroughputLatencyServer extends DefaultRecoverable{
     private RandomAccessFile randomAccessFile = null;
     private FileChannel channel = null;
 
-    public ThroughputLatencyServer(int id, int interval, int replySize, int stateSize, boolean context,  int signed, int write) {
+    public WeakThroughputServer(int id, int interval, int replySize, int stateSize, boolean context,  int signed, int write) {
 
         this.interval = interval;
         this.context = context;
@@ -123,7 +123,7 @@ public final class ThroughputLatencyServer extends DefaultRecoverable{
     }
     
     @Override
-    public byte[][] appExecuteBatch(byte[][] commands, MessageContext[] msgCtxs, boolean fromConsensus) {
+    public byte[][] appExecuteBatch(byte[][] commands, MessageContext[] msgCtxs, boolean iCheckpoint) {
         
         batchSize.store(commands.length);
                 
@@ -155,17 +155,17 @@ public final class ThroughputLatencyServer extends DefaultRecoverable{
                 channel.write(bb);
                 channel.force(false);
             } catch (IOException ex) {
-                Logger.getLogger(ThroughputLatencyServer.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(WeakThroughputServer.class.getName()).log(Level.SEVERE, null, ex);
                 
             } finally {
                 try {
                     oos.close();
                 } catch (IOException ex) {
-                    Logger.getLogger(ThroughputLatencyServer.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(WeakThroughputServer.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
         }
-                    
+        
         return replies;
     }
     
@@ -338,7 +338,7 @@ public final class ThroughputLatencyServer extends DefaultRecoverable{
         if (!write.equalsIgnoreCase("")) w++;
         if (write.equalsIgnoreCase("rwd")) w++;
 
-        new ThroughputLatencyServer(processId,interval,replySize, stateSize, context, s, w);        
+        new WeakThroughputServer(processId,interval,replySize, stateSize, context, s, w);        
     }
 
     @Override

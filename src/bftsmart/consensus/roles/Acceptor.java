@@ -37,10 +37,13 @@ import java.io.ObjectOutputStream;
 import java.security.PrivateKey;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import javax.crypto.Mac;
 import javax.crypto.SecretKey;
+import org.apache.commons.codec.binary.Base64;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,6 +66,8 @@ public final class Acceptor {
     private TOMLayer tomLayer; // TOM layer
     private ServerViewController controller;
     
+    private BlockingQueue<Map.Entry<Integer,byte[][]>> queue;
+        
     //thread pool used to paralelise creation of consensus proofs
     private ExecutorService proofExecutor = null;
 
@@ -72,12 +77,39 @@ public final class Acceptor {
      * @param factory Message factory for PaW messages
      * @param controller
      */
-    public Acceptor(ServerCommunicationSystem communication, MessageFactory factory, ServerViewController controller) {
+    public Acceptor(ServerCommunicationSystem communication, MessageFactory factory, ServerViewController controller, BlockingQueue<Map.Entry<Integer,byte[][]>> queue) {
         this.communication = communication;
         this.me = controller.getStaticConf().getProcessId();
         this.factory = factory;
         this.controller = controller;
+        this.queue = queue;
+        
+        //Putting an element in the queue to prevent the acceptor from blocking when attempting to fetch the hashes from the first execution
+        Map.Entry<Integer, byte[][]> element = new Map.Entry<Integer, byte[][]>() {
+                
+                @Override
+                public Integer getKey() {
+
+                    return -1;
+                }
+
+                @Override
+                public byte[][] getValue() {
+                    return new byte[][] {new byte[0], new byte[0]};
+                }
+
+                @Override
+                public byte[][] setValue(byte[][] value) {
+                    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                }
+            };
             
+        try {
+            this.queue.put(element);
+        } catch (InterruptedException ex) {
+            logger.error("Could not insert element into queue", ex);
+        }
+        
         // use either the same number of Netty workers threads if specified in the configuration
         // or use a many as the number of cores available
         int nWorkers = this.controller.getStaticConf().getNumNettyWorkers();
@@ -221,7 +253,7 @@ public final class Acceptor {
                     logger.debug("WRITE computed for " + cid);
                 
                 } else {
-                 	epoch.setAccept(me, epoch.propValueHash);
+                 	epoch.setAccept(me, epoch.propValueHash, null);
                  	epoch.getConsensus().getDecision().firstMessageProposed.writeSentTime = System.nanoTime();
                         epoch.getConsensus().getDecision().firstMessageProposed.acceptSentTime = System.nanoTime();
                  	/**** LEADER CHANGE CODE! ******/
@@ -233,7 +265,7 @@ public final class Acceptor {
  	                    factory.createAccept(cid, epoch.getTimestamp(), epoch.propValueHash));
                         
                         epoch.acceptSent();
-                        computeAccept(cid, epoch, epoch.propValueHash);
+                        computeAccept(cid, epoch, epoch.propValueHash, null);
                 }
                 executionManager.processOutOfContext(epoch.getConsensus());
                 
@@ -283,7 +315,7 @@ public final class Acceptor {
                 logger.debug("Setting consensus " + cid + " QuorumWrite tiemstamp to " + epoch.getConsensus().getEts() + " and value " + Arrays.toString(value));
                 epoch.getConsensus().setQuorumWrites(value);
                 /*****************************************/
-                
+
                 if(epoch.getConsensus().getDecision().firstMessageProposed!=null) {
 
                         epoch.getConsensus().getDecision().firstMessageProposed.acceptSentTime = System.nanoTime();
@@ -303,6 +335,8 @@ public final class Acceptor {
                 } else { //... and if not, create the ACCEPT message again (with the correct value), and send it
                     
                     ConsensusMessage correctAccept = factory.createAccept(cid, epoch.getTimestamp(), value);
+                    correctAccept.setCheckpointHash(cm.getCheckpointHash());
+                    correctAccept.setLastBlockHash(cm.getlastBlockHash());
 
                     proofExecutor.submit(() -> {
                         
@@ -323,19 +357,118 @@ public final class Acceptor {
             
             ConsensusMessage cm = factory.createAccept(cid, epoch.getTimestamp(), value);
             epoch.acceptCreated();
-
+            
             proofExecutor.submit(() -> {
+                
+                //try {
+                
+                    //byte[][] hashes = fetchHashes(cid);
+                    //byte[] hash = fetchHash(cid);
+                    
+                    // Create a cryptographic proof for this ACCEPT message
+                    logger.debug("Creating cryptographic proof for speculative ACCEPT message from consensus " + cid);
+                    
+                    //cm.setCheckpointHash(hash);
+                    //cm.setLastBlockHash(hashes[1]);
+                    
+                    insertProof(cm, epoch.deserializedPropValue);
 
-                // Create a cryptographic proof for this ACCEPT message
-                logger.debug("Creating cryptographic proof for speculative ACCEPT message from consensus " + cid);
-                insertProof(cm, epoch.deserializedPropValue);
-
-                epoch.setAcceptMsg(cm);
+                    epoch.setAcceptMsg(cm);
+                    
+                //} catch (InterruptedException ex) {
+                //    logger.error("Error while wating for hashes for CID "+cid, ex);
+                //}
 
             });            
         }
     }
 
+    //not used, at least for now
+    private byte[][] fetchHashes(int cid) throws InterruptedException {
+        
+        byte[] blockHash = null;
+        byte[] checkpointHash = null;
+        
+        logger.debug("Waiting for the hash of block #{}", (cid - 1));
+        
+        while(true) {
+            Map.Entry<Integer, byte[][]> element = queue.take();
+
+            logger.debug("Fetched hashes for block #{}", element.getKey());
+
+            if (element.getKey() == (cid - 1)) {
+
+                blockHash = element.getValue()[0];
+                if (((cid - 1) % controller.getStaticConf().getCheckpointPeriod() == 0) && (element.getKey() == (cid - 1))) {
+
+                    checkpointHash = element.getValue()[1];
+
+                    logger.debug("Obtained checkpoint hash for block #{} with content {}", (cid-1), Base64.encodeBase64String(checkpointHash));
+
+                }
+
+                break;
+
+            } else {
+
+                logger.debug("Hashes are not for the block I want (want #{}, got #{}), punting it back in the queue", (cid - 1), element.getKey());
+                queue.put(element);
+            }
+        }
+        
+        return new byte[][]{checkpointHash, blockHash};
+    }
+    
+    private byte[] fetchHash(int cid) {
+        
+        byte[] checkpointHash = null;
+            
+        if ((cid - 1) % controller.getStaticConf().getCheckpointPeriod() == 0) {
+        
+            logger.debug("Waiting for the checkpoint hash of block #{}", (cid - 1));
+
+            while(true) {
+                
+                Map.Entry<Integer, byte[][]> element;
+                try {
+                    element = queue.take();
+                } catch (InterruptedException ex) {
+                    logger.error("Error while waiting for checkpoint hash from CID " + cid, ex);
+                    continue;
+                }
+
+                logger.debug("Fetched checkpoint hash for block #{}", element.getKey());
+            
+                        
+                if (element.getKey() == (cid - 1)) {
+
+                    checkpointHash = element.getValue()[1];
+
+                    logger.debug("Obtained checkpoint hash for block #{} with content {}", (cid-1), Base64.encodeBase64String(checkpointHash));
+
+                    break;
+
+                } else {
+
+                    logger.debug("Checkpoint hash is not for the block I want (want #{}, got #{}), punting it back in the queue", (cid - 1), element.getKey());
+                    
+                    while (true) {
+                        
+                        try {
+                            queue.put(element);
+                            break;
+                            
+                        } catch (InterruptedException ex) {
+                            logger.error("Error while putting checkpoint hash from CID " + cid + " back in the queue", ex);
+                        }
+                    }
+                }
+            }
+        }
+        
+        return checkpointHash;
+    }
+    
     /**
      * Create a cryptographic proof for a consensus message
      * 
@@ -443,10 +576,10 @@ public final class Acceptor {
     private void acceptReceived(Epoch epoch, ConsensusMessage msg) {
         int cid = epoch.getConsensus().getId();
         logger.debug("ACCEPT from " + msg.getSender() + " for consensus " + cid);
-        epoch.setAccept(msg.getSender(), msg.getValue());
+        epoch.setAccept(msg.getSender(), msg.getValue(), msg.getCheckpointHash());
         epoch.addToProof(msg);
 
-        computeAccept(cid, epoch, msg.getValue());
+        computeAccept(cid, epoch, msg.getValue(), msg.getCheckpointHash());
     }
 
     /**
@@ -455,11 +588,11 @@ public final class Acceptor {
      * @param epoch Epoch of the receives message
      * @param value Value sent in the message
      */
-    private void computeAccept(int cid, Epoch epoch, byte[] value) {
-        logger.debug("I have " + epoch.countAccept(value) +
+    private void computeAccept(int cid, Epoch epoch, byte[] value, byte[] checkpoint) {
+        logger.debug("I have " + epoch.countAccept(value, checkpoint) +
                 " ACCEPTs for " + cid + "," + epoch.getTimestamp());
 
-        if (epoch.countAccept(value) > controller.getQuorum() && !epoch.getConsensus().isDecided()) {
+        if (epoch.countAccept(value, checkpoint) > controller.getQuorum() && !epoch.getConsensus().isDecided()) {
             logger.debug("Deciding consensus " + cid);
             decide(epoch);
         }

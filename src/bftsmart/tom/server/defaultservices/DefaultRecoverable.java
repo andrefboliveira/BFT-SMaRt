@@ -30,6 +30,7 @@ import bftsmart.statemanagement.StateManager;
 import bftsmart.statemanagement.standard.StandardStateManager;
 import bftsmart.tom.MessageContext;
 import bftsmart.tom.ReplicaContext;
+import bftsmart.tom.core.messages.TOMMessage;
 import bftsmart.tom.server.BatchExecutable;
 import bftsmart.tom.server.Recoverable;
 import bftsmart.tom.util.TOMUtil;
@@ -91,7 +92,9 @@ public abstract class DefaultRecoverable implements Recoverable, BatchExecutable
             if (!noop) {
 
                 stateLock.lock();
+                
                 replies = appExecuteBatch(commands, msgCtxs, true);
+                
                 stateLock.unlock();
 
             }
@@ -125,7 +128,9 @@ public abstract class DefaultRecoverable implements Recoverable, BatchExecutable
 
             if (!noop) {
                 stateLock.lock();
+                
                 firstHalfReplies = appExecuteBatch(firstHalf, firstHalfMsgCtx, true);
+                
                 stateLock.unlock();
             }
 
@@ -144,7 +149,9 @@ public abstract class DefaultRecoverable implements Recoverable, BatchExecutable
 
                 if (!noop) {
                     stateLock.lock();
+                    
                     secondHalfReplies = appExecuteBatch(secondHalf, secondHalfMsgCtx, true);
+                    
                     stateLock.unlock();
                 }
 
@@ -428,6 +435,12 @@ public abstract class DefaultRecoverable implements Recoverable, BatchExecutable
         
         executeBatch(operations, msgCtxs, true);
 
+    }
+    
+    @Override
+    public byte[] takeCheckpointHash(int cid){
+        
+        return computeHash(getSnapshot());
     }
     
     /**

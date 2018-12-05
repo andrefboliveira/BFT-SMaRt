@@ -54,6 +54,9 @@ public class TOMConfiguration extends Configuration {
     private boolean syncLog;
     private boolean parallelLog;
     private boolean logToDisk;
+    private int logBatchLimit;
+    private int logBatchTimeout;
+    private String logBatchType;
     private boolean isToWriteCkpsToDisk;
     private boolean syncCkp;
     private boolean isBFT;
@@ -178,6 +181,7 @@ public class TOMConfiguration extends Configuration {
                 useMACs = Integer.parseInt(s);
             }
 
+            useSignatures = 1;
             s = (String) configs.remove("system.communication.useSignatures");
             if (s == null) {
                 useSignatures = 0;
@@ -271,7 +275,31 @@ public class TOMConfiguration extends Configuration {
             } else {
                     logToDisk = false;
             }
+            
+            s = (String) configs
+                            .remove("system.totalordermulticast.log_batch_limit");
+            if (s != null) {
+                    logBatchLimit = Integer.parseInt(s);
+            } else {
+                    logBatchLimit = 10;
+            }
+            
+            s = (String) configs
+                            .remove("system.totalordermulticast.log_batch_timeout");
+            if (s != null) {
+                    logBatchTimeout = Integer.parseInt(s);
+            } else {
+                    logBatchTimeout = 10;
+            }
 
+            s = (String) configs.remove("system.totalordermulticast.log_batch_type");
+            if(s == null || (!s.equalsIgnoreCase("buffer") && !s.equalsIgnoreCase("parallel") 
+                    && !s.equalsIgnoreCase("async") && !s.equalsIgnoreCase("void"))){
+                logBatchType = "buffer";
+            }else{
+                logBatchType = s;
+            }
+            
             s = (String) configs
                             .remove("system.totalordermulticast.sync_log");
             if (s != null) {
@@ -332,12 +360,14 @@ public class TOMConfiguration extends Configuration {
                 bindAddress = s;
             }
             
-            s = (String) configs.remove("system.samebatchsize");
-            if (s != null) {
-                    sameBatchSize = Boolean.parseBoolean(s);
-            } else {
-                    sameBatchSize = false;
-            }
+            //Force this codebase to always deliver to the application a batch with the same size across all replicas
+            sameBatchSize = true;
+            //s = (String) configs.remove("system.samebatchsize");
+            //if (s != null) {
+            //        sameBatchSize = Boolean.parseBoolean(s);
+            //} else {
+            //        sameBatchSize = false;
+            //}
             
         } catch (Exception e) {
             logger.error("Could not parse system configuration file",e);
@@ -471,7 +501,15 @@ public class TOMConfiguration extends Configuration {
 	public boolean logToDisk() {
 		return logToDisk;
 	}
-
+        
+        public int getLogBatchLimit() {
+            return logBatchLimit;
+        }
+    
+        public int getLogBatchTimeout() {
+            return logBatchTimeout;
+        }
+        
 	public boolean isToLogParallel() {
 		// TODO Auto-generated method stub
 		return parallelLog;
@@ -511,4 +549,10 @@ public class TOMConfiguration extends Configuration {
     public String getBindAddress() {
         return bindAddress;
     }
+    
+    public String getLogBatchType() {
+
+        return logBatchType;
+    }
+
 }

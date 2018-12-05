@@ -41,6 +41,13 @@ public interface Executable {
      */
     public byte[] executeUnordered(byte[] command, MessageContext msgCtx);
     
+    /**
+     * Invoked by the ServiceREplica object to fetch the checkpoint up to a given consensus instance
+     * @param cid ID of the consensus instance up to each the checkpoint hash must be associated with
+     * @return Checkpoint hash up to the specified consensus instance
+     */
+    public byte[] takeCheckpointHash(int cid);
+
     default TOMMessage getTOMMessage(int processID, int viewID, byte[] command, MessageContext msgCtx, byte[] result) {
         
         TOMMessage reply = msgCtx.recreateTOMMessage(command);

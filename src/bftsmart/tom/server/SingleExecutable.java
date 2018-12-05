@@ -37,6 +37,7 @@ public interface SingleExecutable extends Executable {
      *
      * @param command the command issue by the client
      * @param msgCtx information related with the command
+     * @param isCheckpoint Notify application that this consensus instance will require a checkpoint hash in its consensus proof
      * 
      * @return the reply for the request issued by the client
      */
