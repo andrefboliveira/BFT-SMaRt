@@ -157,20 +157,27 @@ public abstract class DefaultRecoverable implements Recoverable, BatchExecutable
 			ByteBuffer buff = ByteBuffer.wrap(commands[i]);
 
 			int l = buff.getInt();
-			byte[] b = new byte[l];
-			buff.get(b);
+			System.out.println("l: " + l);
+			if (l > 0) {
+				byte[] b = new byte[l];
+				buff.get(b);
 
-			String flag = "JOIN_REQUEST";
+				String flag = "JOIN_REQUEST";
 
-			if (flag.equals((new String(b)))) {
+				if (flag.equals((new String(b)))) {
 
-				int messageSize = buff.getInt();
-				byte[] messageBytes = new byte[messageSize];
-				buff.get(messageBytes);
+					int messageSize = buff.getInt();
+					byte[] messageBytes = new byte[messageSize];
+					buff.get(messageBytes);
 
-				joinRequestList.add(messageBytes);
-				ctxjoinRequestList.add(msgCtxs[i]);
+					joinRequestList.add(messageBytes);
+					ctxjoinRequestList.add(msgCtxs[i]);
 
+				} else if (!noop) {
+
+					transListApp.add(commands[i]);
+					ctxListApp.add(msgCtxs[i]);
+				}
 			} else if (!noop) {
 
 				transListApp.add(commands[i]);
@@ -202,13 +209,12 @@ public abstract class DefaultRecoverable implements Recoverable, BatchExecutable
 			MessageContext[] msgCtxsJoin = new MessageContext[ctxjoinRequestList.size()];
 			ctxjoinRequestList.toArray(msgCtxsJoin);
 
-			repliesApp = joinExecution(commandsJoin, msgCtxsJoin, noop);
+			repliesJoin = joinExecution(commandsJoin, msgCtxsJoin, noop);
 
 		}
 
 		byte[][] fullResult = concatArray(repliesApp, repliesJoin);
 
-		Arrays.toString(fullResult);
 
 		return fullResult;
 	}
@@ -288,6 +294,7 @@ public abstract class DefaultRecoverable implements Recoverable, BatchExecutable
 				stateLock.lock();
 				for (int i = 0; i < commands.length; i++) {
 					firstHalfReplies[i] = processJoinRequest(firstHalf[i], firstHalfMsgCtx[i]);
+
 				}
 				stateLock.unlock();
 			}
@@ -309,6 +316,7 @@ public abstract class DefaultRecoverable implements Recoverable, BatchExecutable
 					stateLock.lock();
 					for (int i = 0; i < commands.length; i++) {
 						secondHalfReplies[i] = processJoinRequest(secondHalf[i], secondHalfMsgCtx[i]);
+
 					}
 					stateLock.unlock();
 				}

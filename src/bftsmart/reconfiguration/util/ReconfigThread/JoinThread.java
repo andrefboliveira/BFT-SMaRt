@@ -93,7 +93,6 @@ public class JoinThread implements Runnable {
 							     DataInputStream dis = new DataInputStream(byteIn)) {
 
 								ReplicaReconfigReply replicaReply2 = ReplicaReconfigReply.desSerialize(dis);
-								;
 
 								reply2 = replicaReply2.getCertificateValues();
 							}
@@ -102,10 +101,7 @@ public class JoinThread implements Runnable {
 							e.printStackTrace();
 						}
 
-						System.out.println(CoreCertificate.compareCertificates(reply1, reply2));
-
-
-						return CoreCertificate.compareCertificates(reply1, reply2) ? 1 : -1;
+						return CoreCertificate.compareCertificates(reply1, reply2) ? 0 : -1;
 					}
 				},
 				new Extractor() {
