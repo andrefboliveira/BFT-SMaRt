@@ -1,8 +1,8 @@
 package bftsmart.reconfiguration.util.ReconfigThread.pojo;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
 public class PartialCertificate implements Serializable {
@@ -25,7 +25,31 @@ public class PartialCertificate implements Serializable {
 
 	private static final long serialVersionUID = 6992126703443504960L;
 
+	public void serialize(DataOutputStream dos) throws IOException {
 
+		dos.writeInt(this.signingReplicaID);
+
+		dos.writeInt(this.signature.length);
+		dos.write(this.signature);
+
+		dos.flush();
+
+	}
+
+	public static PartialCertificate desSerialize(DataInputStream dis) throws IOException {
+		int signingReplicaID = dis.readInt();
+
+		int signature_length = dis.readInt();
+
+		byte[] signature = new byte[signature_length];
+		dis.read(signature);
+
+		return new PartialCertificate(signingReplicaID, signature);
+
+	}
+
+
+	/*
 	private void writeObject(ObjectOutputStream oos) throws IOException {
 		oos.defaultWriteObject();
 
@@ -35,4 +59,6 @@ public class PartialCertificate implements Serializable {
 		ois.defaultReadObject();
 
 	}
+
+	*/
 }

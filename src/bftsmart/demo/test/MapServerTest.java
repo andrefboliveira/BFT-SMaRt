@@ -1,11 +1,12 @@
 package bftsmart.demo.test;
 
-import bftsmart.reconfiguration.util.ReconfigThread.JoinThread;
 import bftsmart.tom.MessageContext;
 import bftsmart.tom.ServiceReplica;
 import bftsmart.tom.server.defaultservices.DefaultRecoverable;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -23,7 +24,7 @@ public class MapServerTest<K, V> extends DefaultRecoverable {
 		replicaMap = new TreeMap<>();
 		logger = Logger.getLogger(MapServerTest.class.getName());
 //		config = new TOMConfiguration(id, null);
-		replica = new ServiceReplica(id, this, this);
+		replica = new ServiceReplica(id, this, this, this);
 	}
 
 	public static void main(String[] args) {
@@ -95,18 +96,6 @@ public class MapServerTest<K, V> extends DefaultRecoverable {
 					keySet(objOut);
 					hasReply = true;
 					break;
-				case RECONFIG_ADD:
-					if (fromConsensus) {
-						String input = (String) objIn.readUTF();
-						int joiningReplicaID = objIn.readInt();
-						JoinThread.serverReconfigRequest(input, objOut, joiningReplicaID, msgCtx.getTimestamp(), replica.getReplicaContext().getStaticConfiguration());
-						hasReply = true;
-					} else {
-						hasReply = false;
-
-					}
-
-					break;
 
 			}
 			if (hasReply) {
@@ -170,6 +159,26 @@ public class MapServerTest<K, V> extends DefaultRecoverable {
 		}
 
 		return reply;
+	}
+
+	@Override
+	public byte[] appCreateJoinRequest(byte[] command) {
+		System.out.println("Pedido");
+		Arrays.toString(command);
+
+		return "ASK_JOIN".getBytes(StandardCharsets.UTF_8);
+	}
+
+	@Override
+	public boolean appVerifyJoinRequest(byte[] command) {
+		String input = new String(command, StandardCharsets.UTF_8);
+
+		System.out.println(input);
+		if ("ASK_JOIN".equals(input)) {
+			return true;
+		}
+
+		return false;
 	}
 
 	private void keySet(ObjectOutput out) throws IOException, ClassNotFoundException {

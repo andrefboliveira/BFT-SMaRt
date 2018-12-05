@@ -48,4 +48,6 @@ public interface BatchExecutable extends Executable {
         return replies;
     }
 
+    public boolean appVerifyJoinRequest(byte[] command);
+
 }

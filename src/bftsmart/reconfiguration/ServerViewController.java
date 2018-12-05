@@ -15,6 +15,7 @@
  */
 package bftsmart.reconfiguration;
 
+import bftsmart.reconfiguration.util.ReconfigThread.pojo.CoreCertificate;
 import bftsmart.reconfiguration.util.ReconfigThread.pojo.FullCertificate;
 import bftsmart.reconfiguration.util.ReconfigThread.pojo.PartialCertificate;
 import bftsmart.reconfiguration.util.TOMConfiguration;
@@ -27,8 +28,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.net.InetSocketAddress;
 import java.security.PublicKey;
 import java.util.Iterator;
@@ -278,22 +279,46 @@ public class ServerViewController extends ViewController {
 
 		// Check the signatures of the certificate
 
+		/*for (CoreCertificate certificate : CoreCertificate.generateAllCoreCertificates(fullCertificate)) {
+			PublicKey signingPubKey = conf.getPublicKey(certificate.getExecutingReplicaID());
+
+			try (ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
+			     DataOutputStream dos = new DataOutputStream(byteOut);) {
+
+				certificate.serialize(dos);
+
+				dos.flush();
+				byteOut.flush();
+
+
+				boolean correctSignature = TOMUtil.verifySignature(signingPubKey,
+						byteOut.toByteArray(),
+						certificate.getSignature());
+
+				if (!correctSignature) {
+					return false;
+
+				}
+
+
+			} catch (IOException e) {
+				e.printStackTrace();
+				return false;
+			}
+		}*/
+
 		for (PartialCertificate replicaCertificate : fullCertificate.getReplicaCertificates()) {
 
 			PublicKey signingPubKey = conf.getPublicKey(replicaCertificate.getSigningReplicaID());
 
 			try (ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
-			     ObjectOutputStream objOut = new ObjectOutputStream(byteOut);) {
-				objOut.writeInt(fullCertificate.getToReconfigureReplicaID());
-				objOut.writeLong(fullCertificate.getConsensusTimestamp());
-				objOut.writeInt(replicaCertificate.getSigningReplicaID());
-				objOut.writeUTF(fullCertificate.getReceivedMessage());
+			     DataOutputStream dos = new DataOutputStream(byteOut);) {
 
+				CoreCertificate certificateToVerify = CoreCertificate.generateCoreCertificate(fullCertificate, replicaCertificate);
+				certificateToVerify.serialize(dos);
 
-				objOut.flush();
+				dos.flush();
 				byteOut.flush();
-
-//                                    getReceivedMessage().getBytes(StandardCharsets.UTF_8)
 
 
 				boolean correctSignature = TOMUtil.verifySignature(signingPubKey,

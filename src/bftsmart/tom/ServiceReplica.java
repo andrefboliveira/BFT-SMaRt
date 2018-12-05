@@ -68,6 +68,7 @@ public class ServiceReplica {
     private Condition canProceed = waitTTPJoinMsgLock.newCondition();
     private Executable executor = null;
     private Recoverable recoverer = null;
+    private ServerJoiner joiner;
     private TOMLayer tomLayer = null;
     private boolean tomStackCreated = false;
     private ReplicaContext replicaCtx = null;
@@ -81,8 +82,8 @@ public class ServiceReplica {
      * @param executor Executor
      * @param recoverer Recoverer
      */
-    public ServiceReplica(int id, Executable executor, Recoverable recoverer) {
-        this(id, "", executor, recoverer, null, new DefaultReplier(), null);
+    public ServiceReplica(int id, Executable executor, Recoverable recoverer, ServerJoiner joiner) {
+        this(id, "", executor, recoverer, joiner, null, new DefaultReplier(), null);
     }
 
     /**
@@ -93,8 +94,8 @@ public class ServiceReplica {
      * @param recoverer Recoverer
      * @param verifier Requests verifier
      */
-    public ServiceReplica(int id, Executable executor, Recoverable recoverer, RequestVerifier verifier) {
-        this(id, "", executor, recoverer, verifier, new DefaultReplier(), null);
+    public ServiceReplica(int id, Executable executor, Recoverable recoverer, ServerJoiner joiner, RequestVerifier verifier) {
+        this(id, "", executor, recoverer, joiner, verifier, new DefaultReplier(), null);
     }
 
     /**
@@ -102,8 +103,8 @@ public class ServiceReplica {
      *
      * @see bellow
      */
-    public ServiceReplica(int id, Executable executor, Recoverable recoverer, RequestVerifier verifier, Replier replier) {
-        this(id, "", executor, recoverer, verifier, replier, null);
+    public ServiceReplica(int id, Executable executor, Recoverable recoverer, ServerJoiner joiner, RequestVerifier verifier, Replier replier) {
+        this(id, "", executor, recoverer, joiner, verifier, replier, null);
     }
 
     /**
@@ -111,8 +112,8 @@ public class ServiceReplica {
      *
      * @see bellow
      */
-    public ServiceReplica(int id, Executable executor, Recoverable recoverer, RequestVerifier verifier, Replier replier, KeyLoader loader, Provider provider) {
-        this(id, "", executor, recoverer, verifier, replier, loader);
+    public ServiceReplica(int id, Executable executor, Recoverable recoverer, ServerJoiner joiner, RequestVerifier verifier, Replier replier, KeyLoader loader, Provider provider) {
+        this(id, "", executor, recoverer, joiner, verifier, replier, loader);
     }
     /**
      * Constructor
@@ -125,11 +126,12 @@ public class ServiceReplica {
      * @param replier Can be used to override the targets of the replies associated to each request.
      * @param loader Used to load signature keys from disk
      */
-    public ServiceReplica(int id, String configHome, Executable executor, Recoverable recoverer, RequestVerifier verifier, Replier replier, KeyLoader loader) {
+    public ServiceReplica(int id, String configHome, Executable executor, Recoverable recoverer, ServerJoiner joiner, RequestVerifier verifier, Replier replier, KeyLoader loader) {
         this.id = id;
         this.SVController = new ServerViewController(id, configHome, loader);
         this.executor = executor;
         this.recoverer = recoverer;
+        this.joiner = joiner;
         this.replier = (replier != null ? replier : new DefaultReplier());
         this.verifier = verifier;
         this.init();
@@ -158,7 +160,7 @@ public class ServiceReplica {
             //Not in the initial view, just waiting for the view where the join has been executed
 //            logger.info("Waiting for the TTP: " + this.SVController.getCurrentView());
 
-            Thread askToJoin = new Thread(new JoinThread(this.id, this.SVController.getStaticConf(), this.SVController.getCurrentView()));
+            Thread askToJoin = new Thread(new JoinThread(this.id, this.SVController.getStaticConf(), this.SVController.getCurrentView(), joiner));
 //            Thread askToJoin = new Thread(new JoinThread(this.id, this.SVController.getCurrentView()));
             askToJoin.start();
 

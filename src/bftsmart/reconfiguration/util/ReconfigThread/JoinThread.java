@@ -1,6 +1,5 @@
 package bftsmart.reconfiguration.util.ReconfigThread;
 
-import bftsmart.demo.test.MapRequestTypeTest;
 import bftsmart.reconfiguration.VMServices;
 import bftsmart.reconfiguration.util.ReconfigThread.pojo.CoreCertificate;
 import bftsmart.reconfiguration.util.ReconfigThread.pojo.FullCertificate;
@@ -10,13 +9,14 @@ import bftsmart.reconfiguration.util.TOMConfiguration;
 import bftsmart.reconfiguration.views.View;
 import bftsmart.tom.ServiceProxy;
 import bftsmart.tom.core.messages.TOMMessage;
+import bftsmart.tom.server.ServerJoiner;
 import bftsmart.tom.util.Extractor;
-import bftsmart.tom.util.TOMUtil;
 
 import java.io.*;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.nio.ByteBuffer;
 import java.util.*;
 
 
@@ -26,15 +26,15 @@ public class JoinThread implements Runnable {
 	private final int id;
 	private TOMConfiguration joiningReplicaConfig;
 	private View currentView;
-
-	static String requestString = "ASK_JOIN";
-	static String replyString = "YES";
+	private ServerJoiner joiner;
 
 
-	public JoinThread(int id, TOMConfiguration joiningReplicaConfig, View currentView) {
+	public JoinThread(int id, TOMConfiguration joiningReplicaConfig, View currentView, ServerJoiner joiner) {
 		this.id = id;
 		this.joiningReplicaConfig = joiningReplicaConfig;
 		this.currentView = currentView;
+		this.joiner = joiner;
+
 	}
 
 
@@ -82,30 +82,30 @@ public class JoinThread implements Runnable {
 
 						try {
 							try (ByteArrayInputStream byteIn = new ByteArrayInputStream(o1);
-							     ObjectInputStream objIn = new ObjectInputStream(byteIn)) {
-								ReplicaReconfigReply replicaReply1 = (ReplicaReconfigReply) objIn.readObject();
+							     DataInputStream dis = new DataInputStream(byteIn)) {
+								ReplicaReconfigReply replicaReply1 = ReplicaReconfigReply.desSerialize(dis);
 
 								reply1 = replicaReply1.getCertificateValues();
 
 							}
 
 							try (ByteArrayInputStream byteIn = new ByteArrayInputStream(o2);
-							     ObjectInputStream objIn = new ObjectInputStream(byteIn)) {
+							     DataInputStream dis = new DataInputStream(byteIn)) {
 
-								ReplicaReconfigReply replicaReply2 = (ReplicaReconfigReply) objIn.readObject();
+								ReplicaReconfigReply replicaReply2 = ReplicaReconfigReply.desSerialize(dis);
+								;
 
 								reply2 = replicaReply2.getCertificateValues();
 							}
 
-						} catch (IOException | ClassNotFoundException e) {
+						} catch (IOException e) {
 							e.printStackTrace();
 						}
 
+						System.out.println(CoreCertificate.compareCertificates(reply1, reply2));
 
-						return reply1.getReceivedMessage().equals(reply2.getReceivedMessage())
-								&& reply1.getToReconfigureReplicaID() == reply2.getToReconfigureReplicaID()
-								&& reply1.getConsensusTimestamp() == reply2.getConsensusTimestamp()
-								? 0 : -1;
+
+						return CoreCertificate.compareCertificates(reply1, reply2) ? 1 : -1;
 					}
 				},
 				new Extractor() {
@@ -121,7 +121,8 @@ public class JoinThread implements Runnable {
 
 							List<PartialCertificate> certificate = new ArrayList<PartialCertificate>();
 
-							String message = null;
+							byte[] proof = null;
+							boolean accepted = false;
 							int joiningReplicaID = -1;
 							long consensusTimestamp = -1;
 
@@ -131,16 +132,17 @@ public class JoinThread implements Runnable {
 									byte[] content = reply.getContent();
 
 									try (ByteArrayInputStream byteIn = new ByteArrayInputStream(content);
-									     ObjectInputStream objIn = new ObjectInputStream(byteIn)) {
+									     DataInputStream dis = new DataInputStream(byteIn)) {
 
-										ReplicaReconfigReply replicaReply = (ReplicaReconfigReply) objIn.readObject();
+										ReplicaReconfigReply replicaReply = ReplicaReconfigReply.desSerialize(dis);
 
 
 										CoreCertificate certificateValues = replicaReply.getCertificateValues();
 
 										joiningReplicaID = certificateValues.getToReconfigureReplicaID();
 										consensusTimestamp = certificateValues.getConsensusTimestamp();
-										message = certificateValues.getReceivedMessage();
+										proof = certificateValues.getInputProof();
+										accepted = certificateValues.isAcceptedRequest();
 
 										PartialCertificate partialCertificate = new PartialCertificate(certificateValues.getExecutingReplicaID(), replicaReply.getSignature());
 
@@ -156,20 +158,21 @@ public class JoinThread implements Runnable {
 
 
 							try (ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
-							     ObjectOutputStream objOut = new ObjectOutputStream(byteOut);) {
+							     DataOutputStream dos = new DataOutputStream(byteOut);) {
 
-								FullCertificate fullCertificate = new FullCertificate(message, joiningReplicaID,
+								FullCertificate fullCertificate = new FullCertificate(joiningReplicaID, accepted, proof,
 										consensusTimestamp, certificate);
 
-								objOut.writeObject(fullCertificate);
 
-								objOut.flush();
+								fullCertificate.serialize(dos);
+
+								dos.flush();
 								byteOut.flush();
 
 								newContent = byteOut.toByteArray();
 							}
 
-						} catch (IOException | ClassNotFoundException e) {
+						} catch (IOException e) {
 							e.printStackTrace();
 
 						}
@@ -185,71 +188,86 @@ public class JoinThread implements Runnable {
 					}
 				}, null);
 
+
+		byte[] request = createJoinRequest();
+
+		byte[] reply = client.invokeOrdered(request);
+
+
+		FullCertificate fullCertificate = verifyJoinRequest(reply);
+
+		if (fullCertificate != null) {
+			addReplica(fullCertificate);
+
+		}
+
+		client.close();
+
+	}
+
+	private byte[] createJoinRequest() {
+
 		try (ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
-		     ObjectOutputStream objOut = new ObjectOutputStream(byteOut);) {
+		     DataOutputStream dos = new DataOutputStream(byteOut);) {
 
-			objOut.writeObject(MapRequestTypeTest.RECONFIG_ADD);
+			dos.writeInt(this.id);
 
-			objOut.writeUTF(requestString);
-			objOut.writeInt(this.id);
+			byte[] request = joiner.appCreateJoinRequest(null);
+			dos.writeInt(request.length);
+			dos.write(request);
 
-			objOut.flush();
+
+			dos.flush();
 			byteOut.flush();
 
-			byte[] reply = client.invokeOrdered(byteOut.toByteArray());
+			byte[] messageBytes = byteOut.toByteArray();
 
-			try (ByteArrayInputStream byteIn = new ByteArrayInputStream(reply);
-			     ObjectInputStream objIn = new ObjectInputStream(byteIn)) {
+			String flag = "JOIN_REQUEST";
 
-				FullCertificate fullCertificate = (FullCertificate) objIn.readObject();
-				String stringReply = fullCertificate.getReceivedMessage();
+			ByteBuffer buff = ByteBuffer.allocate(flag.getBytes().length + (Integer.BYTES * 2)
+					+ messageBytes.length + (Integer.BYTES * 2));
+			buff.putInt(flag.getBytes().length);
+			buff.put(flag.getBytes());
 
-
-				if (replyString.equalsIgnoreCase(stringReply)) {
-					addReplica(fullCertificate);
-
-				}
-			}
-
-			client.close();
+			buff.putInt(messageBytes.length);
+			buff.put(messageBytes);
 
 
-		} catch (IOException | ClassNotFoundException e) {
+			return buff.array();
+
+
+		} catch (IOException e) {
 			System.out.println("Exception creating JOIN request: " + e.getMessage());
 		}
+
+		return null;
 	}
 
-	public static void serverReconfigRequest(String input, ObjectOutput out, int joiningReplicaID, long consensusTimestamp, TOMConfiguration executingReplicaConf) throws IOException {
-		if (input.equals(requestString)) {
+	private FullCertificate verifyJoinRequest(byte[] reply) {
+		try (ByteArrayInputStream byteIn = new ByteArrayInputStream(reply);
+		     DataInputStream dis = new DataInputStream(byteIn)) {
+
+			FullCertificate fullCertificate = FullCertificate.desSerialize(dis);
+			byte[] proof = fullCertificate.getInputProof();
 
 
-			CoreCertificate certificateValues = new CoreCertificate(joiningReplicaID, consensusTimestamp, replyString, executingReplicaConf.getProcessId());
+//			 boolean validProof = DefaultRecoverable.appVerifyJoinRequest(proof);
 
-			byte[] signature;
+			boolean validProof = true;
 
-			try (ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
-			     ObjectOutputStream objOut = new ObjectOutputStream(byteOut);) {
-
-				certificateValues.serialize(objOut);
-
-
-				objOut.flush();
-				byteOut.flush();
-
-
-				signature = TOMUtil.signMessage(executingReplicaConf.getPrivateKey(),
-						byteOut.toByteArray());
+			if (validProof) {
+				return fullCertificate;
 			}
 
 
-			ReplicaReconfigReply reply = new ReplicaReconfigReply(certificateValues, signature);
-
-			out.writeObject(reply);
-
-
+		} catch (IOException e) {
+			System.out.println("Exception creating JOIN request: " + e.getMessage());
 		}
 
+		return null;
 	}
+
+
 
 
 	private void addReplica(FullCertificate fullCertificate) {
