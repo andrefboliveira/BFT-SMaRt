@@ -551,7 +551,9 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
             boolean acceptedRequest = appVerifyJoinRequest(commandToExecute);
             System.out.println(acceptedRequest);
 
-            return serverReconfigRequest(joiningReplicaID, acceptedRequest, commandToExecute, msgCtx.getTimestamp(), controller.getStaticConf());
+            if (acceptedRequest) {
+                return serversMakeCertificate(joiningReplicaID, acceptedRequest, commandToExecute, msgCtx.getTimestamp(), controller.getStaticConf());
+            }
 
         } catch (IOException e) {
             System.out.println("Exception creating JOIN request: " + e.getMessage());
@@ -559,7 +561,7 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
         return new byte[0];
     }
 
-    public byte[] serverReconfigRequest(int joiningReplicaID, boolean acceptedRequest, byte[] input, long consensusTimestamp, TOMConfiguration executingReplicaConf) throws IOException {
+    private byte[] serversMakeCertificate(int joiningReplicaID, boolean acceptedRequest, byte[] input, long consensusTimestamp, TOMConfiguration executingReplicaConf) throws IOException {
 
         CoreCertificate certificateValues = new CoreCertificate(joiningReplicaID, acceptedRequest, input, consensusTimestamp, executingReplicaConf.getProcessId());
 
@@ -570,10 +572,8 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
 
             certificateValues.serialize(dos);
 
-
             dos.flush();
             byteOut.flush();
-
 
             signature = TOMUtil.signMessage(executingReplicaConf.getPrivateKey(),
                     byteOut.toByteArray());
@@ -590,8 +590,6 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
             out.flush();
             return out.toByteArray();
         }
-
-
     }
 
     private TOMMessage[] checkpoint(int cid, boolean timeout, boolean fromConsensus) throws IOException, InterruptedException, NoSuchAlgorithmException {

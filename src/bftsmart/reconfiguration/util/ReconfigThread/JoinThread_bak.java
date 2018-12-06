@@ -225,7 +225,7 @@ public class JoinThread_bak implements Runnable {
 		}
 	}
 
-	public static void serverReconfigRequest(String input, ObjectOutput out, TOMConfiguration replicaConf) throws IOException {
+	public static void serversMakeCertificate(String input, ObjectOutput out, TOMConfiguration replicaConf) throws IOException {
 		if(input.equals(requestString)) {
 
 			byte[] message = replyString.getBytes(StandardCharsets.UTF_8);
@@ -252,7 +252,7 @@ public class JoinThread_bak implements Runnable {
 
 *//*
 
-	public static void serverReconfigRequest(String input, ObjectOutput out, ReplicaContext replicaContext) throws IOException {
+	public static void serversMakeCertificate(String input, ObjectOutput out, ReplicaContext replicaContext) throws IOException {
 		if(input.equals(requestString)) {
 
 

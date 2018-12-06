@@ -132,7 +132,6 @@ public class JoinThread implements Runnable {
 
 										ReplicaReconfigReply replicaReply = ReplicaReconfigReply.desSerialize(dis);
 
-
 										CoreCertificate certificateValues = replicaReply.getCertificateValues();
 
 										joiningReplicaID = certificateValues.getToReconfigureReplicaID();
@@ -190,7 +189,7 @@ public class JoinThread implements Runnable {
 		byte[] reply = client.invokeOrdered(request);
 
 
-		FullCertificate fullCertificate = verifyJoinRequest(reply);
+		FullCertificate fullCertificate = extractCertificateFromJoinRequest(reply);
 
 		if (fullCertificate != null) {
 			addReplica(fullCertificate);
@@ -239,19 +238,14 @@ public class JoinThread implements Runnable {
 		return null;
 	}
 
-	private FullCertificate verifyJoinRequest(byte[] reply) {
+	private FullCertificate extractCertificateFromJoinRequest(byte[] reply) {
 		try (ByteArrayInputStream byteIn = new ByteArrayInputStream(reply);
 		     DataInputStream dis = new DataInputStream(byteIn)) {
 
 			FullCertificate fullCertificate = FullCertificate.desSerialize(dis);
-			byte[] proof = fullCertificate.getInputProof();
 
 
-//			 boolean validProof = DefaultRecoverable.appVerifyJoinRequest(proof);
-
-			boolean validProof = true;
-
-			if (validProof) {
+			if (fullCertificate.isAcceptedRequest()) {
 				return fullCertificate;
 			}
 
@@ -300,9 +294,6 @@ public class JoinThread implements Runnable {
 	}
 
 	private InetAddress suggestNewIP() {
-//		JaroWinklerDistance measureDistance = new JaroWinklerDistance();
-
-		double maxSimilarity = Double.NEGATIVE_INFINITY;
 		InetAddress foundAddress = null;
 
 		try {
@@ -321,17 +312,6 @@ public class JoinThread implements Runnable {
 								return addr;
 
 							}
-//							double distance = measureDistance.apply(replicaAddr, addr.getHostAddress());
-//
-//
-//							if (distance > maxSimilarity) {
-//								maxSimilarity = distance;
-//								foundAddress = addr;
-//							}
-//
-//							if(distance >= 1) {
-//								return foundAddress;
-//							}
 
 						}
 
