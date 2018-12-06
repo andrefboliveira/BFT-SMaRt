@@ -1,7 +1,9 @@
+desktop.ini
 bin/bftsmart
 config/currentView
 out/
-.idea/
-*.class
+.idea/*
 *.iml
-desktop.ini
+*.class
+target/*
+files/*

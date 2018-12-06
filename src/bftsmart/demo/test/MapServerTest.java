@@ -2,7 +2,7 @@ package bftsmart.demo.test;
 
 import bftsmart.tom.MessageContext;
 import bftsmart.tom.ServiceReplica;
-import bftsmart.tom.server.defaultservices.DefaultRecoverable;
+import bftsmart.tom.server.defaultservices.blockchain.StrongBlockchainRecoverable;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -12,7 +12,8 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-public class MapServerTest<K, V> extends DefaultRecoverable {
+
+public class MapServerTest<K, V> extends StrongBlockchainRecoverable {
 
 	private final ServiceReplica replica;
 	//	private final TOMConfiguration config;
@@ -162,7 +163,6 @@ public class MapServerTest<K, V> extends DefaultRecoverable {
 
 	@Override
 	public byte[] appCreateJoinRequest(byte[] command) {
-		System.out.println("Pedido");
 		Arrays.toString(command);
 
 		return "ASK_JOIN".getBytes(StandardCharsets.UTF_8);
