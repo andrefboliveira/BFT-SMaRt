@@ -11,28 +11,32 @@ import bftsmart.tom.ServiceProxy;
 import bftsmart.tom.core.messages.TOMMessage;
 import bftsmart.tom.server.ServerJoiner;
 import bftsmart.tom.util.Extractor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Scanner;
 
 
 public class JoinThread implements Runnable {
 
+	private Logger logger = LoggerFactory.getLogger(this.getClass());
+
 
 	private final int id;
 	private TOMConfiguration joiningReplicaConfig;
-	private View currentView;
+	//private View currentView;
 	private ServerJoiner joiner;
 
 
 	public JoinThread(int id, TOMConfiguration joiningReplicaConfig, View currentView, ServerJoiner joiner) {
 		this.id = id;
 		this.joiningReplicaConfig = joiningReplicaConfig;
-		this.currentView = currentView;
+		//this.currentView = currentView;
 		this.joiner = joiner;
 
 	}
@@ -42,20 +46,14 @@ public class JoinThread implements Runnable {
 	public void run() {
 
 		while (true) {
-			System.out.println("Type \"JOIN\" to add replica");
+			logger.info("Type: \"JOIN\" (\"J\") to add THIS replica to view.");
 
 			Scanner sc = new Scanner(System.in);
-//			String userReply = sc.next();
-			String userReply = "JOIN";
-			try {
-				Thread.sleep(2000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+			String userReply = sc.next();
 
-			if (userReply.equalsIgnoreCase("JOIN")) {
+			if ("JOIN".equalsIgnoreCase(userReply) || "J".equalsIgnoreCase(userReply)) {
 
-				System.out.println("JOIN!");
+				logger.info("Attempting to JOIN.");
 				makeJoinRequest();
 
 				break;
@@ -232,7 +230,7 @@ public class JoinThread implements Runnable {
 
 
 		} catch (IOException e) {
-			System.out.println("Exception creating JOIN request: " + e.getMessage());
+			logger.error("Exception creating JOIN request: " + e.getMessage());
 		}
 
 		return null;
@@ -251,7 +249,7 @@ public class JoinThread implements Runnable {
 
 
 		} catch (IOException e) {
-			System.out.println("Exception creating JOIN request: " + e.getMessage());
+			logger.error("Exception creating JOIN request: " + e.getMessage());
 		}
 
 		return null;
@@ -284,7 +282,7 @@ public class JoinThread implements Runnable {
 		String newIP = joiningReplicaConfig.getLocalAddress(this.id).getHostName();
 		int newPort = joiningReplicaConfig.getPort(this.id);
 
-		System.out.println("Adding Server: " + this.id + "(/" + newIP + ":" + newPort + ")");
+		logger.info("Adding Server: " + this.id + "(/" + newIP + ":" + newPort + ")");
 
 		VMServices reconfigServices = new VMServices();
 
@@ -292,7 +290,7 @@ public class JoinThread implements Runnable {
 
 
 	}
-
+/*
 	private InetAddress suggestNewIP() {
 		InetAddress foundAddress = null;
 
@@ -341,6 +339,6 @@ public class JoinThread implements Runnable {
 
 		return ports[ports.length - 1] + (ports[1] - ports[0]);
 
-
 	}
+	*/
 }

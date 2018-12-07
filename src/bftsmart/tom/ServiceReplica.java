@@ -24,7 +24,7 @@ import bftsmart.reconfiguration.ReconfigureReply;
 import bftsmart.reconfiguration.ServerViewController;
 import bftsmart.reconfiguration.VMMessage;
 import bftsmart.reconfiguration.util.ReconfigThread.JoinThread;
-import bftsmart.reconfiguration.util.ReconfigThread.LeaveThread;
+import bftsmart.reconfiguration.util.ReconfigThread.ReconfigSelectorThread;
 import bftsmart.tom.core.ExecutionManager;
 import bftsmart.tom.core.ReplyManager;
 import bftsmart.tom.core.TOMLayer;
@@ -36,17 +36,15 @@ import bftsmart.tom.server.defaultservices.DefaultReplier;
 import bftsmart.tom.util.KeyLoader;
 import bftsmart.tom.util.ShutdownHookThread;
 import bftsmart.tom.util.TOMUtil;
-import java.security.Provider;
-import java.util.Map;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.security.Provider;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -184,12 +182,9 @@ public class ServiceReplica {
         }
         initReplica();
 
-        // Thread askToLeave = new Thread(new LeaveThread(this.id));
-        Thread askToLeave = new Thread(new LeaveThread(this.id, this.SVController.getStaticConf()));
-	    askToLeave.start();
+        Thread reconfigThread = new Thread(new ReconfigSelectorThread(this.id, this.SVController.getStaticConf()));
+        reconfigThread.start();
 
-//        Thread askToRemove = new Thread(new RemoveThread(this.SVController.getStaticConf()));
-//        askToRemove.start();
     }
 
     /**

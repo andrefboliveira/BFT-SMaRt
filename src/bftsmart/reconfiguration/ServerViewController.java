@@ -220,11 +220,10 @@ public class ServerViewController extends ViewController {
 		int idToRemove = Integer.parseInt(value);
 
 		if (isCurrentViewMember(idToRemove)) {
-			System.out.println(idToRemove);
-
 			int sendingReplicaID = request.getSender();
 
-			System.out.println(sendingReplicaID);
+			logger.debug("Received request from replica {}, to remove replica {} from view.", sendingReplicaID, idToRemove);
+
 			if (isCurrentViewMember(sendingReplicaID)) {
 				ConcurrentSkipListSet<Integer> receivedRequestIDs = askForceRemoveIDsTable.getOrDefault(idToRemove, null);
 				if (receivedRequestIDs == null) {

@@ -392,7 +392,7 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
                     ByteBuffer buff = ByteBuffer.wrap(operations[i]);
 
                     int l = buff.getInt();
-                    System.out.println("l: " + l);
+
                     if (l > 0) {
                         byte[] b = new byte[l];
                         buff.get(b);
@@ -453,7 +453,7 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
                     MessageContext[] msgCtxsJoin = new MessageContext[ctxjoinRequestList.size()];
                     ctxjoinRequestList.toArray(msgCtxsJoin);
 
-                    repliesJoin = joinExecution(commandsJoin, msgCtxsJoin);
+	                repliesJoin = executeJoinRequests(commandsJoin, msgCtxsJoin);
 
                 }
 
@@ -527,17 +527,17 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
         return result;
     }
 
-    private byte[][] joinExecution(byte[][] commands, MessageContext[] msgCtxs) {
+	private byte[][] executeJoinRequests(byte[][] commands, MessageContext[] msgCtxs) {
         byte[][] replies = new byte[commands.length][];
 
         for (int i = 0; i < commands.length; i++) {
-            replies[i] = processJoinRequest(commands[i], msgCtxs[i]);
+	        replies[i] = processEachJoinRequest(commands[i], msgCtxs[i]);
         }
 
         return replies;
     }
 
-    private byte[] processJoinRequest(byte[] command, MessageContext msgCtx) {
+	private byte[] processEachJoinRequest(byte[] command, MessageContext msgCtx) {
         try (ByteArrayInputStream byteIn = new ByteArrayInputStream(command);
              DataInputStream dis = new DataInputStream(byteIn)) {
 
@@ -549,14 +549,13 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
 
 
             boolean acceptedRequest = appVerifyJoinRequest(commandToExecute);
-            System.out.println(acceptedRequest);
 
             if (acceptedRequest) {
                 return serversMakeCertificate(joiningReplicaID, acceptedRequest, commandToExecute, msgCtx.getTimestamp(), controller.getStaticConf());
             }
 
         } catch (IOException e) {
-            System.out.println("Exception creating JOIN request: " + e.getMessage());
+	        logger.error("Exception creating JOIN request: " + e.getMessage());
         }
         return new byte[0];
     }

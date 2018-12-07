@@ -6,7 +6,6 @@ import bftsmart.tom.server.defaultservices.blockchain.StrongBlockchainRecoverabl
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -163,8 +162,6 @@ public class MapServerTest<K, V> extends StrongBlockchainRecoverable {
 
 	@Override
 	public byte[] appCreateJoinRequest(byte[] command) {
-		Arrays.toString(command);
-
 		return "ASK_JOIN".getBytes(StandardCharsets.UTF_8);
 	}
 
@@ -172,7 +169,6 @@ public class MapServerTest<K, V> extends StrongBlockchainRecoverable {
 	public boolean appVerifyJoinRequest(byte[] command) {
 		String input = new String(command, StandardCharsets.UTF_8);
 
-		System.out.println(input);
 		if ("ASK_JOIN".equals(input)) {
 			return true;
 		}
