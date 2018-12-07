@@ -405,15 +405,18 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
                             byte[] messageBytes = new byte[messageSize];
                             buff.get(messageBytes);
 
+	                        logger.debug("Request {} added to Join Requests list", msgCtxs[i].getOperationId());
+
                             joinRequestList.add(messageBytes);
                             ctxjoinRequestList.add(msgCtxs[i]);
 
                         } else {
+	                        logger.debug("Request {} added to App Requests list", msgCtxs[i].getOperationId());
                             transListApp.add(operations[i]);
                             ctxListApp.add(msgCtxs[i]);
                         }
                     } else {
-
+	                    logger.debug("Request {} added to App Requests list", msgCtxs[i].getOperationId());
                         transListApp.add(operations[i]);
                         ctxListApp.add(msgCtxs[i]);
                     }
@@ -596,8 +599,7 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
 
         boolean isCheckpoint = cid % config.getCheckpointPeriod() == 0;
 
-        if (timeout || isCheckpoint || /*(cid % config.getLogBatchLimit() == 0)*/
-                (this.results.size() > config.getMaxBatchSize() * config.getLogBatchLimit())) {
+	    if (timeout || isCheckpoint || (cid % config.getLogBatchLimit() == 0)) {
 
             byte[][] hashes = log.markEndTransactions();
 
