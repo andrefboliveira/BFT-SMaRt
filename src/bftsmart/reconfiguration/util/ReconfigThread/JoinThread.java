@@ -69,9 +69,9 @@ public class JoinThread implements Runnable {
 	private void makeJoinRequest() {
 //		ServiceProxy client = new ServiceProxy(7003);
 
-		ServiceProxy client = new ServiceProxy(7003, null,
+//		ServiceProxy client = new ServiceProxy(7003, null,
 
-//		ServiceProxy client = new ServiceProxy(joiningReplicaConfig.getTTPId(), joiningReplicaConfig.getConfigHome(),
+		ServiceProxy client = new ServiceProxy(joiningReplicaConfig.getTTPId(), joiningReplicaConfig.getConfigHome(),
 				new Comparator<byte[]>() {
 					@Override
 					public int compare(byte[] o1, byte[] o2) {
@@ -185,6 +185,7 @@ public class JoinThread implements Runnable {
 		byte[] request = createJoinRequest();
 
 		byte[] reply = client.invokeOrdered(request);
+		client.close();
 
 
 		FullCertificate fullCertificate = extractCertificateFromJoinRequest(reply);
@@ -193,8 +194,6 @@ public class JoinThread implements Runnable {
 			addReplica(fullCertificate);
 
 		}
-
-		client.close();
 
 	}
 
