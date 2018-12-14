@@ -32,8 +32,8 @@ public class ClientViewController extends ViewController {
         if(cv == null){
             /*reconfigureTo(new View(0, getStaticConf().getInitialView(),
                 getStaticConf().getF(), getInitAdddresses()));*/
-            reconfigureTo(new View(0, getStaticConf().getInitialView(),
-                    getStaticConf().isBFT(), getInitAdddresses()));
+	        reconfigureTo(new View(0, getStaticConf().isBFT(), getStaticConf().getInitialView(),
+			        getInitAdddresses()));
         }else{
             reconfigureTo(cv);
         }
@@ -45,8 +45,8 @@ public class ClientViewController extends ViewController {
         if(cv == null){
             /*reconfigureTo(new View(0, getStaticConf().getInitialView(),
                 getStaticConf().getF(), getInitAdddresses()));*/
-            reconfigureTo(new View(0, getStaticConf().getInitialView(),
-                    getStaticConf().isBFT(), getInitAdddresses()));
+	        reconfigureTo(new View(0, getStaticConf().isBFT(), getStaticConf().getInitialView(),
+			        getInitAdddresses()));
         }else{
             reconfigureTo(cv);
         }

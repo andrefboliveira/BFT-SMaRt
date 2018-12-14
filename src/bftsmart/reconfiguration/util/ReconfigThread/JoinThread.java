@@ -45,20 +45,37 @@ public class JoinThread implements Runnable {
 	@Override
 	public void run() {
 
-		while (true) {
-			logger.info("Type: \"JOIN\" (\"J\") to add THIS replica to view.");
+		boolean keep_running = true;
 
-			Scanner sc = new Scanner(System.in);
-			String userReply = sc.next();
+		while (keep_running) {
+			try {
+				logger.info("Type: \"JOIN\" (\"J\") to add THIS replica to view.");
 
-			if ("JOIN".equalsIgnoreCase(userReply) || "J".equalsIgnoreCase(userReply)) {
+				Scanner sc = new Scanner(System.in);
+				String userReply = sc.next();
 
-				logger.info("Attempting to JOIN.");
-				makeJoinRequest();
-
-				break;
+				if ("JOIN".equalsIgnoreCase(userReply) || "J".equalsIgnoreCase(userReply)) {
 
 
+					logger.info("Attempting to JOIN.");
+
+					byte[] reply = makeInitialJoinRequest();
+
+					FullCertificate fullCertificate = extractCertificateFromJoinRequest(reply);
+
+					if (fullCertificate != null) {
+						boolean sucess = addReplicaProtocol(fullCertificate);
+
+						if (sucess) {
+							keep_running = false;
+						}
+
+					}
+
+				}
+			} catch (Exception e) {
+				logger.error("Error while processing Join request");
+				e.printStackTrace();
 			}
 
 		}
@@ -66,7 +83,7 @@ public class JoinThread implements Runnable {
 
 	}
 
-	private void makeJoinRequest() {
+	private byte[] makeInitialJoinRequest() {
 //		ServiceProxy client = new ServiceProxy(7003);
 
 //		ServiceProxy client = new ServiceProxy(7003, null,
@@ -187,13 +204,7 @@ public class JoinThread implements Runnable {
 		byte[] reply = client.invokeOrdered(request);
 		client.close();
 
-
-		FullCertificate fullCertificate = extractCertificateFromJoinRequest(reply);
-
-		if (fullCertificate != null) {
-			addReplica(fullCertificate);
-
-		}
+		return reply;
 
 	}
 
@@ -236,28 +247,27 @@ public class JoinThread implements Runnable {
 	}
 
 	private FullCertificate extractCertificateFromJoinRequest(byte[] reply) {
-		try (ByteArrayInputStream byteIn = new ByteArrayInputStream(reply);
-		     DataInputStream dis = new DataInputStream(byteIn)) {
+		if (reply != null) {
 
-			FullCertificate fullCertificate = FullCertificate.desSerialize(dis);
+			try (ByteArrayInputStream byteIn = new ByteArrayInputStream(reply);
+			     DataInputStream dis = new DataInputStream(byteIn)) {
 
+				FullCertificate fullCertificate = FullCertificate.desSerialize(dis);
 
-			if (fullCertificate.isAcceptedRequest()) {
-				return fullCertificate;
+				if (fullCertificate.isAcceptedRequest()) {
+					return fullCertificate;
+				}
+
+			} catch (IOException e) {
+				logger.error("Exception creating JOIN request: " + e.getMessage());
 			}
-
-
-		} catch (IOException e) {
-			logger.error("Exception creating JOIN request: " + e.getMessage());
 		}
 
 		return null;
 	}
 
 
-
-
-	private void addReplica(FullCertificate fullCertificate) {
+	private boolean addReplicaProtocol(FullCertificate fullCertificate) {
 //		int suggestedID = Arrays.stream(currentView.getProcesses()).max().getAsInt() + 1;
 //		System.out.println("Enter ID (ID suggested " + suggestedID + "): ");
 ////                            int newID = sc.nextInt();
@@ -286,6 +296,8 @@ public class JoinThread implements Runnable {
 		VMServices reconfigServices = new VMServices();
 
 		reconfigServices.addServer(this.id, newIP, newPort, this.joiningReplicaConfig, fullCertificate);
+
+		return true;
 
 
 	}

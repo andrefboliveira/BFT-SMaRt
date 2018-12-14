@@ -48,7 +48,7 @@ public class View implements Serializable {
  	}
 */
 
-	public View(int id, int[] processes, boolean isBFT, InetSocketAddress[] addresses) {
+	public View(int id, boolean isBFT, int[] processes, InetSocketAddress[] addresses) {
 		this.id = id;
 		this.processes = processes;
 		this.addresses = new HashMap<Integer, InetSocketAddress>();
@@ -56,13 +56,13 @@ public class View implements Serializable {
 		for (int i = 0; i < this.processes.length; i++)
 			this.addresses.put(processes[i], addresses[i]);
 		Arrays.sort(this.processes);
+
 		this.f = calculateF(this.processes.length, isBFT);
 	}
 
 	public static int calculateF(int n, boolean isBFT) {
 		int multiplier = (isBFT) ? 3 : 2;
 		return (int) Math.floor((n - 1) / multiplier);
-
 	}
 
 	public boolean isMember(int id) {

@@ -25,16 +25,8 @@ public class LeaveClass {
 			VMServices reconfigServices = new VMServices();
 			reconfigServices.removeServer(this.leavingReplicaID, this.leavingReplicaConfig);
 
-			int wait_time = 2000;
-			logger.info("Wait {} s before shutdown", (double) wait_time / 1000);
-
-			try {
-				Thread.sleep(wait_time);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-
-			System.exit(0);
+			logger.info("Replica {} left the view.", this.leavingReplicaID);
+			return true;
 
 		} catch (Exception e) {
 			logger.error("Error while removing replica " + this.leavingReplicaID + ".");

@@ -40,7 +40,6 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 
 /**
- *
  * @author eduardo
  */
 public class ServerViewController extends ViewController {
@@ -87,8 +86,8 @@ public class ServerViewController extends ViewController {
 			logger.info("Creating current view from configuration file");
 			/*reconfigureTo(new View(0, getStaticConf().getInitialView(),
 					getStaticConf().getF(), getInitAdddresses()));*/
-			reconfigureTo(new View(0, getStaticConf().getInitialView(),
-					getStaticConf().isBFT(), getInitAdddresses()));
+			reconfigureTo(new View(0, getStaticConf().isBFT(), getStaticConf().getInitialView(),
+					getInitAdddresses()));
 		} else {
 			logger.info("Using view stored on disk");
 			reconfigureTo(cv);
@@ -278,34 +277,6 @@ public class ServerViewController extends ViewController {
 
 		// Check the signatures of the certificate
 
-		/*for (CoreCertificate certificate : CoreCertificate.generateAllCoreCertificates(fullCertificate)) {
-			PublicKey signingPubKey = conf.getPublicKey(certificate.getExecutingReplicaID());
-
-			try (ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
-			     DataOutputStream dos = new DataOutputStream(byteOut);) {
-
-				certificate.serialize(dos);
-
-				dos.flush();
-				byteOut.flush();
-
-
-				boolean correctSignature = TOMUtil.verifySignature(signingPubKey,
-						byteOut.toByteArray(),
-						certificate.getSignature());
-
-				if (!correctSignature) {
-					return false;
-
-				}
-
-
-			} catch (IOException e) {
-				e.printStackTrace();
-				return false;
-			}
-		}*/
-
 		for (PartialCertificate replicaCertificate : fullCertificate.getReplicaCertificates()) {
 
 			PublicKey signingPubKey = conf.getPublicKey(replicaCertificate.getSigningReplicaID());
@@ -432,7 +403,7 @@ public class ServerViewController extends ViewController {
 			addresses[i] = getStaticConf().getRemoteAddress(nextV[i]);
 
 //		View newV = new View(currentView.getId() + 1, nextV, f, addresses);
-		View newV = new View(currentView.getId() + 1, nextV, getStaticConf().isBFT(), addresses);
+		View newV = new View(currentView.getId() + 1, getStaticConf().isBFT(), nextV, addresses);
 
 
 		logger.info("New view: " + newV);

@@ -246,8 +246,13 @@ public class ServiceReplica {
             @Override
             public void run() {
                 if (tomLayer != null) {
+
+                    int wait_time = SVController.getStaticConf().getRequestTimeout();
+
+                    logger.info("Wait {} s before shutdown", (double) wait_time / 1000);
+
                     try {
-                        Thread.sleep(SVController.getStaticConf().getRequestTimeout());
+                        Thread.sleep(wait_time);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }

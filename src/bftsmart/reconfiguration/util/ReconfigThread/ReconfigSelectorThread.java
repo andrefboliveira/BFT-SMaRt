@@ -21,7 +21,9 @@ public class ReconfigSelectorThread implements Runnable {
 	@Override
 	public void run() {
 
-		while (true) {
+		boolean keep_running = true;
+
+		while (keep_running) {
 			logger.info("Type: " +
 					"\"LEAVE\" (\"L\") to remove THIS replica from view " +
 					"or " +
@@ -32,16 +34,27 @@ public class ReconfigSelectorThread implements Runnable {
 
 			if ("LEAVE".equalsIgnoreCase(userReply) || "L".equalsIgnoreCase(userReply)) {
 
-				LeaveClass leaveProtocol = new LeaveClass(this.id, this.executingReplicaConfig);
-				boolean sucessful = leaveProtocol.init();
+				try {
+					LeaveClass leaveProtocol = new LeaveClass(this.id, this.executingReplicaConfig);
+					boolean sucessful = leaveProtocol.init();
 
-				if (sucessful) {
-					break;
+					if (sucessful) {
+						keep_running = false;
+					}
+
+				} catch (Exception e) {
+					logger.error("Error while processing Leave request");
+					e.printStackTrace();
 				}
-
 			} else if ("REMOVE".equalsIgnoreCase(userReply) || "R".equalsIgnoreCase(userReply)) {
-				RemoveClass removeProtocol = new RemoveClass(this.executingReplicaConfig);
-				removeProtocol.init();
+				try {
+					RemoveClass removeProtocol = new RemoveClass(this.id, this.executingReplicaConfig);
+					removeProtocol.init();
+
+				} catch (Exception e) {
+					logger.error("Error while processing Remove request");
+					e.printStackTrace();
+				}
 			}
 		}
 
