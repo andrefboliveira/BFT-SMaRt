@@ -126,6 +126,8 @@ public abstract class WeakBlockchainRecoverable implements Recoverable, BatchExe
             //write genesis block
             byte[] transHash = log.markEndTransactions()[0];
             log.storeHeader(nextNumber, lastCheckpoint, lastReconfig, transHash, new byte[0], lastBlockHash);
+            
+            log.sync();
                         
             lastBlockHash = computeBlockHash(nextNumber, lastCheckpoint, lastReconfig, transHash, lastBlockHash);
                         
