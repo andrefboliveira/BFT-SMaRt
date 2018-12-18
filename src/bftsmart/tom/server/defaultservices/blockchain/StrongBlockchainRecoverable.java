@@ -224,29 +224,85 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
                         continue;
                     }
 
-                    /*
-                     *
-                     * LinkedList<byte[]> transList = new LinkedList<>(); LinkedList<MessageContext>
-                     * ctxList = new LinkedList<>();
-                     *
-                     * for (int i = 0; i < commands.length; i++) {
-                     *
-                     * if (!controller.isCurrentViewMember(msgCtxs[i].getSender())) {
-                     *
-                     * transList.add(commands[i]); ctxList.add(msgCtxs[i]); } }
-                     *
-                     * if (transList.size() > 0) {
-                     *
-                     * byte[][] transApp = new byte[transList.size()][]; MessageContext[] ctxApp =
-                     * new MessageContext[ctxList.size()];
-                     *
-                     * transList.toArray(transApp); ctxList.toArray(ctxApp);
-                     *
-                     * appExecuteBatch(transApp, ctxApp, false);
-                     *
-                     * }
-                     *
-                     */
+
+                    LinkedList<byte[]> transListApp = new LinkedList<byte[]>();
+                    LinkedList<MessageContext> ctxListApp = new LinkedList<MessageContext>();
+
+                    LinkedList<byte[]> joinRequestList = new LinkedList<byte[]>();
+                    LinkedList<MessageContext> ctxjoinRequestList = new LinkedList<MessageContext>();
+
+                    for (int i = 0; i < commands.length; i++) {
+
+                        if (!controller.isCurrentViewMember(msgCtxs[i].getSender())) {
+
+                            ByteBuffer buff = ByteBuffer.wrap(commands[i]);
+
+                            int l = buff.getInt();
+
+                            if (l > 0) {
+                                byte[] b = new byte[l];
+                                buff.get(b);
+
+                                String flag = "JOIN_REQUEST";
+
+                                if (flag.equals((new String(b)))) {
+
+
+                                    int messageSize = buff.getInt();
+                                    byte[] messageBytes = new byte[messageSize];
+                                    buff.get(messageBytes);
+
+                                    logger.debug("Request {} added to Join Requests list", msgCtxs[i].getOperationId());
+
+                                    joinRequestList.add(messageBytes);
+                                    ctxjoinRequestList.add(msgCtxs[i]);
+
+                                } else {
+                                    transListApp.add(commands[i]);
+                                    ctxListApp.add(msgCtxs[i]);
+
+                                    logger.debug("Request {} added to App Requests list", msgCtxs[i].getOperationId());
+
+                                }
+                            } else {
+                                transListApp.add(commands[i]);
+                                ctxListApp.add(msgCtxs[i]);
+
+                                logger.debug("Request {} added to App Requests list", msgCtxs[i].getOperationId());
+
+                            }
+                        }
+                    }
+
+                    if (transListApp.size() > 0 || joinRequestList.size() > 0) {
+
+
+                        if (transListApp.size() > 0) {
+                            byte[][] transArrayApp = new byte[transListApp.size()][];
+                            MessageContext[] ctxArrayApp = new MessageContext[ctxListApp.size()];
+
+                            transListApp.toArray(transArrayApp);
+                            ctxListApp.toArray(ctxArrayApp);
+
+                            appExecuteBatch(transArrayApp, ctxArrayApp, false);
+                        }
+
+
+                        if (joinRequestList.size() > 0) {
+
+                            byte[][] commandsJoin = new byte[joinRequestList.size()][];
+                            joinRequestList.toArray(commandsJoin);
+
+
+                            MessageContext[] msgCtxsJoin = new MessageContext[ctxjoinRequestList.size()];
+                            ctxjoinRequestList.toArray(msgCtxsJoin);
+
+                            executeJoinRequests(commandsJoin, msgCtxsJoin);
+
+                        }
+
+                    }
+
                 }
 
             } catch (Exception e) {
@@ -373,6 +429,8 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
             LinkedList<byte[]> joinRequestList = new LinkedList<byte[]>();
             LinkedList<MessageContext> ctxjoinRequestList = new LinkedList<MessageContext>();
 
+            log.storeTransactions(cid, operations, msgCtxs);
+
             for (int i = 0; i < operations.length; i++) {
 
                 if (controller.isCurrentViewMember(msgCtxs[i].getSender())) {
@@ -471,13 +529,12 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
 
             }
 
-            CommandContextPair fullCommandsAndContexts = orderCommands(operations, msgCtxs, commandIndexes, true);
-            byte[][] fullCommands = fullCommandsAndContexts.getCommands();
-            MessageContext[] fullContexts = fullCommandsAndContexts.getMsgCtxs();
-
-
-            log.storeTransactions(cid, fullCommands, fullContexts);
-//            log.storeTransactions(cid, operations, msgCtxs);
+//            CommandContextPair fullCommandsAndContexts = orderCommands(operations, msgCtxs, commandIndexes, true);
+//            byte[][] fullCommands = fullCommandsAndContexts.getCommands();
+//            MessageContext[] fullContexts = fullCommandsAndContexts.getMsgCtxs();
+//
+//
+//            log.storeTransactions(cid, fullCommands, fullContexts);
 
             if (transListApp.size() > 0 || joinRequestList.size() > 0) {
 

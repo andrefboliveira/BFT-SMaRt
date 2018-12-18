@@ -247,7 +247,10 @@ public class ServiceReplica {
             public void run() {
                 if (tomLayer != null) {
 
-                    int wait_time = SVController.getStaticConf().getRequestTimeout();
+//                    int wait_time = SVController.getStaticConf().getRequestTimeout();
+
+                    int wait_time = 3000;
+
 
                     logger.info("Wait {} s before shutdown", (double) wait_time / 1000);
 
@@ -259,11 +262,11 @@ public class ServiceReplica {
                     tomLayer.shutdown();
 
 
-                    try {
-                        Thread.sleep(100);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+//                    try {
+//                        Thread.sleep(100);
+//                    } catch (InterruptedException e) {
+//                        e.printStackTrace();
+//                    }
                     System.exit(0);
                 }
             }
