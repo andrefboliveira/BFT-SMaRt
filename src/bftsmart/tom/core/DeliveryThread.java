@@ -43,7 +43,7 @@ public final class DeliveryThread extends Thread {
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	private boolean doWork = true;
-	private boolean hadReconfig = false;
+	private int lastReconfig = -2;
 	private final LinkedBlockingQueue<Decision> decided;
 	private final TOMLayer tomLayer; // TOM layer
 	private final ServiceReplica receiver; // Object that receives requests from clients
@@ -54,22 +54,22 @@ public final class DeliveryThread extends Thread {
 
 	/**
 	 * Creates a new instance of DeliveryThread
-	 *
+	 * 
 	 * @param tomLayer TOM layer
 	 * @param receiver Object that receives requests from clients
 	 */
-	public DeliveryThread(TOMLayer tomLayer, ServiceReplica receiver, Recoverable recoverer, ServerViewController controller) {
+	public DeliveryThread(TOMLayer tomLayer, ServiceReplica receiver, Recoverable recoverer,
+			ServerViewController controller) {
 		super("Delivery Thread");
 		this.decided = new LinkedBlockingQueue<>();
 
 		this.tomLayer = tomLayer;
 		this.receiver = receiver;
 		this.recoverer = recoverer;
-		//******* EDUARDO BEGIN **************//
+		// ******* EDUARDO BEGIN **************//
 		this.controller = controller;
-		//******* EDUARDO END **************//
+		// ******* EDUARDO END **************//
 	}
-
 
 	public Recoverable getRecoverer() {
 		return recoverer;
@@ -77,7 +77,7 @@ public final class DeliveryThread extends Thread {
 
 	/**
 	 * Invoked by the TOM layer, to deliver a decision
-	 *
+	 * 
 	 * @param dec Decision established from the consensus
 	 */
 	public void delivery(Decision dec) {
@@ -97,16 +97,19 @@ public final class DeliveryThread extends Thread {
 			logger.error("Could not insert decision into decided queue", e);
 		}
 
-		hadReconfig = containsReconfig(dec);
+		if (!containsReconfig(dec)) {
 
-		if (!hadReconfig) {
-
-			logger.debug("Decision from consensus " + dec.getConsensusId() + " does not contain good reconfiguration");
-			//set this decision as the last one from this replica
+			logger.debug("Decision from consensus " + dec.getConsensusId() + " does not contain reconfiguration");
+			// set this decision as the last one from this replica
 			tomLayer.setLastExec(dec.getConsensusId());
-			//define that end of this execution
+			// define that end of this execution
 			tomLayer.setInExec(-1);
-		} //else if (tomLayer.controller.getStaticConf().getProcessId() == 0) System.exit(0);
+		} // else if (tomLayer.controller.getStaticConf().getProcessId() == 0)
+			// System.exit(0);
+		else {
+			logger.debug("Decision from consensus " + dec.getConsensusId() + " has reconfiguration");
+			lastReconfig = dec.getConsensusId();
+		}
 	}
 
 	private boolean containsReconfig(Decision dec) {
@@ -121,9 +124,7 @@ public final class DeliveryThread extends Thread {
 		return false;
 	}
 
-	/**
-	 * THIS IS JOAO'S CODE, TO HANDLE STATE TRANSFER
-	 */
+	/** THIS IS JOAO'S CODE, TO HANDLE STATE TRANSFER */
 	private ReentrantLock deliverLock = new ReentrantLock();
 	private Condition canDeliver = deliverLock.newCondition();
 
@@ -149,19 +150,19 @@ public final class DeliveryThread extends Thread {
 
 		int lastCID = recoverer.setState(state);
 
-		//set this decision as the last one from this replica
+		// set this decision as the last one from this replica
 		logger.info("Setting last CID to " + lastCID);
 		tomLayer.setLastExec(lastCID);
 
-		//define the last stable consensus... the stable consensus can
-		//be removed from the leaderManager and the executionManager
+		// define the last stable consensus... the stable consensus can
+		// be removed from the leaderManager and the executionManager
 		if (lastCID > 2) {
 			int stableConsensus = lastCID - 3;
 			tomLayer.execManager.removeOutOfContexts(stableConsensus);
 		}
 
-		//define that end of this execution
-		//stateManager.setWaiting(-1);
+		// define that end of this execution
+		// stateManager.setWaiting(-1);
 		tomLayer.setNoExec();
 
 		logger.info("Current decided size: " + decided.size());
@@ -171,8 +172,8 @@ public final class DeliveryThread extends Thread {
 	}
 
 	/**
-	 * This is the code for the thread. It delivers decisions to the TOM
-	 * request receiver object (which is the application)
+	 * This is the code for the thread. It delivers decisions to the TOM request
+	 * receiver object (which is the application)
 	 */
 	@Override
 	public void run() {
@@ -203,7 +204,8 @@ public final class DeliveryThread extends Thread {
 
 				decidedLock.unlock();
 
-				if (!doWork) break;
+				if (!doWork)
+					break;
 
 				if (decisions.size() > 0) {
 					TOMMessage[][] requests = new TOMMessage[decisions.size()][];
@@ -247,19 +249,20 @@ public final class DeliveryThread extends Thread {
 						if (controller.hasCorrectUpdates()) {
 							processReconfigMessages(lastDecision.getConsensusId());
 						}
+						if (lastReconfig > -2 && lastReconfig <= lastDecision.getConsensusId()) {
 
-						if (hadReconfig) {
 							if (controller.hasDiscardedUpdates()) {
 								processUnexecutedReconfigMessages();
 							}
 
 							// set the consensus associated to the last decision as the last executed
+							logger.debug("Setting last executed consensus to " + lastDecision.getConsensusId());
 							tomLayer.setLastExec(lastDecision.getConsensusId());
 							// define that end of this execution
 							tomLayer.setInExec(-1);
 							// ******* EDUARDO END **************//
 
-							hadReconfig = false;
+							lastReconfig = -2;
 						}
 					}
 
@@ -309,15 +312,17 @@ public final class DeliveryThread extends Thread {
 	protected void deliverUnordered(TOMMessage request, int regency) {
 
 		MessageContext msgCtx = new MessageContext(request.getSender(), request.getViewID(), request.getReqType(),
-				request.getSession(), request.getSequence(), request.getOperationId(), request.getReplyServer(), request.serializedMessageSignature,
-				System.currentTimeMillis(), 0, 0, regency, -1, -1, null, null, false); // Since the request is unordered,
+				request.getSession(), request.getSequence(), request.getOperationId(), request.getReplyServer(),
+				request.serializedMessageSignature, System.currentTimeMillis(), 0, 0, regency, -1, -1, null, null,
+				false); // Since the request is unordered,
 		// there is no consensus info to pass
 
 		msgCtx.readOnly = true;
 		receiver.receiveReadonlyMessage(request, msgCtx);
 	}
 
-	private void deliverMessages(int consId[], int regencies[], int leaders[], CertifiedDecision[] cDecs, TOMMessage[][] requests) {
+	private void deliverMessages(int consId[], int regencies[], int leaders[], CertifiedDecision[] cDecs,
+			TOMMessage[][] requests) {
 		receiver.receiveMessages(consId, regencies, leaders, cDecs, requests);
 	}
 
@@ -327,19 +332,18 @@ public final class DeliveryThread extends Thread {
 
 		if (controller.getCurrentView().isMember(receiver.getId())) {
 			for (int i = 0; i < dests.length; i++) {
-				tomLayer.getCommunication().send(new int[]{dests[i].getSender()},
-						new TOMMessage(controller.getStaticConf().getProcessId(),
-								dests[i].getSession(), dests[i].getSequence(), dests[i].getOperationId(), response,
+				tomLayer.getCommunication().send(new int[] { dests[i].getSender() },
+						new TOMMessage(controller.getStaticConf().getProcessId(), dests[i].getSession(),
+								dests[i].getSequence(), dests[i].getOperationId(), response,
 								controller.getCurrentViewId(), TOMMessageType.RECONFIG));
 			}
 
 			tomLayer.getCommunication().updateServersConnections();
 		} else {
-//            receiver.restart();
+			// receiver.restart();
 			receiver.kill();
 		}
 	}
-
 
 	private void processUnexecutedReconfigMessages() {
 		byte[] response = new byte[0];
@@ -347,9 +351,9 @@ public final class DeliveryThread extends Thread {
 
 		if (controller.getCurrentView().isMember(receiver.getId())) {
 			for (int i = 0; i < dests.length; i++) {
-				tomLayer.getCommunication().send(new int[]{dests[i].getSender()},
-						new TOMMessage(controller.getStaticConf().getProcessId(),
-								dests[i].getSession(), dests[i].getSequence(), dests[i].getOperationId(), response,
+				tomLayer.getCommunication().send(new int[] { dests[i].getSender() },
+						new TOMMessage(controller.getStaticConf().getProcessId(), dests[i].getSession(),
+								dests[i].getSequence(), dests[i].getOperationId(), response,
 								controller.getCurrentViewId(), TOMMessageType.RECONFIG));
 			}
 		}
