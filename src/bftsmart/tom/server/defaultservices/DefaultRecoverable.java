@@ -18,6 +18,11 @@
  */
 package bftsmart.tom.server.defaultservices;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
+import java.util.concurrent.locks.ReentrantLock;
+
 import bftsmart.reconfiguration.ServerViewController;
 import bftsmart.reconfiguration.util.TOMConfiguration;
 import bftsmart.statemanagement.ApplicationState;
@@ -25,16 +30,12 @@ import bftsmart.statemanagement.StateManager;
 import bftsmart.statemanagement.standard.StandardStateManager;
 import bftsmart.tom.MessageContext;
 import bftsmart.tom.ReplicaContext;
+import bftsmart.tom.core.messages.TOMMessage;
 import bftsmart.tom.server.BatchExecutable;
 import bftsmart.tom.server.Recoverable;
 import bftsmart.tom.util.TOMUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  *

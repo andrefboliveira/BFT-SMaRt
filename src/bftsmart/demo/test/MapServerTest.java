@@ -172,7 +172,6 @@ public class MapServerTest<K, V> extends StrongBlockchainRecoverable {
 		if ("ASK_JOIN".equals(input)) {
 			return true;
 		}
-
 		return false;
 	}
 
