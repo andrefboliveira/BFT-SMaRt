@@ -15,9 +15,6 @@
  */
 package bftsmart.demo.microbenchmarks;
 
-import java.io.IOException;
-import java.util.Arrays;
-
 import bftsmart.communication.client.ReplyListener;
 import bftsmart.tom.AsynchServiceProxy;
 import bftsmart.tom.RequestContext;
@@ -25,20 +22,13 @@ import bftsmart.tom.core.messages.TOMMessage;
 import bftsmart.tom.core.messages.TOMMessageType;
 import bftsmart.tom.util.Storage;
 import bftsmart.tom.util.TOMUtil;
+
+import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.security.InvalidKeyException;
-import java.security.KeyFactory;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.Security;
-import java.security.Signature;
-import java.security.SignatureException;
+import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
-import java.util.Base64;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -54,7 +44,7 @@ public class AsyncLatencyClient {
     
     public static void main(String[] args) throws IOException {
         if (args.length < 8) {
-            System.out.println("Usage: ... ThroughputLatencyClient <initial client id> <number of clients> <number of operations> <request size> <max interval (ms)> <read only?> <verbose?> <nosig | default | ecdsa>");
+            System.out.println("Usage: ... AsyncLatencyClient <initial client id> <number of clients> <number of operations> <request size> <max interval (ms)> <read only?> <verbose?> <nosig | default | ecdsa>");
             System.exit(-1);
         }
 
