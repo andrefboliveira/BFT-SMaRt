@@ -84,7 +84,7 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
     private int currentCommit;
 
     public enum commandType {
-        TIMEOUT, JOIN, APP, NOOP
+        APP, JOIN
     }
 
     private LinkedBlockingQueue<Map.Entry<Integer, byte[]>> commitQueue;
@@ -477,10 +477,8 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
         try {
 
             Map<commandType, List<Integer>> commandIndexes = new HashMap<commandType, List<Integer>>();
-            commandIndexes.put(commandType.TIMEOUT, new ArrayList<Integer>());
-            commandIndexes.put(commandType.JOIN, new ArrayList<Integer>());
             commandIndexes.put(commandType.APP, new ArrayList<Integer>());
-            commandIndexes.put(commandType.NOOP, new ArrayList<Integer>());
+            commandIndexes.put(commandType.JOIN, new ArrayList<Integer>());
 
 
             LinkedList<byte[]> transListApp = new LinkedList<byte[]>();
@@ -502,8 +500,6 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
                     buff.get(b);
 
                     if ((new String(b)).equals("TIMEOUT")) {
-
-                        commandIndexes.get(commandType.TIMEOUT).add(i);
 
                         int n = buff.getInt();
 
@@ -582,9 +578,6 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
 
                     }
 
-                } else {
-                    commandIndexes.get(commandType.NOOP).add(i);
-
                 }
 
             }
@@ -636,7 +629,7 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
                 //audition impossible. Must implemented a way to match the results to their respective transactions.
                 log.storeResults(fullResults);
 
-                CommandContextPair executedCommandsAndContexts = orderCommands(operations, msgCtxs, commandIndexes, false);
+                CommandContextPair executedCommandsAndContexts = orderCommands(operations, msgCtxs, commandIndexes);
                 byte[][] executedCommands = executedCommandsAndContexts.getCommands();
                 MessageContext[] executedContexts = executedCommandsAndContexts.getMsgCtxs();
 
@@ -788,38 +781,17 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
     }
 
     private CommandContextPair orderCommands(byte[][] commands, MessageContext[] msgCtxs,
-                                             Map<commandType, List<Integer>> indexes, boolean allCommands) {
+                                             Map<commandType, List<Integer>> indexes) {
         byte[][] mergedCommands;
         MessageContext[] mergedContexts;
 
         int i = 0;
 
-        if (allCommands) {
-            int mergedSize = indexes.get(commandType.TIMEOUT).size() + indexes.get(commandType.NOOP).size()
-                    + indexes.get(commandType.APP).size() + indexes.get(commandType.JOIN).size();
+         int mergedSize = indexes.get(commandType.APP).size() + indexes.get(commandType.JOIN).size();
 
-            mergedCommands = new byte[mergedSize][];
-            mergedContexts = new MessageContext[mergedSize];
+         mergedCommands = new byte[mergedSize][];
+         mergedContexts = new MessageContext[mergedSize];
 
-            for (Integer timeoutIndex : indexes.get(commandType.TIMEOUT)) {
-                mergedCommands[i] = commands[timeoutIndex];
-                mergedContexts[i] = msgCtxs[timeoutIndex];
-                i++;
-            }
-
-            for (Integer noopIndex : indexes.get(commandType.NOOP)) {
-                mergedCommands[i] = commands[noopIndex];
-                mergedContexts[i] = msgCtxs[noopIndex];
-                i++;
-            }
-
-        } else {
-            int mergedSize = indexes.get(commandType.APP).size() + indexes.get(commandType.JOIN).size();
-
-            mergedCommands = new byte[mergedSize][];
-            mergedContexts = new MessageContext[mergedSize];
-
-        }
 
         for (Integer appIndex : indexes.get(commandType.APP)) {
             mergedCommands[i] = commands[appIndex];
