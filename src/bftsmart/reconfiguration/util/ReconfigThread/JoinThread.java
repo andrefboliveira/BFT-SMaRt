@@ -38,7 +38,6 @@ public class JoinThread implements Runnable {
 		this.joiningReplicaConfig = joiningReplicaConfig;
 		//this.currentView = currentView;
 		this.joiner = joiner;
-
 	}
 
 
@@ -288,7 +287,7 @@ public class JoinThread implements Runnable {
 
 //		int newID = suggestedID;
 
-		String newIP = joiningReplicaConfig.getLocalAddress(this.id).getHostName();
+		String newIP = joiningReplicaConfig.getRemoteAddress(this.id).getHostName();
 		int newPort = joiningReplicaConfig.getPort(this.id);
 
 		logger.info("Adding Server: " + this.id + "(/" + newIP + ":" + newPort + ")");
