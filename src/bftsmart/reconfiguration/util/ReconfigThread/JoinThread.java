@@ -288,8 +288,8 @@ public class JoinThread implements Runnable {
 
 //		int newID = suggestedID;
 
-//		String newIP = joiningReplicaConfig.getRemoteAddress(this.id).getHostName();
-        String newIP = joiningReplicaConfig.getRemoteAddress(this.id).getAddress().getHostAddress();
+
+		String newIP = joiningReplicaConfig.getRemoteAddress(this.id).getAddress().getHostAddress();
 
 		int newPort = joiningReplicaConfig.getPort(this.id);
 
