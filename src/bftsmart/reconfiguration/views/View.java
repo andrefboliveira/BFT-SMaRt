@@ -58,6 +58,7 @@ public class View implements Serializable {
 		Arrays.sort(this.processes);
 
 		this.f = calculateF(this.processes.length, isBFT);
+		System.out.println("f: " + this.f);
 	}
 
 	public static int calculateF(int n, boolean isBFT) {
