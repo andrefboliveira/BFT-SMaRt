@@ -39,7 +39,6 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  */
 public final class DeliveryThread extends Thread {
-
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	private boolean doWork = true;
@@ -177,6 +176,7 @@ public final class DeliveryThread extends Thread {
 	 */
 	@Override
 	public void run() {
+		boolean init = true;
 		while (doWork) {
 			/** THIS IS JOAO'S CODE, TO HANDLE STATE TRANSFER */
 			deliverLock();
@@ -184,8 +184,11 @@ public final class DeliveryThread extends Thread {
 				logger.info("Retrieving State");
 				canDeliver.awaitUninterruptibly();
 
-				if (tomLayer.getLastExec() == -1)
+				// if (tomLayer.getLastExec() == -1)
+				if (init) {
 					logger.info("Ready to process operations");
+					init = false;
+				}
 			}
 			try {
 				ArrayList<Decision> decisions = new ArrayList<Decision>();
@@ -315,7 +318,7 @@ public final class DeliveryThread extends Thread {
 				request.getSession(), request.getSequence(), request.getOperationId(), request.getReplyServer(),
 				request.serializedMessageSignature, System.currentTimeMillis(), 0, 0, regency, -1, -1, null, null,
 				false); // Since the request is unordered,
-		// there is no consensus info to pass
+						// there is no consensus info to pass
 
 		msgCtx.readOnly = true;
 		receiver.receiveReadonlyMessage(request, msgCtx);
