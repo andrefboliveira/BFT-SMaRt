@@ -383,6 +383,7 @@ public class ServiceReplica {
                                 throw new UnsupportedOperationException("Non-existent interface");
                             }   break;
                         case RECONFIG:
+//                            System.out.println("CID: " + consId[consensusCount]);
                             SVController.enqueueUpdate(request, firstRequest.timestamp);
                             break;
                         default: //this code should never be executed

@@ -45,9 +45,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
-import org.apache.commons.codec.binary.Base64;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author joao
@@ -1082,6 +1079,7 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
     }
 
     private void writeCheckpointToDisk(int cid, byte[] checkpoint) throws IOException {
+        long writeDiskStartTime = System.currentTimeMillis();
 
         String checkpointPath = batchDir + "checkpoint." + config.getProcessId() + "." + String.valueOf(cid) + ".log";
 
@@ -1090,6 +1088,10 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
         log.write(checkpoint);
 
         log.close();
+
+        logger.info("Finish writing checkpoint to disk: " + (System.currentTimeMillis() - writeDiskStartTime) + " ms");
+
+
     }
 
     @Override
