@@ -42,9 +42,6 @@ import org.slf4j.LoggerFactory;
 import java.security.Provider;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -77,9 +74,6 @@ public class ServiceReplica {
     private ReplicaContext replicaCtx = null;
     private Replier replier = null;
     private RequestVerifier verifier = null;
-    
-    //private byte[] lastBlockHash = new byte[0];
-    private BlockingQueue<Map.Entry<Integer,byte[][]>> queue;
 
     /**
      * Constructor
@@ -372,8 +366,8 @@ public class ServiceReplica {
 
                                 // This is used to deliver the requests to the application and obtain a reply to deliver
                                 //to the clients. The raw decision is passed to the application in the line above.
-
-                                TOMMessage response = ((SingleExecutable) executor).executeOrdered(id, SVController.getCurrentViewId(), request.getContent(), msgCtx);                                
+                                TOMMessage response = ((SingleExecutable) executor).executeOrdered(id, SVController.getCurrentViewId(), request.getContent(), msgCtx);
+                                
                                 if (response != null) {
 
                                     logger.debug("sending reply to " + response.getSender());
@@ -459,72 +453,26 @@ public class ServiceReplica {
 
             MessageContext[] msgContexts = new MessageContext[msgCtxts.size()];
             msgContexts = msgCtxts.toArray(msgContexts);
-            int cid = msgContexts[0].getConsensusId();
             
             //Deliver the batch and wait for replies
             TOMMessage[] replies = ((BatchExecutable) executor).executeBatch(id, SVController.getCurrentViewId(), batch, msgContexts);
 
             //Send the replies back to the client
-            //for (int index = 0; index < toBatch.size(); index++) {
-            for (TOMMessage reply : replies) {
+            if (replies != null) {
                 
-                //TOMMessage request = toBatch.get(index);
-                //request.reply = new TOMMessage(id, request.getSession(), request.getSequence(), request.getOperationId(),
-                //        replies[index], SVController.getCurrentViewId(), request.getReqType());
+                for (TOMMessage reply : replies) {
 
-                if (SVController.getStaticConf().getNumRepliers() > 0) {
-                    logger.debug("Sending reply to " + reply.getSender() + " with sequence number " + reply.getSequence() + " and operation ID " + reply.getOperationId() +" via ReplyManager");
-                    repMan.send(reply);
-                } else {
-                    logger.debug("Sending reply to " + reply.getSender() + " with sequence number " + reply.getSequence() + " and operation ID " + reply.getOperationId());
-                    replier.manageReply(reply, null);
-
+                    if (SVController.getStaticConf().getNumRepliers() > 0) {
+                        logger.debug("Sending reply to " + reply.getSender() + " with sequence number " + reply.getSequence() + " and operation ID " + reply.getOperationId() +" via ReplyManager");
+                        repMan.send(reply);
+                    } else {
+                        logger.debug("Sending reply to " + reply.getSender() + " with sequence number " + reply.getSequence() + " and operation ID " + reply.getOperationId());
+                        replier.manageReply(reply, null);
+                        //cs.send(new int[]{request.getSender()}, request.reply);
+                    }
                 }
             }
-            
-            /*try {
-                lastBlockHash = TOMUtil.computeBlockHash(cid, lastBlockHash, toBatch);
-            } catch (IOException ex) {
-                logger.error("Error while computing the hash for last block (Could not serialize transactions).", ex);
-            }*/
-            
-            byte [] lastCheckpointHash = null;
-
-            /*if (cid % SVController.getStaticConf().getCheckpointPeriod() == 0) {
-                
-                lastCheckpointHash = executor.takeCheckpointHash(cid);
-
-            //}
-            
-                //final byte[][] value = new byte[][]{lastBlockHash, lastCheckpointHash};
-                final byte[][] value = new byte[][]{null, lastCheckpointHash};
-
-                Map.Entry<Integer, byte[][]> element = new Map.Entry<Integer, byte[][]>() {
-
-                    @Override
-                    public Integer getKey() {
-
-                        return cid;
-                    }
-
-                    @Override
-                    public byte[][] getValue() {
-                        return value;
-                    }
-
-                    @Override
-                    public byte[][] setValue(byte[][] value) {
-                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-                    }
-                };
-
-                try {
-                    queue.put(element);
-                } catch (InterruptedException ex) {
-                    logger.error("Error while getting checkpoint for CID " + cid, ex);
-                }
-            }*/
-            
+            //DEBUG
             logger.debug("BATCHEXECUTOR END");
         }
     }
@@ -547,9 +495,7 @@ public class ServiceReplica {
         // Assemble the total order messaging layer
         MessageFactory messageFactory = new MessageFactory(id);
 
-        queue = new LinkedBlockingQueue<>();
-        
-        Acceptor acceptor = new Acceptor(cs, messageFactory, SVController, queue);
+        Acceptor acceptor = new Acceptor(cs, messageFactory, SVController);
         cs.setAcceptor(acceptor);
 
         Proposer proposer = new Proposer(cs, messageFactory, SVController);

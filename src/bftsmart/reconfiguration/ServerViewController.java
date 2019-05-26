@@ -337,6 +337,7 @@ public class ServerViewController extends ViewController {
 							jSet.add(id);
 							String host = str.nextToken();
 							int port = Integer.valueOf(str.nextToken());
+							int portRR = Integer.valueOf(str.nextToken());
 							this.getStaticConf().addHostInfo(id, host, port);
 						}
 					}
@@ -471,7 +472,8 @@ public class ServerViewController extends ViewController {
 			this.lastJoinStet[i] = id;
 			String host = str.nextToken();
 			int port = Integer.valueOf(str.nextToken());
-			this.getStaticConf().addHostInfo(id, host, port);
+			int portRR = Integer.valueOf(str.nextToken());
+			this.getStaticConf().addHostInfo(id, host, port, portRR);
 		}
 	}
 

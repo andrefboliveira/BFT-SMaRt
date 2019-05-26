@@ -57,11 +57,11 @@ public class VMServices {
      * @param toReconfigureReplicaConfig
      * @param fullCertificate
      */
-    public void addServer(int id, String ipAddress, int port, TOMConfiguration toReconfigureReplicaConfig, FullCertificate fullCertificate) {
+    public void addServer(int id, String ipAddress, int port, int portRR, TOMConfiguration toReconfigureReplicaConfig, FullCertificate fullCertificate) {
 
         ViewManager viewManager = new ViewManager(toReconfigureReplicaConfig.getProcessId(), toReconfigureReplicaConfig.getTTPId(), configDir, keyLoader);
 
-        viewManager.addServer(id, ipAddress, port, fullCertificate);
+        viewManager.addServer(id, ipAddress, port, portRR, fullCertificate);
 
         execute(viewManager, toReconfigureReplicaConfig);
 
