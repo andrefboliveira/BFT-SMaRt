@@ -15,34 +15,14 @@ limitations under the License.
 */
 package bftsmart.demo.microbenchmarks;
 
-import bftsmart.tom.MessageContext;
-import bftsmart.tom.ServiceReplica;
-import bftsmart.tom.server.durability.DurabilityCoordinator;
-import bftsmart.tom.util.Storage;
-import bftsmart.tom.util.TOMUtil;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.nio.ByteBuffer;
-import java.security.InvalidKeyException;
-import java.security.KeyFactory;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.PublicKey;
-import java.security.Security;
-import java.security.Signature;
-import java.security.SignatureException;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
-import java.security.spec.EncodedKeySpec;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.X509EncodedKeySpec;
-import java.util.Base64;
-
 /**
  * Simple server that just acknowledge the reception of a request.
  */
 
-public final class DurableThroughputServer extends DurabilityCoordinator {    
+//public final class DurableThroughputServer extends DurabilityCoordinator {
+public final class DurableThroughputServer {
+
+/*
     private int interval;
     private byte[] reply;
     private float maxTp = -1;
@@ -305,6 +285,7 @@ public final class DurableThroughputServer extends DurabilityCoordinator {
     public byte[] getSnapshot() {
         return this.state;
     }
+*/
 
    
 }

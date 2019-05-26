@@ -15,6 +15,11 @@ limitations under the License.
 */
 package bftsmart.reconfiguration.util;
 
+import bftsmart.tom.util.KeyLoader;
+import bftsmart.tom.util.TOMUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.net.InetSocketAddress;
@@ -23,12 +28,6 @@ import java.security.PublicKey;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import bftsmart.tom.util.KeyLoader;
-import bftsmart.tom.util.TOMUtil;
 
 public class Configuration {
 
@@ -268,6 +267,10 @@ public class Configuration {
 
 	public final int getPort(int id) {
 		return hosts.getPort(id);
+	}
+
+	public final int getPortRR(int id) {
+		return hosts.getPortRR(id);
 	}
 
 	public final int getServerToServerPort(int id) {

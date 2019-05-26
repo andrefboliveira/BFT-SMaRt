@@ -14,6 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 package bftsmart.reconfiguration.util;
+
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.net.InetSocketAddress;
@@ -21,8 +24,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.StringTokenizer;
-
-import org.slf4j.LoggerFactory;
 
 public class HostsConfig {
     
@@ -107,6 +108,14 @@ public class HostsConfig {
         return -1;
     }
 
+    public int getPortRR(int id) {
+        Config c = (Config) this.servers.get(id);
+        if (c != null) {
+            return c.portRR;
+        }
+        return -1;
+    }
+
     public int getServerToServerPort(int id){
         Config c = (Config) this.servers.get(id);
         if(c != null){
@@ -135,6 +144,13 @@ public class HostsConfig {
         Config c = (Config) this.servers.get(id);
         if(c != null){
             c.port = port;
+        }
+    }
+
+    public void setPortRR(int id, int portRR) {
+        Config c = (Config) this.servers.get(id);
+        if (c != null) {
+            c.portRR = portRR;
         }
     }
     

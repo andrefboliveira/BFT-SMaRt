@@ -5,57 +5,13 @@
  */
 package bftsmart.tom.server.defaultservices.blockchain;
 
-import bftsmart.communication.ServerCommunicationSystem;
-import bftsmart.tom.server.defaultservices.blockchain.logger.ParallelBatchLogger;
-import bftsmart.tom.server.defaultservices.blockchain.logger.BufferBatchLogger;
-import bftsmart.consensus.messages.ConsensusMessage;
-import bftsmart.reconfiguration.ServerViewController;
-import bftsmart.reconfiguration.util.TOMConfiguration;
-import bftsmart.statemanagement.ApplicationState;
-import bftsmart.statemanagement.SMMessage;
-import bftsmart.statemanagement.StateManager;
-import bftsmart.tom.MessageContext;
-import bftsmart.tom.ReplicaContext;
-import bftsmart.tom.core.messages.ForwardedMessage;
-import bftsmart.tom.core.messages.TOMMessage;
-import bftsmart.tom.server.BatchExecutable;
-import bftsmart.tom.server.Recoverable;
-import bftsmart.tom.server.defaultservices.CommandsInfo;
-import bftsmart.tom.server.defaultservices.blockchain.logger.AsyncBatchLogger;
-import bftsmart.tom.server.defaultservices.blockchain.logger.VoidBatchLogger;
-import bftsmart.tom.server.defaultservices.blockchain.strategy.BlockchainSMMessage;
-import bftsmart.tom.server.defaultservices.blockchain.strategy.BlockchainState;
-import bftsmart.tom.server.defaultservices.blockchain.strategy.BlockchainStateManager;
-import bftsmart.tom.util.BatchBuilder;
-import bftsmart.tom.util.TOMUtil;
-import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.PublicKey;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Random;
-import java.util.Set;
-import java.util.concurrent.locks.ReentrantLock;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  *
  * @author joao
  */
-public abstract class WeakBlockchainRecoverable implements Recoverable, BatchExecutable {
-
+public abstract class WeakBlockchainRecoverable {
+//public abstract class WeakBlockchainRecoverable implements Recoverable, BatchExecutable {
+/*
     private Logger logger = LoggerFactory.getLogger(this.getClass());
     
     public String batchDir;    
@@ -408,7 +364,7 @@ public abstract class WeakBlockchainRecoverable implements Recoverable, BatchExe
                     this.results.add(reply);
                 }
                 
-                /*if (timer != null) timer.cancel();
+                *//*if (timer != null) timer.cancel();
                 timer = new Timer();
 
                 if (transList.size() > 0) {
@@ -454,8 +410,8 @@ public abstract class WeakBlockchainRecoverable implements Recoverable, BatchExe
             
                 boolean isCheckpoint = cid > 0 && cid % config.getCheckpointPeriod() == 0;
 
-                if (timeout | isCheckpoint ||  /*(cid % config.getLogBatchLimit() == 0)*/
-                        (this.results.size() > config.getMaxBatchSize()) /* * config.getLogBatchLimit())*/) {
+                if (timeout | isCheckpoint ||  /*(cid % config.getLogBatchLimit() == 0)*//*
+                        (this.results.size() > config.getMaxBatchSize()) *//* * config.getLogBatchLimit())*//*) {
 
                     byte[] transHash = log.markEndTransactions()[0];
 
@@ -690,19 +646,19 @@ public abstract class WeakBlockchainRecoverable implements Recoverable, BatchExe
         return null;
     }
  
-    /**
+    *//**
      * Given a snapshot received from the state transfer protocol, install it
      * @param state The serialized snapshot
-     */
+     *//*
     public abstract void installSnapshot(byte[] state);
     
-    /**
+    *//**
      * Returns a serialized snapshot of the application state
      * @return A serialized snapshot of the application state
-     */
+     *//*
     public abstract byte[] getSnapshot();
     
-    /**
+    *//**
      * Execute a batch of ordered requests
      * 
      * @param commands The batch of requests
@@ -710,16 +666,17 @@ public abstract class WeakBlockchainRecoverable implements Recoverable, BatchExe
      * @param fromConsensus true if the request arrived from a consensus execution, false if it arrives from the state transfer protocol
      * 
      * @return the respective replies for each request
-     */
+     *//*
     public abstract byte[][] appExecuteBatch(byte[][] commands, MessageContext[] msgCtxs, boolean fromConsensus);
     
-    /**
+    *//**
      * Execute an unordered request
      * 
      * @param command The unordered request
      * @param msgCtx The context associated to the request
      * 
      * @return the reply for the request issued by the client
-     */
+     *//*
     public abstract byte[] appExecuteUnordered(byte[] command, MessageContext msgCtx);
+*/
 }

@@ -15,6 +15,7 @@ limitations under the License.
 */
 package bftsmart.demo.microbenchmarks;
 
+import bftsmart.tom.MessageContext;
 import bftsmart.tom.ServiceReplica;
 import bftsmart.tom.server.defaultservices.CommandsInfo;
 import bftsmart.tom.server.defaultservices.blockchain.StrongBlockchainRecoverable;
@@ -53,6 +54,12 @@ public final class StrongThroughputServer extends StrongBlockchainRecoverable {
     private long throughputMeasurementStartTime = System.currentTimeMillis();
 
     private Storage totalLatency = null;
+    private Storage consensusLatency = null;
+    private Storage preConsLatency = null;
+    private Storage posConsLatency = null;
+    private Storage proposeLatency = null;
+    private Storage writeLatency = null;
+    private Storage acceptLatency = null;
 
     private Storage batchSize = null;
 
@@ -79,6 +86,12 @@ public final class StrongThroughputServer extends StrongBlockchainRecoverable {
             state[i] = (byte) i;
 
         totalLatency = new Storage(interval);
+        consensusLatency = new Storage(interval);
+        preConsLatency = new Storage(interval);
+        posConsLatency = new Storage(interval);
+        proposeLatency = new Storage(interval);
+        writeLatency = new Storage(interval);
+        acceptLatency = new Storage(interval);
 
         batchSize = new Storage(interval);
 
@@ -223,6 +236,40 @@ public final class StrongThroughputServer extends StrongBlockchainRecoverable {
             msgCtx.getFirstInBatch().executedTime = System.nanoTime();
 
             totalLatency.store(msgCtx.getFirstInBatch().executedTime - msgCtx.getFirstInBatch().receptionTime);
+
+            if (readOnly == false) {
+
+                consensusLatency.store(msgCtx.getFirstInBatch().decisionTime - msgCtx.getFirstInBatch().consensusStartTime);
+                long temp = msgCtx.getFirstInBatch().consensusStartTime - msgCtx.getFirstInBatch().receptionTime;
+                preConsLatency.store(temp > 0 ? temp : 0);
+                posConsLatency.store(msgCtx.getFirstInBatch().executedTime - msgCtx.getFirstInBatch().decisionTime);
+                proposeLatency.store(msgCtx.getFirstInBatch().writeSentTime - msgCtx.getFirstInBatch().consensusStartTime);
+                writeLatency.store(msgCtx.getFirstInBatch().acceptSentTime - msgCtx.getFirstInBatch().writeSentTime);
+                acceptLatency.store(msgCtx.getFirstInBatch().decisionTime - msgCtx.getFirstInBatch().acceptSentTime);
+
+
+            } else {
+
+
+                consensusLatency.store(0);
+                preConsLatency.store(0);
+                posConsLatency.store(0);
+                proposeLatency.store(0);
+                writeLatency.store(0);
+                acceptLatency.store(0);
+
+
+            }
+
+        } else {
+
+
+            consensusLatency.store(0);
+            preConsLatency.store(0);
+            posConsLatency.store(0);
+            proposeLatency.store(0);
+            writeLatency.store(0);
+            acceptLatency.store(0);
 
 
         }

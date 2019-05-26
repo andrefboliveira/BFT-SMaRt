@@ -42,16 +42,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
@@ -83,7 +73,7 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
     private byte[] appStateHash;
 
     // private AsynchServiceProxy proxy;
-    // private Timer timer;
+    private Timer timer;
 
     private ReentrantLock timerLock = new ReentrantLock();
     private ReentrantLock mapLock = new ReentrantLock();
@@ -464,10 +454,10 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
         return TOMUtil.computeHash(getSnapshot());
     }
 
-    private TOMMessage[] executeBatch(int processID, int viewID, byte[][] operations, MessageContext[] msgCtxs, boolean noop, boolean fromConsensus) {
-    
-    private TOMMessage[] executeBatch(int processID, int viewID, byte[][] ops, MessageContext[] ctxs, boolean noop) {
-        
+    private TOMMessage[] executeBatch(int processID, int viewID, byte[][] ops, MessageContext[] ctxs, boolean noop, boolean fromConsensus) {
+
+//    private TOMMessage[] executeBatch(int processID, int viewID, byte[][] ops, MessageContext[] ctxs, boolean noop) {
+
         //int cid = msgCtxs[0].getConsensusId();
         TOMMessage[] replies = new TOMMessage[0];
         boolean timeout = false;

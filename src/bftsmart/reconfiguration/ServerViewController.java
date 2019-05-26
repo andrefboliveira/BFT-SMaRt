@@ -338,7 +338,7 @@ public class ServerViewController extends ViewController {
 							String host = str.nextToken();
 							int port = Integer.valueOf(str.nextToken());
 							int portRR = Integer.valueOf(str.nextToken());
-							this.getStaticConf().addHostInfo(id, host, port);
+							this.getStaticConf().addHostInfo(id, host, port, portRR);
 						}
 					}
 				} else if (key == REMOVE_SERVER || key == FORCE_REMOVE_SERVER) {
