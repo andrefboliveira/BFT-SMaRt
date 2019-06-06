@@ -293,11 +293,13 @@ public class JoinThread implements Runnable {
 
 		int newPort = joiningReplicaConfig.getPort(this.id);
 
+		int newPortRR = joiningReplicaConfig.getPortRR(this.id);
+
 		logger.info("Adding Server: " + this.id + "(/" + newIP + ":" + newPort + ")");
 
 		VMServices reconfigServices = new VMServices();
 
-		reconfigServices.addServer(this.id, newIP, newPort, this.joiningReplicaConfig, fullCertificate);
+		reconfigServices.addServer(this.id, newIP, newPort, newPortRR, this.joiningReplicaConfig, fullCertificate);
 
 		return true;
 

@@ -107,6 +107,14 @@ public class HostsConfig {
         return -1;
     }
 
+    public int getPortRR(int id) {
+        Config c = (Config) this.servers.get(id);
+        if (c != null) {
+            return c.portRR;
+        }
+        return -1;
+    }
+
     public int getServerToServerPort(int id){
         Config c = (Config) this.servers.get(id);
         if(c != null){
@@ -135,6 +143,13 @@ public class HostsConfig {
         Config c = (Config) this.servers.get(id);
         if(c != null){
             c.port = port;
+        }
+    }
+
+    public void setPortRR(int id, int portRR) {
+        Config c = (Config) this.servers.get(id);
+        if (c != null) {
+            c.portRR = portRR;
         }
     }
     

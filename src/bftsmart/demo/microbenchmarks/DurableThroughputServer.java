@@ -42,7 +42,9 @@ import java.util.Base64;
  * Simple server that just acknowledge the reception of a request.
  */
 
-public final class DurableThroughputServer extends DurabilityCoordinator {    
+public final class DurableThroughputServer {
+//    public final class DurableThroughputServer extends DurabilityCoordinator {
+    /*
     private int interval;
     private byte[] reply;
     private float maxTp = -1;
@@ -306,5 +308,5 @@ public final class DurableThroughputServer extends DurabilityCoordinator {
         return this.state;
     }
 
-   
+   */
 }

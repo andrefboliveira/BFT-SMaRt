@@ -270,6 +270,10 @@ public class Configuration {
 		return hosts.getPort(id);
 	}
 
+	public final int getPortRR(int id) {
+		return hosts.getPortRR(id);
+	}
+
 	public final int getServerToServerPort(int id) {
 		return hosts.getServerToServerPort(id);
 	}
