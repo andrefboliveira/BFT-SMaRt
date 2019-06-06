@@ -15,6 +15,18 @@ limitations under the License.
 */
 package bftsmart.reconfiguration;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.StringTokenizer;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import bftsmart.communication.server.ServerConnection;
 import bftsmart.reconfiguration.util.ReconfigThread.pojo.FullCertificate;
 import bftsmart.reconfiguration.util.TOMConfiguration;
@@ -59,9 +71,9 @@ public class ViewManager {
         this.rec.connect();
     }
 
-    public void addServer(int id, String ip, int port, FullCertificate fullCertificate) {
-        this.controller.getStaticConf().addHostInfo(id, ip, port);
-        rec.addServer(id, ip, port, fullCertificate);
+    public void addServer(int id, String ip, int port, int portRR, FullCertificate fullCertificate) {
+        this.controller.getStaticConf().addHostInfo(id, ip, port, portRR);
+        rec.addServer(id, ip, port, portRR, fullCertificate);
         addIds.add(id);
     }
 
@@ -111,17 +123,17 @@ public class ViewManager {
         byte[] data = bOut.toByteArray();
 
         for (Integer i : targets) {
-            //br.ufsc.das.tom.util.Logger.println("(ServersCommunicationLayer.send) Sending msg to replica "+i);
             try {
                 if (i.intValue() != idTTP) {
-                    getConnection(i.intValue()).send(data, true);
+                    //getConnection(i.intValue()).send(data, true);
+                    getConnection(i.intValue()).send(data);
+
                 }
             } catch (InterruptedException ex) {
                // ex.printStackTrace();
                 logger.error("Failed to send data to target", ex);
             }
         }
-        //br.ufsc.das.tom.util.Logger.println("(ServersCommunicationLayer.send) Finished sending messages to replicas");
     }
 
     public void close() {

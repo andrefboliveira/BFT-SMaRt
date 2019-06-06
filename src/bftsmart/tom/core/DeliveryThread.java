@@ -35,10 +35,12 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * This class implements a thread which will deliver totally ordered requests to the application
- *
+ * This class implements a thread which will deliver totally ordered requests to
+ * the application
+ * 
  */
 public final class DeliveryThread extends Thread {
+
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	private boolean doWork = true;
@@ -186,7 +188,10 @@ public final class DeliveryThread extends Thread {
 
 				// if (tomLayer.getLastExec() == -1)
 				if (init) {
-					logger.info("Ready to process operations");
+					logger.info(
+							"\n\t\t###################################"
+					      + "\n\t\t    Ready to process operations    "
+						  + "\n\t\t###################################");
 					init = false;
 				}
 			}
@@ -302,8 +307,7 @@ public final class DeliveryThread extends Thread {
 			logger.debug("Interpreting and verifying batched requests.");
 
 			// obtain an array of requests from the decisions obtained
-			BatchReader batchReader = new BatchReader(dec.getValue(),
-					controller.getStaticConf().getUseSignatures() == 1);
+			BatchReader batchReader = new BatchReader(dec.getValue(), controller.getStaticConf().getUseSignatures() == 1);
 			requests = batchReader.deserialiseRequests(controller);
 		} else {
 			logger.debug("Using cached requests from the propose.");
@@ -372,7 +376,7 @@ public final class DeliveryThread extends Thread {
 		decidedLock.unlock();
 	}
 
-	public int size() {
-		return decided.size();
-	}
+	/*
+	 * public int size() { return decided.size(); }
+	 */
 }

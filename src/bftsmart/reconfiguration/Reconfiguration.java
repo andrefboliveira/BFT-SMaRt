@@ -43,8 +43,6 @@ public class Reconfiguration {
         
         this.keyLoader = loader;
         this.configDir = configDir;
-         //proxy = new ServiceProxy(id);
-        //request = new ReconfigureRequest(id);
     }
     
     public void connect(){
@@ -53,8 +51,13 @@ public class Reconfiguration {
         }
     }
 
-    public void addServer(int id, String ip, int port, FullCertificate fullCertificate) {
-        this.setReconfiguration(ServerViewController.ADD_SERVER, id + ":" + ip + ":" + port);
+    public void addServer(int id, String ip, int port, int portRR, FullCertificate fullCertificate) {
+        this.setReconfiguration(
+        			ServerViewController.ADD_SERVER, 
+        			id + ":" + 
+        			ip + ":" + 
+        			port + ":" + 
+        			portRR);
         this.request.setFullCertificate(fullCertificate);
     }
     

@@ -1043,12 +1043,10 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
         HashSet<Integer> alreadyCounted = new HashSet<>();
 
         for (ConsensusMessage consMsg : msgCtxs[0].getProof()) {
-
-            ConsensusMessage cm = new ConsensusMessage(consMsg.getType(), consMsg.getNumber(), consMsg.getEpoch(),
-                    consMsg.getSender(), consMsg.getValue());
-
-            cm.setCheckpointHash(consMsg.getCheckpointHash());
-
+            
+            ConsensusMessage cm = new ConsensusMessage(consMsg.getType(),consMsg.getNumber(),
+                    consMsg.getEpoch(), consMsg.getSender(), consMsg.getValue());
+            
             ByteArrayOutputStream bOut = new ByteArrayOutputStream(248);
             try {
                 new ObjectOutputStream(bOut).writeObject(cm);
