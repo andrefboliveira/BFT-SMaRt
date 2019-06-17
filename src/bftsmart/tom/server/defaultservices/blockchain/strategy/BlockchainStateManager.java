@@ -11,21 +11,11 @@ import bftsmart.tom.core.DeliveryThread;
 import bftsmart.tom.core.TOMLayer;
 import bftsmart.tom.core.messages.ForwardedMessage;
 import bftsmart.tom.core.messages.TOMMessage;
-import bftsmart.tom.core.messages.TOMMessageType;
 import bftsmart.tom.server.defaultservices.CommandsInfo;
 import bftsmart.tom.server.defaultservices.blockchain.TOMMessageGenerator;
 import bftsmart.tom.util.TOMUtil;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileFilter;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.ByteBuffer;
@@ -311,7 +301,7 @@ public class BlockchainStateManager extends StandardStateManager implements Runn
         return true;
     }
     public void fetchBlocks(int lastCID) {
-        
+
         File directory = new File(logDir);
         
         File [] files = directory.listFiles((File pathname) -> 
@@ -332,11 +322,15 @@ public class BlockchainStateManager extends StandardStateManager implements Runn
         
         int myLastCID = cids[cids.length-1]; 
         if (myLastCID == -1) myLastCID++;
-        
+
+
         try {
             logger.info("Fetching blocks from {} to {} (exclusively) from replica {} at port {}",
                     myLastCID, lastCID,SVController.getCurrentView().getAddress(replica).getHostName(),SVController.getStaticConf().getPort(replica) + 2);
-            
+
+            long startFetchingBlocksTime = System.currentTimeMillis();
+
+
             final CountDownLatch latch = new CountDownLatch((lastCID-myLastCID) / SVController.getStaticConf().getCheckpointPeriod());
             
             for (int i = myLastCID; i < lastCID; i += SVController.getStaticConf().getCheckpointPeriod()) {
@@ -398,6 +392,8 @@ public class BlockchainStateManager extends StandardStateManager implements Runn
                         } finally {
 
                             latch.countDown();
+                            logger.info("Duration fetching blocks: {} ms.", (System.currentTimeMillis() - startFetchingBlocksTime));
+
                         }
 
                     }

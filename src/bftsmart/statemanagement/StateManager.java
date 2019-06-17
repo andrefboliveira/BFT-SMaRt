@@ -16,11 +16,6 @@
  */
 package bftsmart.statemanagement;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Arrays;
-import java.util.Set;
-
 import bftsmart.consensus.messages.ConsensusMessage;
 import bftsmart.reconfiguration.ServerViewController;
 import bftsmart.reconfiguration.views.View;
@@ -28,14 +23,14 @@ import bftsmart.statemanagement.standard.StandardSMMessage;
 import bftsmart.tom.core.DeliveryThread;
 import bftsmart.tom.core.ExecutionManager;
 import bftsmart.tom.core.TOMLayer;
-import bftsmart.tom.leaderchange.LCManager;
 import bftsmart.tom.leaderchange.CertifiedDecision;
-import bftsmart.tom.util.TOMUtil;
+import bftsmart.tom.leaderchange.LCManager;
 import bftsmart.tom.server.defaultservices.DefaultApplicationState;
-import java.util.Map;
-
+import bftsmart.tom.util.TOMUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.*;
 
 /**
  *
@@ -43,7 +38,7 @@ import org.slf4j.LoggerFactory;
  *
  */
 public abstract class StateManager {
-    
+
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     protected TOMLayer tomLayer;
@@ -67,12 +62,16 @@ public abstract class StateManager {
     protected boolean isInitializing = true;
     protected Map<Integer, Map <Integer, Integer>> queries = new HashMap<>();
 
+    long startTimeRequestingState;
+
+
     public StateManager() {
         senderStates = new HashMap<>();
         senderViews = new HashMap<>();
         senderRegencies = new HashMap<>();
         senderLeaders = new HashMap<>();
         senderProofs = new HashMap<>();
+        startTimeRequestingState = 0;
     }
 
     protected int getReplies() {
@@ -323,6 +322,8 @@ public abstract class StateManager {
                         break;
                     } else {
                         //ask for state
+                        startTimeRequestingState = System.currentTimeMillis();
+
                         logger.info("Requesting state from other replicas");
                         lastCID = cid + 1;
                         if (waitingCID == -1) {
@@ -381,4 +382,7 @@ public abstract class StateManager {
      */
     public abstract void SMReplyDeliver(SMMessage msg, boolean isBFT);
 
+    public long getStartTimeRequestingState() {
+        return startTimeRequestingState;
+    }
 }

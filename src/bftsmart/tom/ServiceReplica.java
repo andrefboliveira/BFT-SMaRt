@@ -77,7 +77,10 @@ public class ServiceReplica {
     private ReplicaContext replicaCtx = null;
     private Replier replier = null;
     private RequestVerifier verifier = null;
-    
+
+    long replicaStartTime;
+
+
     //private byte[] lastBlockHash = new byte[0];
     private BlockingQueue<Map.Entry<Integer,byte[][]>> queue;
 
@@ -143,6 +146,7 @@ public class ServiceReplica {
         this.init();
         this.recoverer.setReplicaContext(replicaCtx);
         this.replier.setReplicaContext(replicaCtx);
+        this.replicaStartTime = 0;
     }
 
     // this method initializes the object
@@ -184,6 +188,8 @@ public class ServiceReplica {
 
         Thread reconfigThread = new Thread(new ReconfigSelectorThread(this.id, this.SVController.getStaticConf()));
         reconfigThread.start();
+
+        replicaStartTime = System.currentTimeMillis();
 
     }
 
@@ -606,5 +612,9 @@ public class ServiceReplica {
      */
     public int getId() {
         return id;
+    }
+
+    public long getReplicaStartTime() {
+        return replicaStartTime;
     }
 }

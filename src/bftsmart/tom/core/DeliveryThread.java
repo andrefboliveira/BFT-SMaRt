@@ -147,6 +147,10 @@ public final class DeliveryThread extends Thread {
 
 	public void update(ApplicationState state) {
 
+		logger.debug("Start updating state");
+		long startUpdatingStateTime = System.currentTimeMillis();
+
+
 		int lastCID = recoverer.setState(state);
 
 		// set this decision as the last one from this replica
@@ -168,6 +172,9 @@ public final class DeliveryThread extends Thread {
 		decided.clear();
 
 		logger.info("All finished up to " + lastCID);
+
+		logger.info("Duration updating state: {} ms.", (System.currentTimeMillis() - startUpdatingStateTime));
+
 	}
 
 	/**
@@ -188,6 +195,13 @@ public final class DeliveryThread extends Thread {
 				if (init) {
 					logger.info("Ready to process operations");
 					init = false;
+
+					try {
+						logger.info("Time initiating replica: {} ms.", (System.currentTimeMillis() - receiver.getReplicaStartTime()));
+					} catch (Exception e) {
+						System.err.println("Error printing initiating replica duration: " + e.getMessage());
+					}
+
 				}
 			}
 			try {
