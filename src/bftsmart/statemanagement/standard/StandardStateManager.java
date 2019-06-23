@@ -222,7 +222,7 @@ public class StandardStateManager extends StateManager {
                         logger.info("Received state. Will install it");
 
                         try {
-                            logger.info("Time transferring state: {} ms.", (System.currentTimeMillis() - getStartTimeRequestingState()));
+                            logger.info("DURATION transferring state: {} s.", (System.currentTimeMillis() - getStartTimeRequestingState()) / 1000.0);
                         } catch (Exception e) {
                             System.err.println("Error printing transferring state duration: " + e.getMessage());
                         }

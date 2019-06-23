@@ -15,19 +15,14 @@ limitations under the License.
 */
 package bftsmart.tom.server.defaultservices;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.RandomAccessFile;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.*;
 import java.nio.channels.FileChannel;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class FileRecoverer {
     
@@ -262,7 +257,7 @@ public class FileRecoverer {
 					bytesTransfered += bytesRead;
 				}
 			}
-			logger.debug("Took " + (System.currentTimeMillis() - milliInit) + " milliseconds to transfer the checkpoint");
+			logger.info("Took " + (System.currentTimeMillis() - milliInit) + " milliseconds to transfer the checkpoint");
 			fileChannel.close();
 		} catch (Exception e) {
 			logger.error("State recover was aborted due to an unexpected exception", e);

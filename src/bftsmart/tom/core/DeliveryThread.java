@@ -173,7 +173,7 @@ public final class DeliveryThread extends Thread {
 
 		logger.info("All finished up to " + lastCID);
 
-		logger.info("Duration updating state: {} ms.", (System.currentTimeMillis() - startUpdatingStateTime));
+		logger.info("DURATION updating state: {} s.", (System.currentTimeMillis() - startUpdatingStateTime) / 1000.0);
 
 	}
 
@@ -197,7 +197,7 @@ public final class DeliveryThread extends Thread {
 					init = false;
 
 					try {
-						logger.info("Time initiating replica: {} ms.", (System.currentTimeMillis() - receiver.getReplicaStartTime()));
+						logger.info("DURATION initiating replica: {} s.", (System.currentTimeMillis() - receiver.getReplicaStartTime()) / 1000.0);
 					} catch (Exception e) {
 						System.err.println("Error printing initiating replica duration: " + e.getMessage());
 					}
@@ -307,7 +307,7 @@ public final class DeliveryThread extends Thread {
 	}
 
 	private TOMMessage[] extractMessagesFromDecision(Decision dec) {
-		TOMMessage[] requests = (TOMMessage[]) dec.getDeserializedValue();
+		TOMMessage[] requests = dec.getDeserializedValue();
 		if (requests == null) {
 			// there are no cached deserialized requests
 			// this may happen if this batch proposal was not verified
@@ -338,8 +338,8 @@ public final class DeliveryThread extends Thread {
 		receiver.receiveReadonlyMessage(request, msgCtx);
 	}
 
-	private void deliverMessages(int consId[], int regencies[], int leaders[], CertifiedDecision[] cDecs,
-			TOMMessage[][] requests) {
+	private void deliverMessages(int[] consId, int[] regencies, int[] leaders, CertifiedDecision[] cDecs,
+	                             TOMMessage[][] requests) {
 		receiver.receiveMessages(consId, regencies, leaders, cDecs, requests);
 	}
 

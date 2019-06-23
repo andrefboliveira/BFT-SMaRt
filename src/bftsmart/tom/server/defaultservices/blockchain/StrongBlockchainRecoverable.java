@@ -896,7 +896,7 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
         byte[] signature;
 
         try (ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
-             DataOutputStream dos = new DataOutputStream(byteOut);) {
+             DataOutputStream dos = new DataOutputStream(byteOut)) {
 
             certificateValues.serialize(dos);
 
@@ -907,7 +907,7 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
         }
 
         try (ByteArrayOutputStream out = new ByteArrayOutputStream();
-             DataOutputStream dos = new DataOutputStream(out);) {
+             DataOutputStream dos = new DataOutputStream(out)) {
 
             ReplicaReconfigReply reply = new ReplicaReconfigReply(certificateValues, signature);
 
@@ -1081,7 +1081,7 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
     private void writeCheckpointToDisk(int cid, byte[] checkpoint) throws IOException {
         long writeDiskStartTime = System.currentTimeMillis();
 
-        String checkpointPath = batchDir + "checkpoint." + config.getProcessId() + "." + String.valueOf(cid) + ".log";
+        String checkpointPath = batchDir + "checkpoint." + config.getProcessId() + "." + cid + ".log";
 
         RandomAccessFile log = new RandomAccessFile(checkpointPath, "rwd");
 
@@ -1089,7 +1089,7 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
 
         log.close();
 
-        logger.info("Finish writing checkpoint to disk: " + (System.currentTimeMillis() - writeDiskStartTime) + " ms");
+        logger.info("DURATION writing checkpoint to disk: " + (System.currentTimeMillis() - writeDiskStartTime) / 1000.0 + " s");
 
 
     }

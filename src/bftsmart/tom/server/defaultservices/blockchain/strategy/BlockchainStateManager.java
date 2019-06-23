@@ -354,7 +354,7 @@ public class BlockchainStateManager extends StandardStateManager implements Runn
 
                             outToServer.writeInt(cid);
 
-                            String blockPath = logDir + String.valueOf(SVController.getStaticConf().getProcessId()) +
+                            String blockPath = logDir + SVController.getStaticConf().getProcessId() +
                                     "." + cid + "." +  (cid+SVController.getStaticConf().getCheckpointPeriod()) + ".log";
 
                             ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -392,7 +392,7 @@ public class BlockchainStateManager extends StandardStateManager implements Runn
                         } finally {
 
                             latch.countDown();
-                            logger.info("Duration fetching blocks: {} ms.", (System.currentTimeMillis() - startFetchingBlocksTime));
+                            logger.info("DURATION fetching blocks: {} s.", (System.currentTimeMillis() - startFetchingBlocksTime) / 1000.0);
 
                         }
 
@@ -433,9 +433,9 @@ public class BlockchainStateManager extends StandardStateManager implements Runn
                             outFromClient = new BufferedOutputStream(connectionSocket.getOutputStream());
                             
                             int blockNumber = inToClient.readInt();
-                            
-                            String blockPath = logDir + 
-                                    String.valueOf(SVController.getStaticConf().getProcessId()) + "." + 
+
+                            String blockPath = logDir +
+                                    SVController.getStaticConf().getProcessId() + "." +
                                     blockNumber + "." + (blockNumber+SVController.getStaticConf().getCheckpointPeriod()) + ".log";
                             
                             File blockFile = new File(blockPath);
