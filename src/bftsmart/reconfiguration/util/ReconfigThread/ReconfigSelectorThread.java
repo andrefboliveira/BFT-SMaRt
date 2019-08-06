@@ -46,16 +46,29 @@ public class ReconfigSelectorThread implements Runnable {
 					logger.error("Error while processing Leave request");
 					e.printStackTrace();
 				}
-			} else if ("REMOVE".equalsIgnoreCase(userReply) || "R".equalsIgnoreCase(userReply)) {
-				try {
-					RemoveClass removeProtocol = new RemoveClass(this.id, this.executingReplicaConfig);
-					removeProtocol.init();
+            } else if ("REMOVE".equalsIgnoreCase(userReply) || "R".equalsIgnoreCase(userReply)) {
+                try {
+                    RemoveClass removeProtocol = new RemoveClass(this.id, this.executingReplicaConfig);
+                    removeProtocol.init();
 
-				} catch (Exception e) {
-					logger.error("Error while processing Remove request");
-					e.printStackTrace();
-				}
-			}
+                } catch (Exception e) {
+                    logger.error("Error while processing Remove request");
+                    e.printStackTrace();
+                }
+            } else if ("WAIT".equalsIgnoreCase(userReply) || "W".equalsIgnoreCase(userReply)) {
+                try {
+                    logger.info("Input number of milliseconds to wait: ");
+                    int waitTime = sc.nextInt();
+                    logger.info("Waiting {} s ...", waitTime / 1000.0);
+                    Thread.sleep(waitTime);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            } else if ("QUIT".equalsIgnoreCase(userReply) || "Q".equalsIgnoreCase(userReply)) {
+                keep_running = false;
+                logger.info("Quit selector");
+
+            }
 		}
 
 

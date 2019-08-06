@@ -392,7 +392,7 @@ public class BlockchainStateManager extends StandardStateManager implements Runn
                         } finally {
 
                             latch.countDown();
-                            logger.info("DURATION fetching blocks: {} s.", (System.currentTimeMillis() - startFetchingBlocksTime) / 1000.0);
+                            logger.info("DURATION fetching blocks {} through {}: {} s.", cid, (cid + SVController.getStaticConf().getCheckpointPeriod()), (System.currentTimeMillis() - startFetchingBlocksTime) / 1000.0);
 
                         }
 
