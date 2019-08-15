@@ -51,7 +51,13 @@ public class JoinThread implements Runnable {
 			try {
 				logger.info("Type: \"JOIN\" (\"J\") to add THIS replica to view.");
 
-				Scanner sc = new Scanner(System.in);
+				Scanner sc;
+				if (joiningReplicaConfig.isStdinFromFile()) {
+					sc = new Scanner(new File(joiningReplicaConfig.getConfigHome() + "/stdin"));
+				} else {
+					sc = new Scanner(System.in);
+				}
+
 				String userReply = sc.next();
 
 				if ("JOIN".equalsIgnoreCase(userReply) || "J".equalsIgnoreCase(userReply)) {

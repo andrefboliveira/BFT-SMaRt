@@ -4,6 +4,7 @@ import bftsmart.reconfiguration.util.TOMConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.Scanner;
 
 public class ReconfigSelectorThread implements Runnable {
@@ -24,51 +25,62 @@ public class ReconfigSelectorThread implements Runnable {
 		boolean keep_running = true;
 
 		while (keep_running) {
-			logger.info("Type: " +
-					"\"LEAVE\" (\"L\") to remove THIS replica from view " +
-					"or " +
-					"\"REMOVE\" (\"R\") to remove a specific replica from view");
+			try {
 
-			Scanner sc = new Scanner(System.in);
-			String userReply = sc.next();
+				logger.info("Type: " +
+						"\"LEAVE\" (\"L\") to remove THIS replica from view " +
+						"or " +
+						"\"REMOVE\" (\"R\") to remove a specific replica from view");
 
-			if ("LEAVE".equalsIgnoreCase(userReply) || "L".equalsIgnoreCase(userReply)) {
-
-				try {
-					LeaveClass leaveProtocol = new LeaveClass(this.id, this.executingReplicaConfig);
-					boolean sucessful = leaveProtocol.init();
-
-					if (sucessful) {
-						keep_running = false;
-					}
-
-				} catch (Exception e) {
-					logger.error("Error while processing Leave request");
-					e.printStackTrace();
+				Scanner sc;
+				if (executingReplicaConfig.isStdinFromFile()) {
+					sc = new Scanner(new File(executingReplicaConfig.getConfigHome() + "/stdin"));
+				} else {
+					sc = new Scanner(System.in);
 				}
-            } else if ("REMOVE".equalsIgnoreCase(userReply) || "R".equalsIgnoreCase(userReply)) {
-                try {
-                    RemoveClass removeProtocol = new RemoveClass(this.id, this.executingReplicaConfig);
-                    removeProtocol.init();
+				String userReply = sc.next();
 
-                } catch (Exception e) {
-                    logger.error("Error while processing Remove request");
-                    e.printStackTrace();
-                }
-            } else if ("WAIT".equalsIgnoreCase(userReply) || "W".equalsIgnoreCase(userReply)) {
-                try {
-                    logger.info("Input number of milliseconds to wait: ");
-                    int waitTime = sc.nextInt();
-                    logger.info("Waiting {} s ...", waitTime / 1000.0);
-                    Thread.sleep(waitTime);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            } else if ("QUIT".equalsIgnoreCase(userReply) || "Q".equalsIgnoreCase(userReply)) {
-                keep_running = false;
-                logger.info("Quit selector");
+				if ("LEAVE".equalsIgnoreCase(userReply) || "L".equalsIgnoreCase(userReply)) {
 
-            }
+					try {
+						LeaveClass leaveProtocol = new LeaveClass(this.id, this.executingReplicaConfig);
+						boolean sucessful = leaveProtocol.init();
+
+						if (sucessful) {
+							keep_running = false;
+						}
+
+					} catch (Exception e) {
+						logger.error("Error while processing Leave request");
+						e.printStackTrace();
+					}
+				} else if ("REMOVE".equalsIgnoreCase(userReply) || "R".equalsIgnoreCase(userReply)) {
+					try {
+						RemoveClass removeProtocol = new RemoveClass(this.id, this.executingReplicaConfig);
+						removeProtocol.init();
+
+					} catch (Exception e) {
+						logger.error("Error while processing Remove request");
+						e.printStackTrace();
+					}
+				} else if ("WAIT".equalsIgnoreCase(userReply) || "W".equalsIgnoreCase(userReply)) {
+					try {
+						logger.info("Input number of milliseconds to wait: ");
+						int waitTime = sc.nextInt();
+						logger.info("Waiting {} s ...", waitTime / 1000.0);
+						Thread.sleep(waitTime);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				} else if ("QUIT".equalsIgnoreCase(userReply) || "Q".equalsIgnoreCase(userReply)) {
+					keep_running = false;
+					logger.info("Quit selector");
+				}
+
+			} catch (Exception e) {
+				logger.error("Error while processing Selecting option");
+				e.printStackTrace();
+			}
 		}
 
 
