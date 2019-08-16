@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.Scanner;
 
 public class ReconfigSelectorThread implements Runnable {
@@ -23,8 +24,20 @@ public class ReconfigSelectorThread implements Runnable {
 	public void run() {
 
 		boolean keep_running = true;
+		int attempts = 0;
 
-		while (keep_running) {
+		Scanner sc = null;
+		if (executingReplicaConfig.isStdinFromFile()) {
+			try {
+				sc = new Scanner(new File(executingReplicaConfig.getConfigHome() + "/stdin"));
+			} catch (FileNotFoundException e) {
+				logger.error("File stdin not found");
+			}
+		} else {
+			sc = new Scanner(System.in);
+		}
+
+		while (keep_running && attempts <= 10) {
 			try {
 
 				logger.info("Type: " +
@@ -32,12 +45,7 @@ public class ReconfigSelectorThread implements Runnable {
 						"or " +
 						"\"REMOVE\" (\"R\") to remove a specific replica from view");
 
-				Scanner sc;
-				if (executingReplicaConfig.isStdinFromFile()) {
-					sc = new Scanner(new File(executingReplicaConfig.getConfigHome() + "/stdin"));
-				} else {
-					sc = new Scanner(System.in);
-				}
+
 				String userReply = sc.next();
 
 				if ("LEAVE".equalsIgnoreCase(userReply) || "L".equalsIgnoreCase(userReply)) {
@@ -48,6 +56,7 @@ public class ReconfigSelectorThread implements Runnable {
 
 						if (sucessful) {
 							keep_running = false;
+							attempts = 0;
 						}
 
 					} catch (Exception e) {
@@ -63,6 +72,7 @@ public class ReconfigSelectorThread implements Runnable {
 						logger.error("Error while processing Remove request");
 						e.printStackTrace();
 					}
+					attempts = 0;
 				} else if ("WAIT".equalsIgnoreCase(userReply) || "W".equalsIgnoreCase(userReply)) {
 					try {
 						logger.info("Input number of milliseconds to wait: ");
@@ -72,16 +82,22 @@ public class ReconfigSelectorThread implements Runnable {
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
+					attempts = 0;
 				} else if ("QUIT".equalsIgnoreCase(userReply) || "Q".equalsIgnoreCase(userReply)) {
 					keep_running = false;
 					logger.info("Quit selector");
+				} else {
+					attempts++;
 				}
 
 			} catch (Exception e) {
 				logger.error("Error while processing Selecting option");
 				e.printStackTrace();
+				attempts++;
 			}
 		}
+
+		logger.info("Leaving Selector");
 
 
 	}

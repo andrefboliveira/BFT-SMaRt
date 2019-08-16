@@ -46,17 +46,24 @@ public class JoinThread implements Runnable {
 	public void run() {
 
 		boolean keep_running = true;
+		int attempts = 0;
 
-		while (keep_running) {
+		Scanner sc = null;
+		if (joiningReplicaConfig.isStdinFromFile()) {
+			try {
+				sc = new Scanner(new File(joiningReplicaConfig.getConfigHome() + "/stdin"));
+			} catch (FileNotFoundException e) {
+				logger.error("File stdin not found");
+			}
+		} else {
+			sc = new Scanner(System.in);
+		}
+
+
+		while (keep_running && attempts <= 10) {
 			try {
 				logger.info("Type: \"JOIN\" (\"J\") to add THIS replica to view.");
 
-				Scanner sc;
-				if (joiningReplicaConfig.isStdinFromFile()) {
-					sc = new Scanner(new File(joiningReplicaConfig.getConfigHome() + "/stdin"));
-				} else {
-					sc = new Scanner(System.in);
-				}
 
 				String userReply = sc.next();
 
@@ -74,6 +81,7 @@ public class JoinThread implements Runnable {
 
 						if (sucess) {
 							keep_running = false;
+							attempts = 0;
 						}
 
 					}
@@ -83,17 +91,22 @@ public class JoinThread implements Runnable {
 					int waitTime = sc.nextInt();
 					logger.info("Waiting {} s ...", waitTime / 1000.0);
 					Thread.sleep(waitTime);
+					attempts = 0;
 				} else if ("QUIT".equalsIgnoreCase(userReply) || "Q".equalsIgnoreCase(userReply)) {
 					keep_running = false;
 					logger.info("Quit join selector");
-
+				} else {
+					attempts++;
 				}
 			} catch (Exception e) {
 				logger.error("Error while processing Join request");
 				e.printStackTrace();
+				attempts++;
 			}
 
 		}
+
+		logger.info("Leaving join selector");
 
 
 	}
