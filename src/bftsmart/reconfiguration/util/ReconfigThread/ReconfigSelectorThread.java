@@ -75,10 +75,10 @@ public class ReconfigSelectorThread implements Runnable {
 					attempts = 0;
 				} else if ("WAIT".equalsIgnoreCase(userReply) || "W".equalsIgnoreCase(userReply)) {
 					try {
-						logger.info("Input number of milliseconds to wait: ");
+						logger.info("Input number of seconds to wait: ");
 						int waitTime = sc.nextInt();
-						logger.info("Waiting {} s ...", waitTime / 1000.0);
-						Thread.sleep(waitTime);
+						logger.info("Waiting {} s ...", waitTime);
+						Thread.sleep(waitTime * 1000);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
