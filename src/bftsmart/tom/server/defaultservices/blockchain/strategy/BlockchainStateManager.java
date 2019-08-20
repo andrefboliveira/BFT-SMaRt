@@ -301,6 +301,7 @@ public class BlockchainStateManager extends StandardStateManager implements Runn
         return true;
     }
     public void fetchBlocks(int lastCID) {
+        //TODO: Change new logger.info to logger.debug
 
         File directory = new File(logDir);
         
@@ -328,7 +329,7 @@ public class BlockchainStateManager extends StandardStateManager implements Runn
             logger.info("Fetching blocks from {} to {} (exclusively) from replica {} at port {}",
                     myLastCID, lastCID,SVController.getCurrentView().getAddress(replica).getHostName(),SVController.getStaticConf().getPort(replica) + 2);
 
-            long startFetchingBlocksTime = System.currentTimeMillis();
+            long startFetchingBlocksTimeOuter = System.currentTimeMillis();
 
 
             final CountDownLatch latch = new CountDownLatch((lastCID-myLastCID) / SVController.getStaticConf().getCheckpointPeriod());
@@ -336,8 +337,14 @@ public class BlockchainStateManager extends StandardStateManager implements Runn
             for (int i = myLastCID; i < lastCID; i += SVController.getStaticConf().getCheckpointPeriod()) {
                 
                 final int cid = i;
-                                    
+                long startFetchingBlocksTimeInner = System.currentTimeMillis();
+
+
                 Socket clientSocket = new Socket( SVController.getCurrentView().getAddress(replica).getHostName() , SVController.getStaticConf().getPort(replica) + 2 );
+
+                //TODO
+                int upperRangeCID = (cid + SVController.getStaticConf().getCheckpointPeriod());
+                logger.info("Created socket for processing CIDs {} through {}", cid, (upperRangeCID <= lastCID ? upperRangeCID : lastCID));
 
                 inExec.submit(new Thread() {
 
@@ -345,12 +352,16 @@ public class BlockchainStateManager extends StandardStateManager implements Runn
                     public void run() {
 
                         try {
+                            int upperRangeCID = (cid + SVController.getStaticConf().getCheckpointPeriod());
 
                             byte[] aByte = new byte[1];
                             int bytesRead;
 
+                            //TODO
                             DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
                             InputStream inFromServer = clientSocket.getInputStream();
+                            logger.info("Get input stream of socket for processing CIDs {} through {}", cid, (upperRangeCID <= lastCID ? upperRangeCID : lastCID));
+
 
                             outToServer.writeInt(cid);
 
@@ -362,14 +373,17 @@ public class BlockchainStateManager extends StandardStateManager implements Runn
                             FileOutputStream fos = new FileOutputStream( blockPath );
                             BufferedOutputStream bos = new BufferedOutputStream(fos);
 
+                            //TODO
+                            logger.info("Start writing of CIDs {} through {}", cid, (upperRangeCID <= lastCID ? upperRangeCID : lastCID));
+
                             bytesRead = inFromServer.read(aByte, 0, aByte.length);
 
                             do {
                                 baos.write(aByte);
                                 bytesRead = inFromServer.read(aByte);
                             } while (bytesRead != -1);
-                            
-                            logger.info("finished cids {} through {}", cid, (cid+SVController.getStaticConf().getCheckpointPeriod()));
+
+                            logger.info("finished cids {} through {}", cid, (upperRangeCID <= lastCID ? upperRangeCID : lastCID));
                             
                             byte[] block = baos.toByteArray();
                             
@@ -392,7 +406,8 @@ public class BlockchainStateManager extends StandardStateManager implements Runn
                         } finally {
 
                             latch.countDown();
-                            logger.info("DURATION fetching blocks {} through {}: {} s.", cid, (cid + SVController.getStaticConf().getCheckpointPeriod()), (System.currentTimeMillis() - startFetchingBlocksTime) / 1000.0);
+                            logger.info("DURATION fetching blocks {} through {} since socket: {} s.", cid, (upperRangeCID <= lastCID ? upperRangeCID : lastCID), (System.currentTimeMillis() - startFetchingBlocksTimeInner) / 1000.0);
+                            logger.info("DURATION fetching blocks {} through {} since beginning: {} s.", cid, (upperRangeCID <= lastCID ? upperRangeCID : lastCID), (System.currentTimeMillis() - startFetchingBlocksTimeOuter) / 1000.0);
 
                         }
 
