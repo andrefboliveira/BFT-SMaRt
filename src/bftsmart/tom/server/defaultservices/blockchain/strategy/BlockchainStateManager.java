@@ -342,9 +342,8 @@ public class BlockchainStateManager extends StandardStateManager implements Runn
 
                 Socket clientSocket = new Socket( SVController.getCurrentView().getAddress(replica).getHostName() , SVController.getStaticConf().getPort(replica) + 2 );
 
-                //TODO
                 int upperRangeCID = (cid + SVController.getStaticConf().getCheckpointPeriod());
-                logger.info("Created socket for processing CIDs {} through {}", cid, (upperRangeCID <= lastCID ? upperRangeCID : lastCID));
+                logger.debug("Created socket for processing CIDs {} through {}", cid, (upperRangeCID <= lastCID ? upperRangeCID : lastCID));
 
                 inExec.submit(new Thread() {
 
@@ -360,10 +359,9 @@ public class BlockchainStateManager extends StandardStateManager implements Runn
                             int bytesRead;
 
 
-                            //TODO
                             DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
                             InputStream inFromServer = clientSocket.getInputStream();
-                            logger.info("Get input stream of socket for processing CIDs {} through {}", cid, (upperRangeCID <= lastCID ? upperRangeCID : lastCID));
+                            logger.debug("Get input stream of socket for processing CIDs {} through {}", cid, (upperRangeCID <= lastCID ? upperRangeCID : lastCID));
 
 
                             outToServer.writeInt(cid);
@@ -376,15 +374,14 @@ public class BlockchainStateManager extends StandardStateManager implements Runn
                             FileOutputStream fos = new FileOutputStream( blockPath );
                             BufferedOutputStream bos = new BufferedOutputStream(fos);
 
-                            //TODO
-                            logger.info("Start writing of CIDs {} through {}", cid, (upperRangeCID <= lastCID ? upperRangeCID : lastCID));
+                            logger.debug("Start writing of CIDs {} through {}", cid, (upperRangeCID <= lastCID ? upperRangeCID : lastCID));
 
                             bytesRead = inFromServer.read(aByte, 0, aByte.length);
 
                             do {
                                 baos.write(aByte);
                                 bytesRead = inFromServer.read(aByte);
-                                logger.info("Block bytes read: " + bytesRead);
+                                logger.debug("Block bytes read: " + bytesRead);
                             } while (bytesRead != -1);
 
                             logger.info("finished cids {} through {}", cid, (upperRangeCID <= lastCID ? upperRangeCID : lastCID));
