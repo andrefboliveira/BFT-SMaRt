@@ -354,8 +354,11 @@ public class BlockchainStateManager extends StandardStateManager implements Runn
                         try {
                             int upperRangeCID = (cid + SVController.getStaticConf().getCheckpointPeriod());
 
-                            byte[] aByte = new byte[1];
+                            int BUFFER_SIZE = clientSocket.getReceiveBufferSize();
+
+                            byte[] aByte = new byte[BUFFER_SIZE];
                             int bytesRead;
+
 
                             //TODO
                             DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
@@ -381,6 +384,7 @@ public class BlockchainStateManager extends StandardStateManager implements Runn
                             do {
                                 baos.write(aByte);
                                 bytesRead = inFromServer.read(aByte);
+                                logger.info("Block bytes read: " + bytesRead);
                             } while (bytesRead != -1);
 
                             logger.info("finished cids {} through {}", cid, (upperRangeCID <= lastCID ? upperRangeCID : lastCID));

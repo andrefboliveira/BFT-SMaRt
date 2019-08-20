@@ -104,6 +104,8 @@ public final class StrongThroughputServer extends StrongBlockchainRecoverable {
     @Override
     public byte[][] appExecuteBatch(byte[][] commands, MessageContext[] msgCtxs, boolean iCheckpoint) {
 
+//        System.out.println("New batch received");
+
         batchSize.store(commands.length);
 
         byte[][] replies = new byte[commands.length][];
@@ -221,7 +223,7 @@ public final class StrongThroughputServer extends StrongBlockchainRecoverable {
 
             System.out.println("--- Measurements after " + iterations + " ops (" + interval + " samples) ---");
 
-            tp = (float) (interval * 1000 / (float) (System.currentTimeMillis() - throughputMeasurementStartTime));
+            tp = interval * 1000 / (float) (System.currentTimeMillis() - throughputMeasurementStartTime);
 
             if (tp > maxTp) maxTp = tp;
 
@@ -292,9 +294,6 @@ public final class StrongThroughputServer extends StrongBlockchainRecoverable {
     public boolean appVerifyJoinRequest(byte[] command) {
         String input = new String(command, StandardCharsets.UTF_8);
 
-        if ("ASK_JOIN".equals(input)) {
-            return true;
-        }
-        return false;
+        return "ASK_JOIN".equals(input);
     }
 }
