@@ -182,8 +182,8 @@ public class BlockchainStateManager extends StandardStateManager implements Runn
             byte[] trans = null;
 
             cid = buff.getInt();
-            
-            logger.info("cid: " + cid);
+
+            logger.debug("cid: " + cid);
             
             if (cid == -1) break;
             
