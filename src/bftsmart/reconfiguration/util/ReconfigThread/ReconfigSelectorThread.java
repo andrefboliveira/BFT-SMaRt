@@ -4,8 +4,6 @@ import bftsmart.reconfiguration.util.TOMConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.Scanner;
 
 public class ReconfigSelectorThread implements Runnable {
@@ -14,10 +12,12 @@ public class ReconfigSelectorThread implements Runnable {
 
 	private final int id;
 	private final TOMConfiguration executingReplicaConfig;
+	private final Scanner sc;
 
-	public ReconfigSelectorThread(int id, TOMConfiguration executingReplicaConfig) {
+	public ReconfigSelectorThread(int id, TOMConfiguration executingReplicaConfig, Scanner sc) {
 		this.id = id;
 		this.executingReplicaConfig = executingReplicaConfig;
+		this.sc = sc;
 	}
 
 	@Override
@@ -25,17 +25,6 @@ public class ReconfigSelectorThread implements Runnable {
 
 		boolean keep_running = true;
 		int attempts = 0;
-
-		Scanner sc = null;
-		if (executingReplicaConfig.isStdinFromFile()) {
-			try {
-				sc = new Scanner(new File(executingReplicaConfig.getConfigHome() + "/stdin"));
-			} catch (FileNotFoundException e) {
-				logger.error("File stdin not found");
-			}
-		} else {
-			sc = new Scanner(System.in);
-		}
 
 		while (keep_running && attempts <= 10) {
 			try {
@@ -47,25 +36,30 @@ public class ReconfigSelectorThread implements Runnable {
 
 
 				String userReply = sc.next();
+				logger.info("You typed {}", userReply);
 
 				if ("LEAVE".equalsIgnoreCase(userReply) || "L".equalsIgnoreCase(userReply)) {
-
 					try {
 						LeaveClass leaveProtocol = new LeaveClass(this.id, this.executingReplicaConfig);
 						boolean sucessful = leaveProtocol.init();
 
 						if (sucessful) {
 							keep_running = false;
-							attempts = 0;
 						}
-
 					} catch (Exception e) {
 						logger.error("Error while processing Leave request");
 						e.printStackTrace();
 					}
+					attempts = 0;
+
 				} else if ("REMOVE".equalsIgnoreCase(userReply) || "R".equalsIgnoreCase(userReply)) {
+					logger.info("Type the ID of replica to remove: ");
+					int toRemoveReplicaID = sc.nextInt();
+
+					logger.info("You typed {}", toRemoveReplicaID);
+
 					try {
-						RemoveClass removeProtocol = new RemoveClass(this.id, this.executingReplicaConfig);
+						RemoveClass removeProtocol = new RemoveClass(this.id, toRemoveReplicaID, this.executingReplicaConfig);
 						removeProtocol.init();
 
 					} catch (Exception e) {
@@ -85,7 +79,7 @@ public class ReconfigSelectorThread implements Runnable {
 					attempts = 0;
 				} else if ("QUIT".equalsIgnoreCase(userReply) || "Q".equalsIgnoreCase(userReply)) {
 					keep_running = false;
-					logger.info("Quit selector");
+					logger.info("Quit  Reconfig selector");
 				} else {
 					attempts++;
 				}
@@ -97,7 +91,7 @@ public class ReconfigSelectorThread implements Runnable {
 			}
 		}
 
-		logger.info("Leaving Selector");
+		logger.info("Exit Reconfig selector");
 
 
 	}

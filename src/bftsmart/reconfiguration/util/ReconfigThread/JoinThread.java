@@ -29,14 +29,16 @@ public class JoinThread implements Runnable {
 
 	private final int id;
 	private TOMConfiguration joiningReplicaConfig;
+	private final Scanner sc;
 	//private View currentView;
 	private ServerJoiner joiner;
 
 
-	public JoinThread(int id, TOMConfiguration joiningReplicaConfig, View currentView, ServerJoiner joiner) {
+	public JoinThread(int id, TOMConfiguration joiningReplicaConfig, View currentView, Scanner sc, ServerJoiner joiner) {
 		this.id = id;
 		this.joiningReplicaConfig = joiningReplicaConfig;
 		//this.currentView = currentView;
+		this.sc = sc;
 		this.joiner = joiner;
 
 	}
@@ -48,17 +50,6 @@ public class JoinThread implements Runnable {
 		boolean keep_running = true;
 		int attempts = 0;
 
-		Scanner sc = null;
-		if (joiningReplicaConfig.isStdinFromFile()) {
-			try {
-				sc = new Scanner(new File(joiningReplicaConfig.getConfigHome() + "/stdin"));
-			} catch (FileNotFoundException e) {
-				logger.error("File stdin not found");
-			}
-		} else {
-			sc = new Scanner(System.in);
-		}
-
 
 		while (keep_running && attempts <= 10) {
 			try {
@@ -66,9 +57,9 @@ public class JoinThread implements Runnable {
 
 
 				String userReply = sc.next();
+				logger.info("You typed {}", userReply);
 
 				if ("JOIN".equalsIgnoreCase(userReply) || "J".equalsIgnoreCase(userReply)) {
-
 
 					logger.info("Attempting to JOIN.");
 
@@ -77,14 +68,14 @@ public class JoinThread implements Runnable {
 					FullCertificate fullCertificate = extractCertificateFromJoinRequest(reply);
 
 					if (fullCertificate != null) {
-						boolean sucess = addReplicaProtocol(fullCertificate);
+						boolean success = addReplicaProtocol(fullCertificate);
 
-						if (sucess) {
+						if (success) {
 							keep_running = false;
-							attempts = 0;
 						}
-
 					}
+					attempts = 0;
+
 				} else if ("WAIT".equalsIgnoreCase(userReply) || "W".equalsIgnoreCase(userReply)) {
 					logger.info("Input number of seconds to wait: ");
 					int waitTime = sc.nextInt();
@@ -105,7 +96,7 @@ public class JoinThread implements Runnable {
 
 		}
 
-		logger.info("Leaving join selector");
+		logger.info("Exit join selector");
 
 
 	}

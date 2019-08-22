@@ -39,10 +39,13 @@ import bftsmart.tom.util.TOMUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.security.Provider;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.locks.Condition;
@@ -149,6 +152,21 @@ public class ServiceReplica {
         this.replicaStartTime = 0;
     }
 
+    private Scanner initializeScanner() {
+        Scanner sc = null;
+        if (this.SVController.getStaticConf().isStdinFromFile()) {
+            try {
+                sc = new Scanner(new File(this.SVController.getStaticConf().getConfigHome() + "/stdin"));
+            } catch (FileNotFoundException e) {
+                logger.error("File stdin not found");
+            }
+        } else {
+            sc = new Scanner(System.in);
+        }
+
+        return sc;
+    }
+
     // this method initializes the object
     private void init() {
         try {
@@ -157,6 +175,8 @@ public class ServiceReplica {
             logger.error("Failed to initialize replica-to-replica communication system", ex);
             throw new RuntimeException("Unable to build a communication system.");
         }
+
+        Scanner scThread = initializeScanner();
 
         if (this.SVController.isInCurrentView()) {
             logger.info("In current view: " + this.SVController.getCurrentView());
@@ -170,11 +190,9 @@ public class ServiceReplica {
             //Not in the initial view, just waiting for the view where the join has been executed
 //            logger.info("Waiting for the TTP: " + this.SVController.getCurrentView());
 
-            Thread askToJoin = new Thread(new JoinThread(this.id, this.SVController.getStaticConf(), this.SVController.getCurrentView(), joiner));
+            Thread askToJoin = new Thread(new JoinThread(this.id, this.SVController.getStaticConf(), this.SVController.getCurrentView(), scThread, joiner));
 //            Thread askToJoin = new Thread(new JoinThread(this.id, this.SVController.getCurrentView()));
             askToJoin.start();
-
-
 
             waitTTPJoinMsgLock.lock();
             try {
@@ -186,8 +204,8 @@ public class ServiceReplica {
         }
         initReplica();
 
-        Thread reconfigThread = new Thread(new ReconfigSelectorThread(this.id, this.SVController.getStaticConf()));
-        reconfigThread.start();
+        Thread reconfigSelectorThread = new Thread(new ReconfigSelectorThread(this.id, this.SVController.getStaticConf(), scThread));
+        reconfigSelectorThread.start();
 
         replicaStartTime = System.currentTimeMillis();
 
@@ -379,7 +397,7 @@ public class ServiceReplica {
                                 // This is used to deliver the requests to the application and obtain a reply to deliver
                                 //to the clients. The raw decision is passed to the application in the line above.
 
-                                TOMMessage response = ((SingleExecutable) executor).executeOrdered(id, SVController.getCurrentViewId(), request.getContent(), msgCtx);                                
+                                TOMMessage response = ((SingleExecutable) executor).executeOrdered(id, SVController.getCurrentViewId(), request.getContent(), msgCtx);
                                 if (response != null) {
 
                                     logger.debug("sending reply to " + response.getSender());
@@ -466,14 +484,14 @@ public class ServiceReplica {
             MessageContext[] msgContexts = new MessageContext[msgCtxts.size()];
             msgContexts = msgCtxts.toArray(msgContexts);
             int cid = msgContexts[0].getConsensusId();
-            
+
             //Deliver the batch and wait for replies
             TOMMessage[] replies = ((BatchExecutable) executor).executeBatch(id, SVController.getCurrentViewId(), batch, msgContexts);
 
             //Send the replies back to the client
             //for (int index = 0; index < toBatch.size(); index++) {
             for (TOMMessage reply : replies) {
-                
+
                 //TOMMessage request = toBatch.get(index);
                 //request.reply = new TOMMessage(id, request.getSession(), request.getSequence(), request.getOperationId(),
                 //        replies[index], SVController.getCurrentViewId(), request.getReqType());
@@ -493,7 +511,7 @@ public class ServiceReplica {
             } catch (IOException ex) {
                 logger.error("Error while computing the hash for last block (Could not serialize transactions).", ex);
             }*/
-            
+
             byte [] lastCheckpointHash = null;
 
             /*if (cid % SVController.getStaticConf().getCheckpointPeriod() == 0) {
@@ -530,7 +548,7 @@ public class ServiceReplica {
                     logger.error("Error while getting checkpoint for CID " + cid, ex);
                 }
             }*/
-            
+
             logger.debug("BATCHEXECUTOR END");
         }
     }
@@ -554,7 +572,7 @@ public class ServiceReplica {
         MessageFactory messageFactory = new MessageFactory(id);
 
         queue = new LinkedBlockingQueue<>();
-        
+
         Acceptor acceptor = new Acceptor(cs, messageFactory, SVController, queue);
         cs.setAcceptor(acceptor);
 

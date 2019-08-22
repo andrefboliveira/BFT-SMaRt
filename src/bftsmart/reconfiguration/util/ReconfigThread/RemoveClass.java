@@ -5,8 +5,6 @@ import bftsmart.reconfiguration.util.TOMConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Scanner;
-
 public class RemoveClass {
 
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -16,20 +14,14 @@ public class RemoveClass {
 	private TOMConfiguration initiatingReplicaConfig;
 
 
-	public RemoveClass(int requesterID, TOMConfiguration initiatingReplicaConfig) {
+	public RemoveClass(int requesterID, int toRemoveReplicaID, TOMConfiguration initiatingReplicaConfig) {
 		this.requesterID = requesterID;
-
+		this.toRemoveReplicaID = toRemoveReplicaID;
 		this.initiatingReplicaConfig = initiatingReplicaConfig;
 	}
 
 	public boolean init() {
 		try {
-			logger.info("Type the ID of replica to remove: ");
-
-			Scanner sc = new Scanner(System.in);
-
-			toRemoveReplicaID = sc.nextInt();
-
 			logger.info("\n Attempting to REMOVE replica " + toRemoveReplicaID + "!");
 
 			forceRemoveReplica(toRemoveReplicaID);
