@@ -353,7 +353,9 @@ public class BlockchainStateManager extends StandardStateManager implements Runn
                         try {
                             int upperRangeCID = (cid + SVController.getStaticConf().getCheckpointPeriod());
 
-                            int BUFFER_SIZE = clientSocket.getReceiveBufferSize();
+                            int BUFFER_SIZE = 65536;
+
+//                            int BUFFER_SIZE = clientSocket.getReceiveBufferSize();
 
                             byte[] aByte = new byte[BUFFER_SIZE];
                             int bytesRead;
@@ -361,7 +363,7 @@ public class BlockchainStateManager extends StandardStateManager implements Runn
 
                             DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
                             InputStream inFromServer = clientSocket.getInputStream();
-                            logger.debug("Get input stream of socket for processing CIDs {} through {}", cid, (upperRangeCID <= lastCID ? upperRangeCID : lastCID));
+                            logger.info("Get input stream of socket for processing CIDs {} through {}", cid, (upperRangeCID <= lastCID ? upperRangeCID : lastCID));
 
 
                             outToServer.writeInt(cid);
@@ -375,14 +377,14 @@ public class BlockchainStateManager extends StandardStateManager implements Runn
                             FileOutputStream fos = new FileOutputStream(file);
                             BufferedOutputStream bos = new BufferedOutputStream(fos);
 
-                            logger.debug("Start writing of CIDs {} through {}", cid, (upperRangeCID <= lastCID ? upperRangeCID : lastCID));
+                            logger.info("Start writing of CIDs {} through {}", cid, (upperRangeCID <= lastCID ? upperRangeCID : lastCID));
 
                             bytesRead = inFromServer.read(aByte, 0, aByte.length);
 
                             do {
                                 baos.write(aByte);
                                 bytesRead = inFromServer.read(aByte);
-                                logger.debug("Block bytes read: " + bytesRead);
+                                logger.info("Bytes of block from CIDs {} through {} read:  {}", cid, (upperRangeCID <= lastCID ? upperRangeCID : lastCID), bytesRead);
                             } while (bytesRead != -1);
 
                             logger.info("finished cids {} through {}", cid, (upperRangeCID <= lastCID ? upperRangeCID : lastCID));
@@ -399,7 +401,6 @@ public class BlockchainStateManager extends StandardStateManager implements Runn
                             bos.flush();
                             fos.flush();
                             fos.getChannel().force(false);
-                            fos.getFD().sync();
                             bos.close();
                             baos.close();
                             fos.close();
@@ -408,18 +409,15 @@ public class BlockchainStateManager extends StandardStateManager implements Runn
 
                             clientSocket.close();
 
-                            fos = new FileOutputStream(file, true);
-                            fos.close();
-
+                            logger.info("DURATION fetching blocks {} through {} since socket: {} s.", cid, (upperRangeCID <= lastCID ? upperRangeCID : lastCID), (System.currentTimeMillis() - startFetchingBlocksTimeInner) / 1000.0);
 
                         } catch (NoSuchAlgorithmException | IOException ex) {
+                            logger.error("Error fetching blocks", ex);
                             Logger.getLogger(BlockchainStateManager.class.getName()).log(Level.SEVERE, null, ex);
 
                         } finally {
 
                             latch.countDown();
-                            logger.info("DURATION fetching blocks {} through {} since socket: {} s.", cid, (upperRangeCID <= lastCID ? upperRangeCID : lastCID), (System.currentTimeMillis() - startFetchingBlocksTimeInner) / 1000.0);
-                            logger.info("DURATION fetching blocks {} through {} since beginning: {} s.", cid, (upperRangeCID <= lastCID ? upperRangeCID : lastCID), (System.currentTimeMillis() - startFetchingBlocksTimeOuter) / 1000.0);
 
                         }
 
@@ -429,6 +427,8 @@ public class BlockchainStateManager extends StandardStateManager implements Runn
             }
             latch.await();
             //System.exit(0);
+            logger.info("DURATION fetching blocks since beginning: {} s.", (System.currentTimeMillis() - startFetchingBlocksTimeOuter) / 1000.0);
+
         } catch (IOException | InterruptedException ex) {
             
             logger.error("Interruption error", ex);
