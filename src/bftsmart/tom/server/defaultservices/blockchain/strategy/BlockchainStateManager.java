@@ -371,7 +371,8 @@ public class BlockchainStateManager extends StandardStateManager implements Runn
 
                             ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
-                            FileOutputStream fos = new FileOutputStream( blockPath );
+                            File file = new File(blockPath);
+                            FileOutputStream fos = new FileOutputStream(file);
                             BufferedOutputStream bos = new BufferedOutputStream(fos);
 
                             logger.debug("Start writing of CIDs {} through {}", cid, (upperRangeCID <= lastCID ? upperRangeCID : lastCID));
@@ -387,12 +388,17 @@ public class BlockchainStateManager extends StandardStateManager implements Runn
                             logger.info("finished cids {} through {}", cid, (upperRangeCID <= lastCID ? upperRangeCID : lastCID));
                             
                             byte[] block = baos.toByteArray();
+                            logger.info("Block size of cids {} through {}: {} bytes", cid, (upperRangeCID <= lastCID ? upperRangeCID : lastCID), block.length);
+                            baos.flush();
                             
                             validateBlock(block);
 
                             bos.write(block);
+                            logger.info("Block of cids {} through {} written", cid, (upperRangeCID <= lastCID ? upperRangeCID : lastCID));
+
                             bos.flush();
                             fos.flush();
+                            fos.getChannel().force(false);
                             fos.getFD().sync();
                             bos.close();
                             baos.close();
@@ -401,6 +407,9 @@ public class BlockchainStateManager extends StandardStateManager implements Runn
                             inFromServer.close();
 
                             clientSocket.close();
+
+                            fos = new FileOutputStream(file, true);
+                            fos.close();
 
 
                         } catch (NoSuchAlgorithmException | IOException ex) {
