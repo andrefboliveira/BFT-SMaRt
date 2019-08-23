@@ -41,9 +41,9 @@ public class ReconfigSelectorThread implements Runnable {
 				if ("LEAVE".equalsIgnoreCase(userReply) || "L".equalsIgnoreCase(userReply)) {
 					try {
 						LeaveClass leaveProtocol = new LeaveClass(this.id, this.executingReplicaConfig);
-						boolean sucessful = leaveProtocol.init();
+						boolean successful = leaveProtocol.init();
 
-						if (sucessful) {
+						if (successful) {
 							keep_running = false;
 						}
 					} catch (Exception e) {

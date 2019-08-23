@@ -392,6 +392,9 @@ public class BlockchainStateManager extends StandardStateManager implements Runn
 
                             bos.write(block);
                             bos.flush();
+                            baos.flush();
+                            fos.flush();
+//                            fos.getFD().sync();
                             bos.close();
                             baos.close();
                             fos.close();
