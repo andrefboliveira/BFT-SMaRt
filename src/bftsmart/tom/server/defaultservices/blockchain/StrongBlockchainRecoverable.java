@@ -50,7 +50,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * @author joao
  */
 public abstract class StrongBlockchainRecoverable implements Recoverable, BatchExecutable, ServerJoiner {
-    private Logger logger = LoggerFactory.getLogger(this.getClass());
+    protected Logger logger = LoggerFactory.getLogger(this.getClass());
 
     public String batchDir;
 
@@ -1089,7 +1089,8 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
 
         log.close();
 
-        logger.info("DURATION writing checkpoint to disk: " + (System.currentTimeMillis() - writeDiskStartTime) / 1000.0 + " s");
+        System.out.println("DURATION writing checkpoint to disk: " + (System.currentTimeMillis() - writeDiskStartTime) / 1000.0 + " s");
+        logger.info("DURATION writing checkpoint to disk: {}", (System.currentTimeMillis() - writeDiskStartTime) / 1000.0 + " s");
 
 
     }

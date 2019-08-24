@@ -353,7 +353,8 @@ public class BlockchainStateManager extends StandardStateManager implements Runn
                         try {
                             int upperRangeCID = (cid + SVController.getStaticConf().getCheckpointPeriod());
 
-                            int BUFFER_SIZE = 65536;
+//                            int BUFFER_SIZE = 65536;
+                            int BUFFER_SIZE = 1500;
 
 //                            int BUFFER_SIZE = clientSocket.getReceiveBufferSize();
 
