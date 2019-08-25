@@ -335,9 +335,9 @@ public class BlockchainStateManager extends StandardStateManager implements Runn
             final CountDownLatch latch = new CountDownLatch((lastCID-myLastCID) / SVController.getStaticConf().getCheckpointPeriod());
             
             for (int i = myLastCID; i < lastCID; i += SVController.getStaticConf().getCheckpointPeriod()) {
-                
-                final int cid = i;
                 long startFetchingBlocksTimeInner = System.currentTimeMillis();
+
+                final int cid = i;
 
 
                 Socket clientSocket = new Socket( SVController.getCurrentView().getAddress(replica).getHostName() , SVController.getStaticConf().getPort(replica) + 2 );
@@ -458,7 +458,8 @@ public class BlockchainStateManager extends StandardStateManager implements Runn
                         try {
                             
                             inToClient = new DataInputStream(connectionSocket.getInputStream());
-                            outFromClient = new BufferedOutputStream(connectionSocket.getOutputStream());
+                            OutputStream outStream = connectionSocket.getOutputStream();
+                            outFromClient = new BufferedOutputStream(outStream);
                             
                             int blockNumber = inToClient.readInt();
 
@@ -475,7 +476,9 @@ public class BlockchainStateManager extends StandardStateManager implements Runn
                             bis.read(filearray, 0, filearray.length);
                             outFromClient.write(filearray, 0, filearray.length);
                             outFromClient.flush();
+                            outStream.flush();
                             outFromClient.close();
+                            outStream.close();
                             inToClient.close();
                             connectionSocket.close();
                             

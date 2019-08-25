@@ -1089,7 +1089,6 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
 
         log.close();
 
-        System.out.println("DURATION writing checkpoint to disk: " + (System.currentTimeMillis() - writeDiskStartTime) / 1000.0 + " s");
         logger.info("DURATION writing checkpoint to disk: {}", (System.currentTimeMillis() - writeDiskStartTime) / 1000.0 + " s");
 
 
