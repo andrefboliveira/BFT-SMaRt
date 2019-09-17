@@ -60,8 +60,8 @@ public class BlockchainStateManager extends StandardStateManager implements Runn
     public void init(TOMLayer tomLayer, DeliveryThread dt) {
         
         super.init(tomLayer,dt);
-        
-        logDir =    "files".concat(System.getProperty("file.separator"));
+
+        logDir = "files".concat(System.getProperty("file.separator"));
         
         try {
             
@@ -352,6 +352,12 @@ public class BlockchainStateManager extends StandardStateManager implements Runn
                     @Override
                     public void run() {
 
+                        BufferedOutputStream bos = null;
+                        ByteArrayOutputStream baos = null;
+                        DataOutputStream outToServer = null;
+                        FileOutputStream fos = null;
+                        InputStream inFromServer = null;
+
                         try {
                             int upperRangeCID_attempt = (cid + SVController.getStaticConf().getCheckpointPeriod());
                             int upperRangeCID = (upperRangeCID_attempt <= lastCID ? upperRangeCID_attempt : lastCID);
@@ -365,21 +371,21 @@ public class BlockchainStateManager extends StandardStateManager implements Runn
                             int bytesRead;
 
 
-                            DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
-                            InputStream inFromServer = clientSocket.getInputStream();
+                            outToServer = new DataOutputStream(clientSocket.getOutputStream());
+                            inFromServer = clientSocket.getInputStream();
                             logger.debug("Get input stream of socket for processing CIDs {} through {}", cid, upperRangeCID);
 
 
                             outToServer.writeInt(cid);
 
                             String blockPath = logDir + SVController.getStaticConf().getProcessId() +
-                                    "." + cid + "." +  (cid+SVController.getStaticConf().getCheckpointPeriod()) + ".log";
+                                    "." + cid + "." + (cid + SVController.getStaticConf().getCheckpointPeriod()) + ".log";
 
-                            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                            baos = new ByteArrayOutputStream();
 
                             File file = new File(blockPath);
-                            FileOutputStream fos = new FileOutputStream(file);
-                            BufferedOutputStream bos = new BufferedOutputStream(fos);
+                            fos = new FileOutputStream(file);
+                            bos = new BufferedOutputStream(fos);
 
                             logger.info("Start writing of CIDs {} through {}", cid, upperRangeCID);
 
@@ -389,14 +395,14 @@ public class BlockchainStateManager extends StandardStateManager implements Runn
                                 baos.write(aByte);
                                 bytesRead = inFromServer.read(aByte);
                                 logger.debug("Bytes of block from CIDs {} through {} read: {}", cid, upperRangeCID, bytesRead);
-                            } while (bytesRead != -1);
+                            } while (bytesRead > 0);
 
 //                            logger.info("finished cids {} through {}", cid, upperRangeCID);
-                            
+
                             byte[] block = baos.toByteArray();
                             logger.info("Block size of cids {} through {}: {} bytes", cid, upperRangeCID, block.length);
                             baos.flush();
-                            
+
                             validateBlock(block);
 
                             bos.write(block);
@@ -405,13 +411,7 @@ public class BlockchainStateManager extends StandardStateManager implements Runn
                             bos.flush();
                             fos.flush();
                             fos.getChannel().force(false);
-                            bos.close();
-                            baos.close();
-                            fos.close();
-                            outToServer.close();
-                            inFromServer.close();
 
-                            clientSocket.close();
 
                             logger.info("DURATION fetching blocks {} through {} since socket: {} s.", cid, upperRangeCID, (System.currentTimeMillis() - startFetchingBlocksTimeInner) / 1000.0);
 
@@ -420,6 +420,18 @@ public class BlockchainStateManager extends StandardStateManager implements Runn
                             Logger.getLogger(BlockchainStateManager.class.getName()).log(Level.SEVERE, null, ex);
 
                         } finally {
+                            try {
+                                if (bos != null) bos.close();
+                                if (baos != null) baos.close();
+                                if (fos != null) fos.close();
+                                if (outToServer != null) outToServer.close();
+                                if (inFromServer != null) inFromServer.close();
+
+                                if (clientSocket != null) clientSocket.close();
+
+                            } catch (IOException e) {
+                                logger.error("Error closing streams of fetching blocks");
+                            }
 
                             latch.countDown();
 
