@@ -362,14 +362,6 @@ public class BlockchainStateManager extends StandardStateManager implements Runn
                             int upperRangeCID_attempt = (cid + SVController.getStaticConf().getCheckpointPeriod());
                             int upperRangeCID = (upperRangeCID_attempt <= lastCID ? upperRangeCID_attempt : lastCID);
 
-//                            int BUFFER_SIZE = 65536;
-                            int BUFFER_SIZE = 1500;
-
-//                            int BUFFER_SIZE = clientSocket.getReceiveBufferSize();
-
-                            byte[] aByte = new byte[BUFFER_SIZE];
-                            int bytesRead;
-
 
                             outToServer = new DataOutputStream(clientSocket.getOutputStream());
                             inFromServer = clientSocket.getInputStream();
@@ -389,19 +381,49 @@ public class BlockchainStateManager extends StandardStateManager implements Runn
 
                             logger.info("Start writing of CIDs {} through {}", cid, upperRangeCID);
 
-                            bytesRead = inFromServer.read(aByte, 0, aByte.length);
+//                            bytesRead = inFromServer.read(aByte, 0, aByte.length);
+//
+//                            do {
+//                                baos.write(aByte);
+//                                bytesRead = inFromServer.read(aByte);
+//                                logger.debug("Bytes of block from CIDs {} through {} read: {}", cid, upperRangeCID, bytesRead);
+//                            } while (bytesRead > 0);
 
-                            do {
-                                baos.write(aByte);
-                                bytesRead = inFromServer.read(aByte);
-                                logger.debug("Bytes of block from CIDs {} through {} read: {}", cid, upperRangeCID, bytesRead);
-                            } while (bytesRead > 0);
+                            //                            int BUFFER_SIZE = 65536;
+                            int BUFFER_SIZE = 1500;
+
+//                            int BUFFER_SIZE = clientSocket.getReceiveBufferSize();
+
+                            byte[] buffer = new byte[BUFFER_SIZE];
+
+                            int count;
+                            while ((count = inFromServer.read(buffer)) > -1) {
+                                baos.write(buffer, 0, count);
+                                logger.debug("Bytes of block from CIDs {} through {} read: {}", cid, upperRangeCID, count);
+
+                            }
+
+
+                      /*      inFromServer.read(buffer);
+                            long fileSize = ByteBuffer.wrap(buffer, 0, Long.BYTES).getLong();
+
+
+                            baos.write(buffer, Long.BYTES, buffer.length);
+                            long total_read = buffer.length;
+                            while (total_read < fileSize) {
+                                int count_read = inFromServer.read(buffer);
+                                total_read += count_read;
+                                baos.write(buffer, 0, count_read);
+                            }
+*/
+
+
+                            baos.flush();
 
 //                            logger.info("finished cids {} through {}", cid, upperRangeCID);
 
                             byte[] block = baos.toByteArray();
                             logger.info("Block size of cids {} through {}: {} bytes", cid, upperRangeCID, block.length);
-                            baos.flush();
 
                             validateBlock(block);
 
@@ -481,25 +503,53 @@ public class BlockchainStateManager extends StandardStateManager implements Runn
                             String blockPath = logDir +
                                     SVController.getStaticConf().getProcessId() + "." +
                                     blockNumber + "." + (blockNumber+SVController.getStaticConf().getCheckpointPeriod()) + ".log";
-                            
+
+//                            File blockFile = new File(blockPath);
+//                            int fileSize = (int) blockFile.length();
+//                            byte[] filearray = new byte[fileSize];
+//
+//                            FileInputStream fis = new FileInputStream(blockFile);
+//                            BufferedInputStream bis = new BufferedInputStream(fis);
+//
+//
+//                            bis.read(filearray, 0, fileSize);
+//                            outFromClient.write(filearray, 0, fileSize);
+
+
                             File blockFile = new File(blockPath);
-                            byte[] filearray = new byte[(int) blockFile.length()];
+                            long fileSize = blockFile.length();
+
+                            byte[] readFileBuffer = new byte[16 * 1024];
 
                             FileInputStream fis = new FileInputStream(blockFile);
-                            BufferedInputStream bis = new BufferedInputStream(fis);
-                                                                             
-                            bis.read(filearray, 0, filearray.length);
-                            outFromClient.write(filearray, 0, filearray.length);
+
+                            int count;
+                            while ((count = fis.read(readFileBuffer)) > -1) {
+                                outFromClient.write(readFileBuffer, 0, count);
+                            }
+
+                       /*     byte[] fileSizeBytes = ByteBuffer.allocate(Long.BYTES).putLong(fileSize).array();
+                            outFromClient.write(fileSizeBytes);
+
+                            long total_read = 0;
+                            while (total_read < fileSize) {
+                                int count_read = fis.read(readFileBuffer);
+                                total_read += count_read;
+                                outFromClient.write(readFileBuffer, 0, count_read);
+                            }*/
+
+
+
                             outFromClient.flush();
                             outStream.flush();
                             outFromClient.close();
                             outStream.close();
                             inToClient.close();
-                            connectionSocket.close();
-                            
-                            bis.close();
                             fis.close();
-                            
+
+                            connectionSocket.close();
+
+
                         } catch (IOException ex) {
                             
                             logger.error("Socket error.",ex);
