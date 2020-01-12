@@ -35,7 +35,14 @@ public class ReconfigSelectorThread implements Runnable {
 						"\"REMOVE\" (\"R\") to remove a specific replica from view");
 
 
-				String userReply = sc.next();
+                String userReply = "";
+                                
+                                /*if(id == 4){
+                                
+                                    userReply = "WAIT";
+                                }else{*/
+                userReply = sc.next();
+                /* }*/
 				logger.info("You typed {}", userReply);
 
 				if ("LEAVE".equalsIgnoreCase(userReply) || "L".equalsIgnoreCase(userReply)) {
@@ -70,9 +77,24 @@ public class ReconfigSelectorThread implements Runnable {
 				} else if ("WAIT".equalsIgnoreCase(userReply) || "W".equalsIgnoreCase(userReply)) {
 					try {
 						logger.info("Input number of seconds to wait: ");
-						int waitTime = sc.nextInt();
+                        //int waitTime = sc.nextInt();
+                        int waitTime = 360;
 						logger.info("Waiting {} s ...", waitTime);
 						Thread.sleep(waitTime * 1000);
+
+                        try {
+                            LeaveClass leaveProtocol = new LeaveClass(this.id, this.executingReplicaConfig);
+                            boolean successful = leaveProtocol.init();
+
+                            if (successful) {
+                                keep_running = false;
+                            }
+                        } catch (Exception e) {
+                            logger.error("Error while processing Leave request");
+                            e.printStackTrace();
+                        }
+                                                
+                                                
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}

@@ -41,9 +41,9 @@ public class DefaultApplicationState implements ApplicationState {
     protected int lastCID = -1; // Consensus ID for the last messages batch delivered to the application
     protected boolean hasState; // indicates if the replica really had the requested state
 
-    protected CommandsInfo[] messageBatches; // batches received since the last checkpoint.
-    protected int lastCheckpointCID; // Consensus ID for the last checkpoint
-    protected byte[] logHash;
+    private CommandsInfo[] messageBatches; // batches received since the last checkpoint.
+    private int lastCheckpointCID; // Consensus ID for the last checkpoint
+    private byte[] logHash;
     
     protected int pid;
 

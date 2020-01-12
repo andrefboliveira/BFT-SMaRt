@@ -18,11 +18,6 @@
  */
 package bftsmart.tom.server.defaultservices;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
-import java.util.concurrent.locks.ReentrantLock;
-
 import bftsmart.reconfiguration.ServerViewController;
 import bftsmart.reconfiguration.util.TOMConfiguration;
 import bftsmart.statemanagement.ApplicationState;
@@ -30,12 +25,16 @@ import bftsmart.statemanagement.StateManager;
 import bftsmart.statemanagement.standard.StandardStateManager;
 import bftsmart.tom.MessageContext;
 import bftsmart.tom.ReplicaContext;
-import bftsmart.tom.core.messages.TOMMessage;
 import bftsmart.tom.server.BatchExecutable;
 import bftsmart.tom.server.Recoverable;
 import bftsmart.tom.util.TOMUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  *
@@ -278,13 +277,13 @@ public abstract class DefaultRecoverable implements Recoverable, BatchExecutable
                         logger.warn("Consensus " + cid + " is null!");
                     }
 
-                    CommandsInfo cmdInfo = state.getMessageBatch(cid);
+                    CommandsInfo cmdInfo = state.getMessageBatch(cid); 
                     byte[][] commands = cmdInfo.commands; // take a batch
                     MessageContext[] msgCtx = cmdInfo.msgCtx;
 
                     if (commands == null || msgCtx == null || msgCtx[0].isNoOp()) {
                         continue;
-                    }
+                    }                        
                     appExecuteBatch(commands, msgCtx, false);
 
                 } catch (Exception e) {
@@ -331,7 +330,8 @@ public abstract class DefaultRecoverable implements Recoverable, BatchExecutable
      * indexes.
      *
      * @param msgCtxs the contexts of the consensus where the messages where
-     *                executed. There is one msgCtx message for each command to be executed
+     * executed. There is one msgCtx message for each command to be executed
+     *
      * @return the index in which a replica is supposed to take a checkpoint. If
      * there is no replica taking a checkpoint during the period comprised by
      * this command batch, it is returned -1
@@ -362,8 +362,8 @@ public abstract class DefaultRecoverable implements Recoverable, BatchExecutable
      * file.
      *
      * @param msgCtx the message context of the commands executed by the
-     *               replica. There is one message context for each command
-     * @param cid    the CID of the consensus where a replica took a checkpoint
+     * replica. There is one message context for each command
+     * @param cid the CID of the consensus where a replica took a checkpoint
      * @return the higher position where the CID appears
      */
     private int cidPosition(int[] cids, int cid) {
@@ -444,14 +444,12 @@ public abstract class DefaultRecoverable implements Recoverable, BatchExecutable
 
     /**
      * Given a snapshot received from the state transfer protocol, install it
-     *
      * @param state The serialized snapshot
      */
     public abstract void installSnapshot(byte[] state);
 
     /**
      * Returns a serialized snapshot of the application state
-     *
      * @return A serialized snapshot of the application state
      */
     public abstract byte[] getSnapshot();
@@ -459,18 +457,20 @@ public abstract class DefaultRecoverable implements Recoverable, BatchExecutable
     /**
      * Execute a batch of ordered requests
      *
-     * @param commands      The batch of requests
-     * @param msgCtxs       The context associated to each request
+     * @param commands The batch of requests
+     * @param msgCtxs The context associated to each request
      * @param fromConsensus true if the request arrived from a consensus execution, false if it arrives from the state transfer protocol
+     * 
      * @return the respective replies for each request
      */
     public abstract byte[][] appExecuteBatch(byte[][] commands, MessageContext[] msgCtxs, boolean fromConsensus);
 
     /**
      * Execute an unordered request
-     *
+     * 
      * @param command The unordered request
-     * @param msgCtx  The context associated to the request
+     * @param msgCtx The context associated to the request
+     * 
      * @return the reply for the request issued by the client
      */
     public abstract byte[] appExecuteUnordered(byte[] command, MessageContext msgCtx);

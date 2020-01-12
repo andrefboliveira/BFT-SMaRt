@@ -1,17 +1,17 @@
 /**
- * Copyright (c) 2007-2013 Alysson Bessani, Eduardo Alchieri, Paulo Sousa, and the authors indicated in the @author tags
- * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ Copyright (c) 2007-2013 Alysson Bessani, Eduardo Alchieri, Paulo Sousa, and the authors indicated in the @author tags
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+ http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
  */
 package bftsmart.tom.core;
 
@@ -35,10 +35,12 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * This class implements a thread which will deliver totally ordered requests to the application
- *
+ * This class implements a thread which will deliver totally ordered requests to
+ * the application
+ * 
  */
 public final class DeliveryThread extends Thread {
+
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	private boolean doWork = true;
@@ -147,10 +149,6 @@ public final class DeliveryThread extends Thread {
 
 	public void update(ApplicationState state) {
 
-		logger.debug("Start updating state");
-		long startUpdatingStateTime = System.currentTimeMillis();
-
-
 		int lastCID = recoverer.setState(state);
 
 		// set this decision as the last one from this replica
@@ -172,9 +170,6 @@ public final class DeliveryThread extends Thread {
 		decided.clear();
 
 		logger.info("All finished up to " + lastCID);
-
-		logger.info("DURATION updating state: {} s.", (System.currentTimeMillis() - startUpdatingStateTime) / 1000.0);
-
 	}
 
 	/**
@@ -193,15 +188,12 @@ public final class DeliveryThread extends Thread {
 
 				// if (tomLayer.getLastExec() == -1)
 				if (init) {
-					logger.info("Ready to process operations");
+					logger.info(
+							"\n\t\t###################################"
+									+ "\n\t\t    Ready to process operations    "
+									+ "\n\t\t###################################");
 					init = false;
-
-					try {
-						logger.info("DURATION initiating replica: {} s.", (System.currentTimeMillis() - receiver.getReplicaStartTime()) / 1000.0);
-					} catch (Exception e) {
-						System.err.println("Error printing initiating replica duration: " + e.getMessage());
-					}
-
+					System.out.println("Ready to process operations! time: " + System.currentTimeMillis());
 				}
 			}
 			try {
@@ -262,7 +254,6 @@ public final class DeliveryThread extends Thread {
 						deliverMessages(consensusIds, regenciesIds, leadersIds, cDecs, requests);
 
 						// ******* EDUARDO BEGIN ***********//
-
 						if (controller.hasCorrectUpdates()) {
 							processReconfigMessages(lastDecision.getConsensusId());
 						}
@@ -306,6 +297,20 @@ public final class DeliveryThread extends Thread {
 
 	}
 
+	private void processUnexecutedReconfigMessages() {
+		byte[] response = new byte[0];
+		TOMMessage[] dests = controller.clearDiscardedUpdates();
+
+		if (controller.getCurrentView().isMember(receiver.getId())) {
+			for (int i = 0; i < dests.length; i++) {
+				tomLayer.getCommunication().send(new int[]{dests[i].getSender()},
+						new TOMMessage(controller.getStaticConf().getProcessId(), dests[i].getSession(),
+								dests[i].getSequence(), dests[i].getOperationId(), response,
+								controller.getCurrentViewId(), TOMMessageType.RECONFIG));
+			}
+		}
+	}
+
 	private TOMMessage[] extractMessagesFromDecision(Decision dec) {
 		TOMMessage[] requests = dec.getDeserializedValue();
 		if (requests == null) {
@@ -316,8 +321,7 @@ public final class DeliveryThread extends Thread {
 			logger.debug("Interpreting and verifying batched requests.");
 
 			// obtain an array of requests from the decisions obtained
-			BatchReader batchReader = new BatchReader(dec.getValue(),
-					controller.getStaticConf().getUseSignatures() == 1);
+			BatchReader batchReader = new BatchReader(dec.getValue(), controller.getStaticConf().getUseSignatures() == 1);
 			requests = batchReader.deserialiseRequests(controller);
 		} else {
 			logger.debug("Using cached requests from the propose.");
@@ -344,6 +348,8 @@ public final class DeliveryThread extends Thread {
 	}
 
 	private void processReconfigMessages(int consId) {
+
+
 		byte[] response = controller.executeUpdates(consId);
 		TOMMessage[] dests = controller.clearCorrectUpdates();
 
@@ -357,22 +363,7 @@ public final class DeliveryThread extends Thread {
 
 			tomLayer.getCommunication().updateServersConnections();
 		} else {
-			// receiver.restart();
-			receiver.kill();
-		}
-	}
-
-	private void processUnexecutedReconfigMessages() {
-		byte[] response = new byte[0];
-		TOMMessage[] dests = controller.clearDiscardedUpdates();
-
-		if (controller.getCurrentView().isMember(receiver.getId())) {
-			for (int i = 0; i < dests.length; i++) {
-				tomLayer.getCommunication().send(new int[] { dests[i].getSender() },
-						new TOMMessage(controller.getStaticConf().getProcessId(), dests[i].getSession(),
-								dests[i].getSequence(), dests[i].getOperationId(), response,
-								controller.getCurrentViewId(), TOMMessageType.RECONFIG));
-			}
+			receiver.restart();
 		}
 	}
 
@@ -386,7 +377,7 @@ public final class DeliveryThread extends Thread {
 		decidedLock.unlock();
 	}
 
-	public int size() {
-		return decided.size();
-	}
+	/*
+	 * public int size() { return decided.size(); }
+	 */
 }

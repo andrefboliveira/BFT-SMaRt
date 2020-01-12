@@ -257,7 +257,7 @@ public class FileRecoverer {
 					bytesTransfered += bytesRead;
 				}
 			}
-			logger.info("Took " + (System.currentTimeMillis() - milliInit) + " milliseconds to transfer the checkpoint");
+            logger.debug("Took " + (System.currentTimeMillis() - milliInit) + " milliseconds to transfer the checkpoint");
 			fileChannel.close();
 		} catch (Exception e) {
 			logger.error("State recover was aborted due to an unexpected exception", e);

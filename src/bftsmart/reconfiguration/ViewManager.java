@@ -60,7 +60,8 @@ public class ViewManager {
     }
 
     public void addServer(int id, String ip, int port, FullCertificate fullCertificate) {
-        this.controller.getStaticConf().addHostInfo(id, ip, port);
+        //Fix me!!! It is necessary to use the ports below as in the hosts.config file
+        this.controller.getStaticConf().addHostInfo(id, ip, port, port + 1);
         rec.addServer(id, ip, port, fullCertificate);
         addIds.add(id);
     }
@@ -114,7 +115,8 @@ public class ViewManager {
             //br.ufsc.das.tom.util.Logger.println("(ServersCommunicationLayer.send) Sending msg to replica "+i);
             try {
                 if (i.intValue() != idTTP) {
-                    getConnection(i.intValue()).send(data, true);
+                    //getConnection(i.intValue()).send(data, true);
+                    getConnection(i.intValue()).send(data);
                 }
             } catch (InterruptedException ex) {
                // ex.printStackTrace();

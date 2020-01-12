@@ -15,17 +15,16 @@ limitations under the License.
 */
 package bftsmart.consensus;
 
-import java.io.Serializable;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-
-import org.apache.commons.codec.binary.Base64;
-
 import bftsmart.consensus.messages.ConsensusMessage;
 import bftsmart.reconfiguration.ServerViewController;
 import bftsmart.reconfiguration.views.View;
 import bftsmart.tom.core.messages.TOMMessage;
+import org.apache.commons.codec.binary.Base64;
+
+import java.io.Serializable;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -45,7 +44,6 @@ public class Epoch implements Serializable {
     private boolean[] acceptSetted;
     private byte[][] write; // WRITE values from other processes
     private byte[][] accept; // accepted values from other processes
-    private byte[][] acceptCheckpoints; // accepted values from other processes
     private boolean writeSent;
     private boolean acceptSent;
     private boolean acceptCreated;
@@ -98,18 +96,15 @@ public class Epoch implements Serializable {
         if (timestamp == 0) {
             this.write = new byte[n][];
             this.accept = new byte[n][];
-            this.acceptCheckpoints = new byte[n][];
 
-            Arrays.fill((Object[]) write, null);
-            Arrays.fill((Object[]) accept, null);
-            Arrays.fill((Object[]) acceptCheckpoints, null);
+            Arrays.fill(write, null);
+            Arrays.fill(accept, null);
             
         } else {
             Epoch previousEpoch = consensus.getEpoch(timestamp - 1, controller);
 
             this.write = previousEpoch.getWrite();
             this.accept = previousEpoch.getAccept();
-            this.acceptCheckpoints = previousEpoch.getAcceptCheckpoints();
             
         }
     }
@@ -124,7 +119,6 @@ public class Epoch implements Serializable {
             
             byte[][] write = new byte[n][];
             byte[][] accept = new byte[n][];
-            byte[][] acceptCheckpoints = new byte[n][];
             
             boolean[] writeSetted = new boolean[n];
             boolean[] acceptSetted = new boolean[n];
@@ -141,7 +135,6 @@ public class Epoch implements Serializable {
                     
                     write[currentPos] = this.write[lastPos];
                     accept[currentPos] = this.accept[lastPos];
-                    acceptCheckpoints[currentPos] = this.acceptCheckpoints[lastPos];
 
                     writeSetted[currentPos] = this.writeSetted[lastPos];
                     acceptSetted[currentPos] = this.acceptSetted[lastPos];
@@ -151,7 +144,6 @@ public class Epoch implements Serializable {
             
             this.write = write;
             this.accept = accept;
-            this.acceptCheckpoints = acceptCheckpoints;
 
             this.writeSetted = writeSetted;
             this.acceptSetted = acceptSetted;
@@ -239,7 +231,7 @@ public class Epoch implements Serializable {
         //******* EDUARDO BEGIN **************//
         int p = this.controller.getCurrentViewPos(acceptor);
         if(p >= 0){
-            return accept[p] != null && acceptCheckpoints[p] != null;
+            return accept[p] != null;
         }else{
             return false;
         }
@@ -317,40 +309,13 @@ public class Epoch implements Serializable {
     public byte[][] getAccept() {
         return accept;
     }
-    
-    /**
-     * Retrieves the checkpoint hashes associated to the accepted value from the specified replica
-     * @param acceptor The replica ID
-     * @return The checkpoint hash from the specified replica
-     */
-    public byte[] getCheckpoint(int acceptor) {
-        
-        updateArrays();
-        
-        //******* EDUARDO BEGIN **************//
-         int p = this.controller.getCurrentViewPos(acceptor);
-        if(p >= 0){        
-        return acceptCheckpoints[p];
-        }else{
-            return null;
-        }
-        //******* EDUARDO END **************//
-    }
-
-    /**
-     * Retrieves all checkpoint hashes associated to accepted values from all replicas
-     * @return The checkpoint hashes from all replicas
-     */
-    public byte[][] getAcceptCheckpoints() {
-        return acceptCheckpoints;
-    }
 
     /**
      * Sets the accepted value from the specified replica
      * @param acceptor The replica ID
      * @param value The value accepted from the specified replica
      */
-    public void setAccept(int acceptor, byte[] value, byte[] checkpoint) { // TODO: race condition?
+    public void setAccept(int acceptor, byte[] value) { // TODO: race condition?
         
         updateArrays();
         
@@ -358,7 +323,6 @@ public class Epoch implements Serializable {
         int p = this.controller.getCurrentViewPos(acceptor);
         if (p >= 0 /*&& !strongSetted[p] && !isFrozen()*/) { //it can only be setted once
             accept[p] = value;
-            acceptCheckpoints[p] = checkpoint;
             acceptSetted[p] = true;
         }
         //******* EDUARDO END **************//
@@ -370,7 +334,7 @@ public class Epoch implements Serializable {
      * @return Amount of replicas from which this process received the specified value
      */
     public int countWrite(byte[] value) {
-        return count(writeSetted,write, null, value, null);
+        return count(writeSetted, write, value);
     }
 
     /**
@@ -378,8 +342,8 @@ public class Epoch implements Serializable {
      * @param value The value in question
      * @return Amount of replicas from which this process accepted the specified value
      */
-    public int countAccept(byte[] value, byte[] checkpoint) {
-        return count(acceptSetted,accept, acceptCheckpoints, value, checkpoint);
+    public int countAccept(byte[] value) {
+        return count(acceptSetted, accept, value);
     }
     
     /**
@@ -460,14 +424,11 @@ public class Epoch implements Serializable {
      * @param value Value to count
      * @return Ammount of times that 'value' was find in 'array'
      */
-    private int count(boolean[] arraySetted,byte[][] array1, byte[][] array2, byte[] value, byte[] checkpoint) {
-                
+    private int count(boolean[] arraySetted, byte[][] array, byte[] value) {
         if (value != null) {
             int counter = 0;
-            for (int i = 0; i < array1.length; i++) {
-                if (arraySetted != null && arraySetted[i] && Arrays.equals(value, array1[i])
-                        && (array2 == null || Arrays.equals(checkpoint, array2[i]))) { // new condition, to account for checkpoints
-
+            for (int i = 0; i < array.length; i++) {
+                if (arraySetted != null && arraySetted[i] && Arrays.equals(value, array[i])) {
                     counter++;
                 }
             }
@@ -484,23 +445,19 @@ public class Epoch implements Serializable {
     public String toString() {
         StringBuffer buffWrite = new StringBuffer(1024);
         StringBuffer buffAccept = new StringBuffer(1024);
-        StringBuffer buffCheckpoints = new StringBuffer(1024);
 
         buffWrite.append("\n\t\tWrites=(");
         buffAccept.append("\n\t\tAccepts=(");
-        buffCheckpoints.append("\n\t\tCheckpoints=(");
 
         for (int i = 0; i < write.length - 1; i++) {
             buffWrite.append("[" + str(write[i]) + "], ");
             buffAccept.append("[" + str(accept[i]) + "], ");
-            buffCheckpoints.append("[" + str(acceptCheckpoints[i]) + "], ");
         }
 
         buffWrite.append("[" + str(write[write.length - 1]) +"])");
         buffAccept.append("[" + str(accept[accept.length - 1]) + "])");
-        buffCheckpoints.append("[" + str(acceptCheckpoints[acceptCheckpoints.length - 1]) + "])");
 
-        return "\n\t\tCID=" + consensus.getId() + " \n\t\tTS=" + getTimestamp() + " " + "\n\t\tPropose=[" + (propValueHash != null ? str(propValueHash) : null) + "] " + buffWrite + " " + buffAccept  + " " + buffCheckpoints;
+        return "\n\t\tCID=" + consensus.getId() + " \n\t\tTS=" + getTimestamp() + " " + "\n\t\tPropose=[" + (propValueHash != null ? str(propValueHash) : null) + "] " + buffWrite + " " + buffAccept;
     }
 
     private String str(byte[] obj) {
@@ -531,11 +488,9 @@ public class Epoch implements Serializable {
 
         this.write = new byte[n][];
         this.accept = new byte[n][];
-        this.acceptCheckpoints = new byte[n][];
 
-        Arrays.fill((Object[]) write, null);
-        Arrays.fill((Object[]) accept, null);
-        Arrays.fill((Object[]) acceptCheckpoints, null);
+        Arrays.fill(write, null);
+        Arrays.fill(accept, null);
         
         this.proof = new HashSet<ConsensusMessage>();
         

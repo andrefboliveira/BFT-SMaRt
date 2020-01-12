@@ -15,7 +15,6 @@ limitations under the License.
 */
 package bftsmart.reconfiguration.util;
 
-import bftsmart.reconfiguration.views.View;
 import bftsmart.tom.util.KeyLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,7 +42,6 @@ public class TOMConfiguration extends Configuration {
     protected boolean shutdownHookEnabled;
     protected boolean useSenderThread;
     private int numNIOThreads;
-    private int useMACs;
     private int useSignatures;
     private boolean stateTransferEnabled;
     private int checkpointPeriod;
@@ -64,9 +62,16 @@ public class TOMConfiguration extends Configuration {
     private int numRepliers;
     private int numNettyWorkers;
     private boolean sameBatchSize;
+    private boolean fairbatch;
     private String bindAddress;
+    private double sigProb;
 
-    private boolean stdinFromFile;
+    /* Tulio Ribeiro*/
+    //private Boolean ssltls=true;
+    private String ssltlsProtocolVersion;
+    private String keyStoreFile;
+    private String[] enabledCiphers;
+    
     
     /** Creates a new instance of TOMConfiguration */
     public TOMConfiguration(int processId, KeyLoader loader) {
@@ -84,15 +89,14 @@ public class TOMConfiguration extends Configuration {
         super.init();
         try {
             n = Integer.parseInt(configs.remove("system.servers.num"));
-//            String s = (String) configs.remove("system.servers.f");
-           /* if (s == null) {
+            String s = configs.remove("system.servers.f");
+            if (s == null) {
                 f = (int) Math.ceil((n - 1) / 3);
             } else {
                 f = Integer.parseInt(s);
-            }*/
+            }
 
-            String s = configs.remove("system.shutdownhook");
-//            s = (String) configs.remove("system.shutdownhook");
+            s = configs.remove("system.shutdownhook");
             shutdownHookEnabled = (s != null) && Boolean.parseBoolean(s);
 
             s = configs.remove("system.totalordermulticast.period");
@@ -187,14 +191,6 @@ public class TOMConfiguration extends Configuration {
                 numNIOThreads = Integer.parseInt(s);
             }
 
-            s = configs.remove("system.communication.useMACs");
-            if (s == null) {
-                useMACs = 0;
-            } else {
-                useMACs = Integer.parseInt(s);
-            }
-
-            useSignatures = 1;
             s = configs.remove("system.communication.useSignatures");
             if (s == null) {
                 useSignatures = 0;
@@ -202,6 +198,14 @@ public class TOMConfiguration extends Configuration {
                 useSignatures = Integer.parseInt(s);
             }
 
+            sigProb = 1.00;
+            s = configs.remove("system.communication.sigProb");
+            if (s == null) {
+                sigProb = 1.00;
+            } else {
+                sigProb = Double.parseDouble(s);
+            }
+            
             s = configs.remove("system.totalordermulticast.state_transfer");
             if (s == null) {
                 stateTransferEnabled = false;
@@ -347,8 +351,6 @@ public class TOMConfiguration extends Configuration {
             s = configs.remove("system.bft");
             isBFT = (s == null) || Boolean.parseBoolean(s);
 
-	        f = View.calculateF(n, isBFT);
-
             s = configs.remove("system.numrepliers");
             if (s == null) {
                 numRepliers = 0;
@@ -372,21 +374,69 @@ public class TOMConfiguration extends Configuration {
             } else {
                 bindAddress = s;
             }
+
+            s = configs.remove("system.samebatchsize");
+            if (s != null) {
+                sameBatchSize = Boolean.parseBoolean(s);
+            } else {
+                sameBatchSize = false;
+            }
+
+            s = configs.remove("system.totalordermulticast.fairbatch");
+            if (s != null) {
+                fairbatch = Boolean.parseBoolean(s);
+            } else {
+                fairbatch = false;
+            }
+
+            /**
+             * Tulio Ribeiro 
+             *
+             * SSL/TLS configuration parameters.
+             * Default values: 
+             *  #	keyStoreFile = "EC_KeyPair_256.pkcs12";
+             *  #	enabledCiphers = new String[] {"TLS_RSA_WITH_NULL_SHA256", "TLS_ECDHE_ECDSA_WITH_NULL_SHA"};
+             *  #	ssltlsProtocolVersion = "TLSv1.2";
+             */
+
+
+            s = configs.remove("system.ssltls.key_store_file");
+            if (s == null) {
+                keyStoreFile = "EC_KeyPair_256.pkcs12";
+            } else {
+                keyStoreFile = s;
+            }
+
+            s = configs.remove("system.ssltls.enabled_ciphers");
+            if (s == null) {
+                enabledCiphers = new String[]{"TLS_RSA_WITH_NULL_SHA256", "TLS_ECDHE_ECDSA_WITH_NULL_SHA"};
+            } else {
+                enabledCiphers = s.split(",");
+            }
+
+            s = configs.remove("system.ssltls.protocol_version");
+            if (s == null) {
+                ssltlsProtocolVersion = "TLSv1.2";
+            } else {
+                switch (s) {
+                    case "SSLv3":
+                        ssltlsProtocolVersion = "SSLv3";
+                        break;
+                    case "TLSv1":
+                        ssltlsProtocolVersion = "TLSv1";
+                        break;
+                    case "TLSv1.1":
+                        ssltlsProtocolVersion = "TLSv1.1";
+                        break;
+                    case "TLSv1.2":
+                        ssltlsProtocolVersion = "TLSv1.2";
+                        break;
+                    default:
+                        ssltlsProtocolVersion = "TLSv1.2";
+                        break;
+                }
+            }
             
-            //Force this codebase to always deliver to the application a batch with the same size across all replicas
-            sameBatchSize = true;
-            //s = (String) configs.remove("system.samebatchsize");
-            //if (s != null) {
-            //        sameBatchSize = Boolean.parseBoolean(s);
-            //} else {
-            //        sameBatchSize = false;
-            //}
-
-
-            s = configs.remove("system.stdinFromFile");
-            stdinFromFile = (s != null) && Boolean.parseBoolean(s);
-
-
         } catch (Exception e) {
             logger.error("Could not parse system configuration file",e);
         }
@@ -431,9 +481,9 @@ public class TOMConfiguration extends Configuration {
         return n;
     }
 
-   /* public int getF() {
+    public int getF() {
         return f;
-    }*/
+    }
     
     public int getPaxosHighMark() {
         return paxosHighMark;
@@ -490,11 +540,8 @@ public class TOMConfiguration extends Configuration {
         return useSignatures;
     }
 
-    /**
-     * Indicates if MACs should be used (1) or not (0) to authenticate client-server and server-server messages
-     */
-    public int getUseMACs() {
-        return useMACs;
+    public double getSigProb() {
+        return sigProb;
     }
 
     /**
@@ -552,7 +599,8 @@ public class TOMConfiguration extends Configuration {
     }
 
     public boolean isBFT() {
-        return isBFT;
+
+        return this.isBFT;
     }
 
     public int getNumRepliers() {
@@ -566,6 +614,10 @@ public class TOMConfiguration extends Configuration {
     public boolean getSameBatchSize() {
         return sameBatchSize;
     }
+
+    public boolean getFairBatch() {
+        return fairbatch;
+    }
     
     public String getBindAddress() {
         return bindAddress;
@@ -576,10 +628,19 @@ public class TOMConfiguration extends Configuration {
         return logBatchType;
     }
 
-    public boolean isStdinFromFile() {
-        return stdinFromFile;
+    /**
+     * Tulio Ribeiro ## SSL/TLS getters.
+     */
+    public String getSSLTLSProtocolVersion() {
+        return ssltlsProtocolVersion;
     }
 
+    public String getSSLTLSKeyStore() {
+        return keyStoreFile;
+    }
 
-
+    public String[] getEnabledCiphers() {
+        return enabledCiphers;
+    }
+    
 }

@@ -15,25 +15,23 @@ limitations under the License.
  */
 package bftsmart.tom;
 
+import bftsmart.reconfiguration.ReconfigureReply;
+import bftsmart.reconfiguration.views.View;
 import bftsmart.tom.core.TOMSender;
+import bftsmart.tom.core.messages.TOMMessage;
+import bftsmart.tom.core.messages.TOMMessageType;
+import bftsmart.tom.util.Extractor;
+import bftsmart.tom.util.KeyLoader;
+import bftsmart.tom.util.TOMUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Random;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
-
-import bftsmart.reconfiguration.ReconfigureReply;
-import bftsmart.reconfiguration.views.View;
-import bftsmart.tom.core.messages.TOMMessage;
-import bftsmart.tom.core.messages.TOMMessageType;
-import bftsmart.tom.util.Extractor;
-import bftsmart.tom.util.KeyLoader;
-import bftsmart.tom.util.TOMUtil;
-import java.security.Provider;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * This class implements a TOMSender and represents a proxy to be used on the
@@ -53,7 +51,7 @@ public class ServiceProxy extends TOMSender {
 	private int operationId = -1; // request id
 	private TOMMessageType requestType;
 	private int replyQuorum = 0; // size of the reply quorum
-	private TOMMessage replies[] = null; // Replies from replicas are stored here
+    private TOMMessage[] replies = null; // Replies from replicas are stored here
 	private int receivedReplies = 0; // Number of received replies
 	private TOMMessage response = null; // Reply delivered to the application
 	private int invokeTimeout = 40;
@@ -356,6 +354,7 @@ public class ServiceProxy extends TOMSender {
          */
 	protected void reconfigureTo(View v) {
 		logger.debug("Installing a most up-to-date view with id=" + v.getId());
+        System.out.println("Installing a most up-to-date view with id=" + v.getId());
 		getViewManager().reconfigureTo(v);
 		getViewManager().getViewStore().storeView(v);
 		replies = new TOMMessage[getViewManager().getCurrentViewN()];

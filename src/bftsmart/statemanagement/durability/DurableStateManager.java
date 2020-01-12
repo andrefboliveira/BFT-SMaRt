@@ -15,6 +15,17 @@
  */
 package bftsmart.statemanagement.durability;
 
+import bftsmart.consensus.messages.ConsensusMessage;
+import bftsmart.reconfiguration.views.View;
+import bftsmart.statemanagement.ApplicationState;
+import bftsmart.statemanagement.SMMessage;
+import bftsmart.statemanagement.StateManager;
+import bftsmart.tom.server.defaultservices.CommandsInfo;
+import bftsmart.tom.server.durability.DurabilityCoordinator;
+import bftsmart.tom.util.TOMUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.InetSocketAddress;
@@ -25,18 +36,6 @@ import java.util.Queue;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.locks.ReentrantLock;
-
-import bftsmart.consensus.messages.ConsensusMessage;
-import bftsmart.reconfiguration.views.View;
-import bftsmart.statemanagement.ApplicationState;
-import bftsmart.statemanagement.SMMessage;
-import bftsmart.statemanagement.StateManager;
-import bftsmart.tom.server.defaultservices.CommandsInfo;
-import bftsmart.tom.server.durability.DurabilityCoordinator;
-import bftsmart.tom.util.TOMUtil;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class DurableStateManager extends StateManager {
 
@@ -54,12 +53,6 @@ public class DurableStateManager extends StateManager {
     private CSTState stateUpper;
     
     private Thread stateThread = null;
-
-    public void setLastCID(int cid) {
-        
-        super.setLastCID(cid);
-        tomLayer.setLastExec(cid);
-    }
     
     @Override
     protected void requestState() {

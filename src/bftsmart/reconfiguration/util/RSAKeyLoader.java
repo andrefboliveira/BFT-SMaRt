@@ -16,6 +16,8 @@ limitations under the License.
 package bftsmart.reconfiguration.util;
 
 import bftsmart.tom.util.KeyLoader;
+import org.apache.commons.codec.binary.Base64;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -30,7 +32,6 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.HashMap;
 import java.util.Map;
-import org.apache.commons.codec.binary.Base64;
 
 /**
  * Used to load JCA public and private keys from conf/keys/publickey<id> and
@@ -79,10 +80,10 @@ public class RSAKeyLoader implements KeyLoader {
             this.sigAlgorithm = sigAlgorithm;
             
             if (configHome.equals("")) {
-                    path = "config" + System.getProperty("file.separator") + "keys" +
+                path = "config" + System.getProperty("file.separator") + "keysRSA" +
                                     System.getProperty("file.separator");
             } else {
-                    path = configHome + System.getProperty("file.separator") + "keys" +
+                path = configHome + System.getProperty("file.separator") + "keysRSA" +
                                     System.getProperty("file.separator");
             }
             

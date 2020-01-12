@@ -18,6 +18,7 @@ import bftsmart.tom.MessageContext;
 import bftsmart.tom.ReplicaContext;
 import bftsmart.tom.core.messages.ForwardedMessage;
 import bftsmart.tom.core.messages.TOMMessage;
+import bftsmart.tom.core.messages.TOMMessageType;
 import bftsmart.tom.server.BatchExecutable;
 import bftsmart.tom.server.Recoverable;
 import bftsmart.tom.server.ServerJoiner;
@@ -26,9 +27,6 @@ import bftsmart.tom.server.defaultservices.blockchain.logger.AsyncBatchLogger;
 import bftsmart.tom.server.defaultservices.blockchain.logger.BufferBatchLogger;
 import bftsmart.tom.server.defaultservices.blockchain.logger.ParallelBatchLogger;
 import bftsmart.tom.server.defaultservices.blockchain.logger.VoidBatchLogger;
-import bftsmart.tom.server.defaultservices.blockchain.strategy.BlockchainSMMessage;
-import bftsmart.tom.server.defaultservices.blockchain.strategy.BlockchainState;
-import bftsmart.tom.server.defaultservices.blockchain.strategy.BlockchainStateManager;
 import bftsmart.tom.util.BatchBuilder;
 import bftsmart.tom.util.TOMUtil;
 import org.apache.commons.codec.binary.Base64;
@@ -41,25 +39,32 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.util.*;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * @author joao
+ *
+ * @author joao -- merged with andre!
  */
 public abstract class StrongBlockchainRecoverable implements Recoverable, BatchExecutable, ServerJoiner {
-    protected Logger logger = LoggerFactory.getLogger(this.getClass());
+
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     public String batchDir;
 
     private TOMConfiguration config;
     private ServerViewController controller;
-    private BlockchainStateManager stateManager;
+    private StateManager stateManager;
     private ServerCommunicationSystem commSystem;
 
-    private TOMMessageGenerator TOMgen;
+    private int session;
+    private int commitSeq;
+    private int timeoutSeq;
+    private int requestID;
+
+    private byte[] appState;
+    private byte[] appStateHash;
 
     private BatchLogger log;
     private LinkedList<TOMMessage> results;
@@ -69,26 +74,23 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
     private int lastReconfig;
     private byte[] lastBlockHash;
 
-    private byte[] appState;
-    private byte[] appStateHash;
-
-    // private AsynchServiceProxy proxy;
-    // private Timer timer;
+    //private AsynchServiceProxy proxy;
+    private Timer timer;
 
     private ReentrantLock timerLock = new ReentrantLock();
     private ReentrantLock mapLock = new ReentrantLock();
     private Condition gotCertificate = mapLock.newCondition();
     private Map<Integer, Map<Integer, byte[]>> certificates;
     private Map<Integer, Set<Integer>> timeouts;
-    private Set<SMMessage> stateMsgs;
     private int currentCommit;
+
+    private TOMMessageGenerator TOMgen;
+
+    private Set<SMMessage> stateMsgs;
 
     public enum commandType {
         APP, JOIN
     }
-
-    private LinkedBlockingQueue<Map.Entry<Integer, byte[]>> commitQueue;
-    private Thread commitThread = null;
 
     public StrongBlockchainRecoverable() {
 
@@ -102,9 +104,8 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
         currentCommit = -1;
         certificates = new HashMap<>();
         timeouts = new HashMap<>();
+
         stateMsgs = new HashSet<>();
-        
-        commitQueue = new LinkedBlockingQueue<>();
     }
 
     @Override
@@ -122,27 +123,39 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
 
             TOMgen = new TOMMessageGenerator(controller);
 
-            // proxy = new AsynchServiceProxy(config.getProcessId());
+            Random rand = new Random(System.nanoTime());
+            session = rand.nextInt();
+            requestID = 0;
+            commitSeq = 0;
+            timeoutSeq = 0;
 
+            //proxy = new AsynchServiceProxy(config.getProcessId());
             //batchDir = config.getConfigHome().concat(System.getProperty("file.separator")) +
             batchDir = "files".concat(System.getProperty("file.separator"));
 
-            initLog();
+            if (config.getLogBatchType().equalsIgnoreCase("buffer")) {
+                log = BufferBatchLogger.getInstance(config.getProcessId(), batchDir);
+            } else if (config.getLogBatchType().equalsIgnoreCase("parallel")) {
+                log = ParallelBatchLogger.getInstance(config.getProcessId(), batchDir);
+            } else if (config.getLogBatchType().equalsIgnoreCase("async")) {
+                log = AsyncBatchLogger.getInstance(config.getProcessId(), batchDir);
+            } else {
+                log = VoidBatchLogger.getInstance(config.getProcessId(), batchDir);
+            }
 
             log.startNewFile(-1, config.getCheckpointPeriod());
 
-            // write genesis block
+            //write genesis block
             byte[][] hashes = log.markEndTransactions();
             log.storeHeader(nextNumber, lastCheckpoint, lastReconfig, hashes[0], hashes[1], lastBlockHash);
 
-            log.sync();
+            if (config.isToWriteSyncLog()) {
+                log.sync();
+            }
 
-            lastBlockHash = computeBlockHash(nextNumber, lastCheckpoint, lastReconfig, hashes[0], hashes[1],
-                    lastBlockHash);
+            lastBlockHash = computeBlockHash(nextNumber, lastCheckpoint, lastReconfig, hashes[0], hashes[1], lastBlockHash);
 
             nextNumber++;
-
-            // log.startNewFile(nextNumber);
 
         } catch (Exception ex) {
 
@@ -151,19 +164,17 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
 
         ((BlockchainStateManager) getStateManager()).setTOMgen(TOMgen);
         getStateManager().askCurrentConsensusId();
-    }
 
+    }
 
     @Override
     public ApplicationState getState(int cid, boolean sendState) {
-
         logger.info("CID requested: " + cid + ". Last checkpoint: " + lastCheckpoint + ". Last CID: "
                 + log.getLastStoredCID());
 
         //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         //boolean hasCached = log.getFirstCachedCID() != -1 && log.getLastCachedCID() != -1;
         // boolean hasState = cid >= lastCheckpoint && cid <= log.getLastStoredCID();
-
         CommandsInfo[] batches = null;
 
         int lastCID = -1;
@@ -174,21 +185,28 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
 
         lastCID = cid;
 
+        //private int session;
+        //private int commitSeq;
+        //private int timeoutSeq;
+        //private int requestID;
         ret = new BlockchainState(log.getCachedBatches(), log.getCachedResults(), log.getCachedHeaders(),
                 log.getCachedCertificates(), lastCheckpoint, lastCID, (sendState ? appState : null), appStateHash,
-                config.getProcessId(), nextNumber, lastReconfig, lastBlockHash);
+                config.getProcessId(), nextNumber, lastReconfig, lastBlockHash, session, commitSeq, timeoutSeq, requestID);
 
         return ret;
     }
 
     @Override
     public int setState(ApplicationState recvState) {
-        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-
         int lastCID = -1;
         if (recvState instanceof BlockchainState) {
 
             BlockchainState state = (BlockchainState) recvState;
+
+            this.session = state.getSession();
+            this.requestID = state.getRequestID();
+            this.timeoutSeq = state.getTimeoutSeq();
+            this.commitSeq = state.getCommitSeq();
 
             int lastCheckpointCID = state.getLastCheckpointCID();
             lastCID = state.getLastCID();
@@ -206,23 +224,31 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
                     appState = state.getState();
                     appStateHash = state.getStateHash();
 
-                    initLog();
+                    batchDir = "files".concat(System.getProperty("file.separator"));
+                    if (config.getLogBatchType().equalsIgnoreCase("buffer")) {
+                        log = BufferBatchLogger.getInstance(config.getProcessId(), batchDir);
+                    } else if (config.getLogBatchType().equalsIgnoreCase("parallel")) {
+                        log = ParallelBatchLogger.getInstance(config.getProcessId(), batchDir);
+                    } else if (config.getLogBatchType().equalsIgnoreCase("async")) {
+                        log = AsyncBatchLogger.getInstance(config.getProcessId(), batchDir);
+                    } else {
+                        log = VoidBatchLogger.getInstance(config.getProcessId(), batchDir);
+                    }
+
                     log.setCached(state.getLastCheckpointCID(), state.getLastCID(), state.getBatches(),
                             state.getResults(), state.getHeaders(), state.getCertificates());
                     installSnapshot(state.getSerializedState());
                 }
-                
+
                 writeCheckpointToDisk(lastCheckpoint, appState);
-                
-                stateManager.fetchBlocks(lastCID);
-                
+
+                //stateManager.fetchBlocks(lastCID);
                 if (lastCID % config.getCheckpointPeriod() == 0) {
                     log.startFileFromCache(config.getCheckpointPeriod());
+                } else {
+                    log.openFile(lastCheckpoint, config.getCheckpointPeriod());
                 }
-                else {
-                    log.openFile(lastCheckpoint,config.getCheckpointPeriod());
-                }
-                
+
                 for (int cid = lastCheckpointCID + 1; cid <= lastCID; cid++) {
 
                     logger.debug("Processing and verifying batched requests for cid " + cid);
@@ -232,11 +258,9 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
                     MessageContext[] msgCtxs = cmdInfo.msgCtx;
 
                     //executeBatch(config.getProcessId(), controller.getCurrentViewId(), commands, msgCtxs, msgCtxs[0].isNoOp(), false);
-
                     if (commands == null || msgCtxs == null || msgCtxs[0].isNoOp()) {
                         continue;
                     }
-
 
                     LinkedList<byte[]> transListApp = new LinkedList<byte[]>();
                     LinkedList<MessageContext> ctxListApp = new LinkedList<MessageContext>();
@@ -271,6 +295,8 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
                                     ctxjoinRequestList.add(msgCtxs[i]);
 
                                 } else {
+
+
                                     transListApp.add(commands[i]);
                                     ctxListApp.add(msgCtxs[i]);
 
@@ -289,7 +315,6 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
 
                     if (transListApp.size() > 0 || joinRequestList.size() > 0) {
 
-
                         if (transListApp.size() > 0) {
                             byte[][] transArrayApp = new byte[transListApp.size()][];
                             MessageContext[] ctxArrayApp = new MessageContext[ctxListApp.size()];
@@ -300,12 +325,10 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
                             appExecuteBatch(transArrayApp, ctxArrayApp, false);
                         }
 
-
                         if (joinRequestList.size() > 0) {
 
                             byte[][] commandsJoin = new byte[joinRequestList.size()][];
                             joinRequestList.toArray(commandsJoin);
-
 
                             MessageContext[] msgCtxsJoin = new MessageContext[ctxjoinRequestList.size()];
                             ctxjoinRequestList.toArray(msgCtxsJoin);
@@ -334,49 +357,10 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
         return lastCID;
     }
 
-    private void processCommit(byte[] command, int sender) {
-        
-        ByteBuffer buff = ByteBuffer.wrap(command);
-            
-        int cid = buff.getInt();
-        byte[] sig = new byte[buff.getInt()];
-        buff.get(sig);
-
-        if (currentCommit <= cid
-                /*&& TOMUtil.verifySignature(controller.getStaticConf().getPublicKey(msgCtx.getSender()), lastBlockHash, sig*)*/) {
-
-            //TODO: there are two bug that will cause the system to block if signature validation is performed. One is due to the fact
-            // that hash headers are not deterministic due to the consensus proof contained in the context object. The other I think
-            //it is a rece condition, but I don't know where yet.
-
-            logger.debug("Received valid signature from {}: {}", sender, Base64.encodeBase64String(sig));
-
-            mapLock.lock();
-
-            Map<Integer,byte[]> signatures = certificates.get(cid);
-            if (signatures == null) {
-
-                signatures = new HashMap<>();
-                certificates.put(cid, signatures);
-            }
-
-            signatures.put(sender, sig);
-
-            logger.debug("got {} sigs for CID {}", signatures.size(), cid);
-
-            if (currentCommit == cid && signatures.size() > controller.getQuorum()) {
-
-                logger.info("Signaling main thread");
-                gotCertificate.signalAll();
-            }
-
-            mapLock.unlock();
-
-        }
-    }
     @Override
     public StateManager getStateManager() {
         if (stateManager == null) {
+            //stateManager = new StandardStateManager(); // might need to be other implementation
             stateManager = new BlockchainStateManager(true, true); // might need to be other implementation
         }
         return stateManager;
@@ -391,59 +375,61 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
     @Override
     public void noOp(int CID, byte[][] operations, MessageContext[] msgCtxs) {
 
-        executeBatch(-1, -1, operations, msgCtxs, true, true);
+        executeBatch(-1, -1, operations, msgCtxs, true);
+
     }
 
     @Override
     public TOMMessage[] executeBatch(int processID, int viewID, byte[][] operations, MessageContext[] msgCtxs) {
 
-        return executeBatch(processID, viewID, operations, msgCtxs, false, true);
+        return executeBatch(processID, viewID, operations, msgCtxs, false);
     }
 
     @Override
     public TOMMessage executeUnordered(int processID, int viewID, boolean isHashedReply, byte[] command, MessageContext msgCtx) {
-        
-        while (controller == null) { //TODO: eventually change this to a signal/wait mechanism
-         
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException ex) {
-                logger.error("interruption problem", ex);
-            }
-        }
-        
+
         if (controller.isCurrentViewMember(msgCtx.getSender())) {
-              
-            Map.Entry<Integer, byte[]> entry = new Map.Entry<Integer, byte[]>() {
-                @Override
-                public Integer getKey() {
-                    return msgCtx.getSender();
+
+            ByteBuffer buff = ByteBuffer.wrap(command);
+
+            int cid = buff.getInt();
+            byte[] sig = new byte[buff.getInt()];
+            buff.get(sig);
+
+            logger.debug("Received signature from {}: {}", msgCtx.getSender(), Base64.encodeBase64String(sig));
+
+            if (cid >= currentCommit) {
+
+                mapLock.lock();
+
+                Map<Integer, byte[]> signatures = certificates.get(cid);
+                if (signatures == null) {
+
+                    signatures = new HashMap<>();
+                    certificates.put(cid, signatures);
                 }
 
-                @Override
-                public byte[] getValue() {
-                    return command;
+                signatures.put(msgCtx.getSender(), sig);
+
+                logger.debug("got {} sigs for CID {}", signatures.size(), cid);
+
+                if (currentCommit == cid && signatures.size() > controller.getQuorum()) {
+
+                    logger.debug("Signaling main thread");
+                    gotCertificate.signalAll();
                 }
 
-                @Override
-                public byte[] setValue(byte[] value) {
-                    return null;
-                }
-            };
-            
-            try {
-                commitQueue.put(entry);
-            } catch (InterruptedException ex) {
-                logger.error("Error while inserting to queue", ex);
+                mapLock.unlock();
+
             }
-            //processCommit(command, msgCtx);
             return null;
         } else {
 
             byte[] result = executeUnordered(command, msgCtx);
 
-            if (isHashedReply)
+            if (isHashedReply) {
                 result = TOMUtil.computeHash(result);
+            }
 
             return getTOMMessage(processID, viewID, command, msgCtx, result);
         }
@@ -454,120 +440,134 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
         return TOMUtil.computeHash(getSnapshot());
     }
 
-    private TOMMessage[] executeBatch(int processID, int viewID, byte[][] operations, MessageContext[] msgCtxs, boolean noop, boolean fromConsensus) {
-    
-        if (commitThread == null) {
-            
-            commitThread = new Thread() {
-              
-                public void run() {
-                 
-                    while(true) {
-                        
-                        try {
-                            Map.Entry<Integer, byte[]> entry = commitQueue.take();
-                            processCommit(entry.getValue(), entry.getKey());
-                        } catch (InterruptedException ex) {
-                            logger.error("Error while taking element from queue",ex);
-                        }
-                    } 
-                }
-            };
-            
-            commitThread.start();
-        }
-        
-        int cid = msgCtxs[0].getConsensusId();
+    private TOMMessage[] executeBatch(int processID, int viewID, byte[][] ops, MessageContext[] ctxs, boolean noop) {
+
+        //int cid = msgCtxs[0].getConsensusId();
         TOMMessage[] replies = new TOMMessage[0];
         boolean timeout = false;
 
+        logger.info("Received batch with {} txs", ops.length);
+
+        Map<Integer, Map.Entry<byte[][], MessageContext[]>> split = splitCIDs(ops, ctxs);
+
         try {
 
-            Map<commandType, List<Integer>> commandIndexes = new HashMap<commandType, List<Integer>>();
-            commandIndexes.put(commandType.APP, new ArrayList<Integer>());
-            commandIndexes.put(commandType.JOIN, new ArrayList<Integer>());
+            Integer[] cids = new Integer[split.keySet().size()];
 
+            split.keySet().toArray(cids);
 
-            LinkedList<byte[]> transListApp = new LinkedList<byte[]>();
-            LinkedList<MessageContext> ctxListApp = new LinkedList<MessageContext>();
+            Arrays.sort(cids);
 
-            LinkedList<byte[]> joinRequestList = new LinkedList<byte[]>();
-            LinkedList<MessageContext> ctxjoinRequestList = new LinkedList<MessageContext>();
+            int count = 0;
 
-            log.storeTransactions(cid, operations, msgCtxs);
+            for (Integer i : cids) {
 
-            for (int i = 0; i < operations.length; i++) {
+                count += split.get(i).getKey().length;
+            }
 
-                if (controller.isCurrentViewMember(msgCtxs[i].getSender())) {
+            logger.info("Batch contains {} decisions with a total of {} txs", cids.length, count);
 
-                    ByteBuffer buff = ByteBuffer.wrap(operations[i]);
+            for (Integer cid : cids) {
 
-                    int l = buff.getInt();
-                    byte[] b = new byte[l];
-                    buff.get(b);
+                byte[][] operations = split.get(cid).getKey();
+                MessageContext[] msgCtxs = split.get(cid).getValue();
 
-                    if ((new String(b)).equals("TIMEOUT")) {
+                // Map<commandType, List<Integer>> commandIndexes = new HashMap<commandType, List<Integer>>();
+                //commandIndexes.put(commandType.APP, new ArrayList<Integer>());
+                // commandIndexes.put(commandType.JOIN, new ArrayList<Integer>());
 
-                        int n = buff.getInt();
+                LinkedList<byte[]> transListApp = new LinkedList<>();
+                LinkedList<MessageContext> ctxListApp = new LinkedList<>();
 
-                        if (n == nextNumber) {
+                LinkedList<byte[]> joinRequestList = new LinkedList<byte[]>();
+                LinkedList<MessageContext> ctxjoinRequestList = new LinkedList<MessageContext>();
 
-                            logger.info("Got timeout for current block from replica {}!", msgCtxs[i].getSender());
+                for (int i = 0; i < operations.length; i++) {
 
-                            Set<Integer> t = timeouts.get(nextNumber);
-                            if (t == null) {
+                    if (controller.isCurrentViewMember(msgCtxs[i].getSender())) {
 
-                                t = new HashSet<>();
-                                timeouts.put(nextNumber, t);
+                        ByteBuffer buff = ByteBuffer.wrap(operations[i]);
 
-                            }
-
-                            t.add(msgCtxs[i].getSender());
-
-                            if (t.size() >= (controller.getCurrentViewF() + 1)) {
-
-                                timeout = true;
-                            }
-                        }
-                    } else if ((new String(b)).equals("STATE")) {
-
-                        int id = buff.getInt();
-
-                        BlockchainSMMessage smsg = new BlockchainSMMessage(msgCtxs[i].getSender(),
-                                cid, TOMUtil.SM_REQUEST, id, null, null, -1, -1);
-
-                        stateMsgs.add(smsg);
-
-                    }
-
-                } else if (!noop) {
-
-                    ByteBuffer buff = ByteBuffer.wrap(operations[i]);
-
-                    int l = buff.getInt();
-
-                    if (l > 0) {
+                        int l = buff.getInt();
                         byte[] b = new byte[l];
                         buff.get(b);
 
-                        String flag = "JOIN_REQUEST";
+                        if ((new String(b)).equals("TIMEOUT")) {
 
-                        if (flag.equals((new String(b)))) {
+                            int n = buff.getInt();
 
-                            commandIndexes.get(commandType.JOIN).add(i);
+                            if (n == nextNumber) {
+
+                                logger.info("Got timeout for current block from replica {}!", msgCtxs[i].getSender());
+
+                                Set<Integer> t = timeouts.get(nextNumber);
+                                if (t == null) {
+
+                                    t = new HashSet<>();
+                                    timeouts.put(nextNumber, t);
+
+                                }
+
+                                t.add(msgCtxs[i].getSender());
+
+                                if (t.size() >= (controller.getCurrentViewF() + 1)) {
+
+                                    timeout = true;
+                                }
+                            }
+                        } else if ((new String(b)).equals("STATE")) {
+
+                            int id = buff.getInt();
+
+                            BlockchainSMMessage smsg = new BlockchainSMMessage(msgCtxs[i].getSender(),
+                                    cid, TOMUtil.SM_REQUEST, id, null, null, -1, -1);
+
+                            stateMsgs.add(smsg);
+
+                        }
+
+                    } else if (!noop) {
+
+                        //transList.add(operations[i]);
+                        //ctxList.add(msgCtxs[i]);
+                        ByteBuffer buff = ByteBuffer.wrap(operations[i]);
+
+                        int l = buff.getInt();
+
+                        if (l > 0) {
+                            byte[] b = new byte[l];
+                            buff.get(b);
+
+                            String flag = "JOIN_REQUEST";
 
 
-                            int messageSize = buff.getInt();
-                            byte[] messageBytes = new byte[messageSize];
-                            buff.get(messageBytes);
+                            if (flag.equals((new String(b)))) {
 
-                            logger.debug("Request {} added to Join Requests list", msgCtxs[i].getOperationId());
 
-                            joinRequestList.add(messageBytes);
-                            ctxjoinRequestList.add(msgCtxs[i]);
+                                //commandIndexes.get(commandType.JOIN).add(i);
 
+                                int messageSize = buff.getInt();
+                                byte[] messageBytes = new byte[messageSize];
+                                buff.get(messageBytes);
+
+                                logger.debug("Request {} added to Join Requests list", msgCtxs[i].getOperationId());
+
+                                joinRequestList.add(messageBytes);
+                                ctxjoinRequestList.add(msgCtxs[i]);
+
+                            } else {
+
+
+                                //commandIndexes.get(commandType.APP).add(i);
+
+                                transListApp.add(operations[i]);
+                                ctxListApp.add(msgCtxs[i]);
+
+                                logger.debug("Request {} added to App Requests list", msgCtxs[i].getOperationId());
+
+                            }
                         } else {
-                            commandIndexes.get(commandType.APP).add(i);
+                            //commandIndexes.get(commandType.APP).add(i);
 
                             transListApp.add(operations[i]);
                             ctxListApp.add(msgCtxs[i]);
@@ -575,201 +575,214 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
                             logger.debug("Request {} added to App Requests list", msgCtxs[i].getOperationId());
 
                         }
-                    } else {
-                        commandIndexes.get(commandType.APP).add(i);
-
-                        transListApp.add(operations[i]);
-                        ctxListApp.add(msgCtxs[i]);
-
-                        logger.debug("Request {} added to App Requests list", msgCtxs[i].getOperationId());
 
                     }
 
                 }
 
-            }
+                if (transListApp.size() > 0 || joinRequestList.size() > 0) {
 
-//            CommandContextPair fullCommandsAndContexts = orderCommands(operations, msgCtxs, commandIndexes, true);
-//            byte[][] fullCommands = fullCommandsAndContexts.getCommands();
-//            MessageContext[] fullContexts = fullCommandsAndContexts.getMsgCtxs();
-//
-//
-//            log.storeTransactions(cid, fullCommands, fullContexts);
+                    if (transListApp.size() > 0) {
 
-            if (transListApp.size() > 0 || joinRequestList.size() > 0) {
+                        byte[][] transApp = new byte[transListApp.size()][];
+                        MessageContext[] ctxApp = new MessageContext[ctxListApp.size()];
 
-                byte[][] repliesApp = new byte[transListApp.size()][];
+                        transListApp.toArray(transApp);
+                        ctxListApp.toArray(ctxApp);
 
-                if (transListApp.size() > 0) {
-                    byte[][] transArrayApp = new byte[transListApp.size()][];
-                    MessageContext[] ctxArrayApp = new MessageContext[ctxListApp.size()];
+                        byte[][] resultsApp = executeBatch(transApp, ctxApp);
+                        //replies = new TOMMessage[results.length];
 
-                    transListApp.toArray(transArrayApp);
-                    ctxListApp.toArray(ctxArrayApp);
+                        //TODO: this should be logged in another way, because the number transactions logged may not match the
+                        // number of results, because of the timeouts (that still need to be added to the block). This can render
+                        //audition impossible. Must implemented a way to match the results to their respective transactions.
+                        log.storeResults(resultsApp);
 
-                    //byte[][] resultsApp = executeBatch(transArrayApp, ctxArrayApp);
-                    repliesApp = appExecuteBatch(transArrayApp, ctxArrayApp, fromConsensus);
-                }
+                        for (int i = 0; i < resultsApp.length; i++) {
 
+                            TOMMessage reply = getTOMMessage(processID, viewID, transApp[i], ctxApp[i], resultsApp[i]);
 
-                byte[][] repliesJoin = new byte[joinRequestList.size()][];
+                            this.results.add(reply);
+                        }
 
+                        if (timer != null) {
+                            timer.cancel();
+                        }
+                        timer = new Timer();
 
-                if (joinRequestList.size() > 0) {
+                        timer.schedule(new TimerTask() {
 
-                    byte[][] commandsJoin = new byte[joinRequestList.size()][];
-                    joinRequestList.toArray(commandsJoin);
+                            @Override
+                            public void run() {
 
+                                logger.info("Timeout for block {}, asking to close it", nextNumber);
 
-                    MessageContext[] msgCtxsJoin = new MessageContext[ctxjoinRequestList.size()];
-                    ctxjoinRequestList.toArray(msgCtxsJoin);
+                                ByteBuffer buff = ByteBuffer.allocate("TIMEOUT".getBytes().length + (Integer.BYTES * 2));
+                                buff.putInt("TIMEOUT".getBytes().length);
+                                buff.put("TIMEOUT".getBytes());
+                                buff.putInt(nextNumber);
 
-                    repliesJoin = executeJoinRequests(commandsJoin, msgCtxsJoin);
+                                sendTimeout(buff.array());
+                            }
 
-                }
-
-                byte[][] fullResults = concatArray(repliesApp, repliesJoin);
-
-
-                //TODO: this should be logged in another way, because the number transactions logged may not match the
-                // number of results, because of the timeouts (that still need to be added to the block). This can render
-                //audition impossible. Must implemented a way to match the results to their respective transactions.
-                log.storeResults(fullResults);
-
-                CommandContextPair executedCommandsAndContexts = orderCommands(operations, msgCtxs, commandIndexes);
-                byte[][] executedCommands = executedCommandsAndContexts.getCommands();
-                MessageContext[] executedContexts = executedCommandsAndContexts.getMsgCtxs();
-
-
-                for (int i = 0; i < fullResults.length; i++) {
-
-                    TOMMessage reply = getTOMMessage(processID, viewID, executedCommands[i], executedContexts[i], fullResults[i]);
-
-                    this.results.add(reply);
-                }
-                
-                /*if (timer != null) timer.cancel();
-                timer = new Timer();
-
-                timer.schedule(new TimerTask() {
-
-                    @Override
-                    public void run() {
-
-                        logger.info("Timeout for block {}, asking to close it", nextNumber);
-
-                        ByteBuffer buff = ByteBuffer.allocate("TIMEOUT".getBytes().length + (Integer.BYTES * 2));
-                        buff.putInt("TIMEOUT".getBytes().length);
-                        buff.put("TIMEOUT".getBytes());
-                        buff.putInt(nextNumber);
-
-                        sendTimeout(buff.array());
+                        }, config.getLogBatchTimeout());
                     }
-                    
-                }, config.getLogBatchTimeout());*/
-            } else {
 
-                log.storeResults(new byte[0][]);
-            }
 
-            boolean isCheckpoint = cid % config.getCheckpointPeriod() == 0;
+                    if (joinRequestList.size() > 0) {
 
-            //if (timeout || isCheckpoint || (cid % config.getLogBatchLimit() == 0)
-            //        /*(this.results.size() > config.getMaxBatchSize() * config.getLogBatchLimit())*/) {
 
-            byte[][] hashes = log.markEndTransactions();
+                        byte[][] repliesJoin = new byte[joinRequestList.size()][];
 
-            if (isCheckpoint) {
+                        byte[][] commandsJoin = new byte[joinRequestList.size()][];
+                        joinRequestList.toArray(commandsJoin);
 
-                logger.info("Performing checkpoint at CID {}", cid);
+                        MessageContext[] msgCtxsJoin = new MessageContext[ctxjoinRequestList.size()];
+                        ctxjoinRequestList.toArray(msgCtxsJoin);
 
-                log.clearCached();
-                lastCheckpoint = cid;
 
-                appState = getSnapshot();
-                appStateHash = TOMUtil.computeHash(appState);
+                        repliesJoin = executeJoinRequests(commandsJoin, msgCtxsJoin);
 
-                logger.info("Storing checkpoint at CID {}", cid);
 
-                writeCheckpointToDisk(cid, appState);
-            }
+                        for (int i = 0; i < repliesJoin.length; i++) {
 
-            log.storeHeader(nextNumber, lastCheckpoint, lastReconfig, hashes[0], hashes[1], lastBlockHash);
+                            TOMMessage reply = getTOMMessage(processID, viewID, commandsJoin[i], msgCtxsJoin[i], repliesJoin[i]);
 
-            lastBlockHash = computeBlockHash(nextNumber, lastCheckpoint, lastReconfig, hashes[0], hashes[1], lastBlockHash);
-            nextNumber++;
+                            this.results.add(reply);
 
-            logger.info("Created new block with hash header " + Base64.encodeBase64String(lastBlockHash));
+                        }
 
-            replies = new TOMMessage[this.results.size()];
+                    }
 
-            this.results.toArray(replies);
-            this.results.clear();
-
-            //TODO: This is if clause just a quick fix to avoid the thread from getting permanently block with the state transfer.
-            //It happens because the replica will never received the commit messages from the other replicas. I need to think of a
-            //way to solve this
-            if (fromConsensus) {
-
-                logger.info("Executing COMMIT phase at CID {} for block number {}", cid, (nextNumber - 1));
-
-                byte[] mySig = TOMUtil.signMessage(config.getPrivateKey(), lastBlockHash);
-
-                ByteBuffer buff = ByteBuffer.allocate((Integer.BYTES * 2) + mySig.length);
-
-                buff.putInt(cid);
-                buff.putInt(mySig.length);
-                buff.put(mySig);
-
-                //int context = proxy.invokeAsynchRequest(buff.array(), null, TOMMessageType.UNORDERED_REQUEST);
-                //proxy.cleanAsynchRequest(context);
-                sendCommit(buff.array());
-
-                mapLock.lock();
-
-                certificates.remove(currentCommit);
-
-                currentCommit = cid;
-
-                Map<Integer, byte[]> signatures = certificates.get(cid);
-                if (signatures == null) {
-
-                    signatures = new HashMap<>();
-                    certificates.put(cid, signatures);
                 }
 
-                while (!(signatures.size() > controller.getQuorum())) {
+                log.storeTransactions(cid, operations, msgCtxs);
 
-                    logger.debug("blocking main thread");
-                    gotCertificate.await(200, TimeUnit.MILLISECONDS);
-                    //gotCertificate.await();
+                //boolean isCheckpoint = cid > 0 && cid % config.getCheckpointPeriod() == 0;
+                boolean isCheckpoint = nextNumber > 0 && nextNumber % config.getCheckpointPeriod() == 0;
 
-                    //signatures = certificates.get(cid);
+
+                if (joinRequestList.size() > 0 || (timeout | isCheckpoint
+                        || /*(cid % config.getLogBatchLimit() == 0)*/
+                        (this.results.size() > config.getMaxBatchSize())) /* * config.getLogBatchLimit())*/) {
+
+                    byte[][] hashes = log.markEndTransactions();
+
+                    log.storeHeader(nextNumber, lastCheckpoint, lastReconfig, hashes[0], hashes[1], lastBlockHash);
+
+                    //SYNC AQUI!!!
+                    long ts = System.currentTimeMillis();
+                    if (config.isToWriteSyncLog()) {
+
+                        logger.info("Synching log at CID {} and Block {}", cid, (nextNumber - 1));
+                        log.sync();
+                        logger.info("Synched log at CID {} and Block {} (elapsed time was {} ms)", cid, (nextNumber - 1), (System.currentTimeMillis() - ts));
+                    }
+
+                    lastBlockHash = computeBlockHash(nextNumber, lastCheckpoint, lastReconfig, hashes[0], hashes[1], lastBlockHash);
+                    nextNumber++;
+
+                    TOMMessage[] reps = new TOMMessage[this.results.size()];
+
+                    this.results.toArray(reps);
+                    this.results.clear();
+
+                    replies = TOMUtil.concat(replies, reps);
+
+                    if (isCheckpoint) {
+
+                        //logger.info("Performing checkpoint at CID {}", cid);
+                        logger.info("Performing checkpoint at block {}", nextNumber - 1);
+
+                        long t1 = System.currentTimeMillis();
+
+                        log.clearCached();
+                        lastCheckpoint = cid;
+
+                        appState = getSnapshot();
+                        appStateHash = TOMUtil.computeHash(appState);
+
+                        logger.info("Storing checkpoint at CID {}", cid);
+
+                        writeCheckpointToDisk(cid, appState);
+
+                        long total = System.currentTimeMillis() - t1;
+
+                        System.out.println("Toral ckpt time : " + total);
+
+                    }
+
+                    logger.info("Executing COMMIT phase at CID {} for block number {}", cid, (nextNumber - 1));
+
+                    byte[] mySig = TOMUtil.signMessage(config.getPrivateKey(), lastBlockHash);
+
+                    ByteBuffer buff = ByteBuffer.allocate((Integer.BYTES * 2) + mySig.length);
+
+                    buff.putInt(cid);
+                    buff.putInt(mySig.length);
+                    buff.put(mySig);
+
+                    //int context = proxy.invokeAsynchRequest(buff.array(), null, TOMMessageType.UNORDERED_REQUEST);
+                    //proxy.cleanAsynchRequest(context);
+                    sendCommit(buff.array());
+
+                    mapLock.lock();
+
+                    certificates.remove(currentCommit);
+
+                    currentCommit = cid;
+
+                    Map<Integer, byte[]> signatures = certificates.get(cid);
+                    if (signatures == null) {
+
+                        signatures = new HashMap<>();
+                        certificates.put(cid, signatures);
+                    }
+
+                    //TODO: there is a bug that makes the layer freeze in this part. This needsto be figured out.
+                    if (!(signatures.size() > controller.getQuorum())) {
+
+                        logger.debug("blocking main thread");
+                        gotCertificate.await(2000, TimeUnit.MILLISECONDS);
+                        //gotCertificate.await();
+
+                        //signatures = certificates.get(cid);
+                    }
+
+                    signatures = certificates.get(cid);
+
+                    Map<Integer, byte[]> copy = new HashMap<>();
+
+                    signatures.forEach((id, sig) -> {
+
+                        copy.put(id, sig);
+                    });
+
+                    mapLock.unlock();
+
+                    log.storeCertificate(copy);
+
+                    /*long ts = System.currentTimeMillis();
+                    if (config.isToWriteSyncLog()) {
+
+                        logger.info("Synching log at CID {} and Block {}", cid, (nextNumber - 1));
+                        log.sync();
+                        logger.info("Synched log at CID {} and Block {} (elapsed time was {} ms)", cid, (nextNumber - 1), (System.currentTimeMillis() - ts));
+
+                    }*/
+                    if (isCheckpoint) {
+                        log.startNewFile(cid, config.getCheckpointPeriod());
+                    }
+
+                    timeouts.remove(nextNumber - 1);
+
                 }
-
-                signatures = certificates.get(cid);
-
-                Map<Integer, byte[]> copy = new HashMap<>();
-
-                signatures.forEach((id, sig) -> {
-
-                    copy.put(id, sig);
-                });
-
-                mapLock.unlock();
-
-                log.storeCertificate(copy);
-            }
-            logger.info("Synching log at CID {} and Block {}", cid, (nextNumber - 1));
-
-            log.sync();
-
-            if (isCheckpoint) {
-                log.startNewFile(cid, config.getCheckpointPeriod());
             }
 
-            timeouts.remove(nextNumber - 1);
-            //}
+            if (timer != null && this.results.isEmpty()) {
+                timer.cancel();
+                timer = null;
+            }
 
             for (SMMessage smsg : stateMsgs) {
 
@@ -778,86 +791,248 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
 
             stateMsgs.clear();
 
+            logger.info("Returning {} replies", replies.length);
+
             return replies;
         } catch (IOException | NoSuchAlgorithmException | InterruptedException ex) {
-            logger.error("Error while logging/executing batch for CID " + cid, ex);
+            logger.error("Error while logging/executing batches", ex);
             return new TOMMessage[0];
         } finally {
-            if (mapLock.isHeldByCurrentThread()) mapLock.unlock();
+            if (mapLock.isHeldByCurrentThread()) {
+                mapLock.unlock();
+            }
         }
     }
 
-    private CommandContextPair orderCommands(byte[][] commands, MessageContext[] msgCtxs,
-                                             Map<commandType, List<Integer>> indexes) {
-        byte[][] mergedCommands;
-        MessageContext[] mergedContexts;
+    private Map<Integer, Map.Entry<byte[][], MessageContext[]>> splitCIDs(byte[][] operations, MessageContext[] msgCtxs) {
 
-        int i = 0;
+        Map<Integer, List<Map.Entry<byte[], MessageContext>>> map = new HashMap<>();
+        for (int i = 0; i < operations.length; i++) {
 
-         int mergedSize = indexes.get(commandType.APP).size() + indexes.get(commandType.JOIN).size();
+            List<Map.Entry<byte[], MessageContext>> list = map.get(msgCtxs[i].getConsensusId());
+            if (list == null) {
 
-         mergedCommands = new byte[mergedSize][];
-         mergedContexts = new MessageContext[mergedSize];
+                list = new LinkedList<>();
+                map.put(msgCtxs[i].getConsensusId(), list);
+            }
 
+            Map.Entry<byte[], MessageContext> entry = new HashMap.SimpleEntry<>(operations[i], msgCtxs[i]);
+            list.add(entry);
 
-        for (Integer appIndex : indexes.get(commandType.APP)) {
-            mergedCommands[i] = commands[appIndex];
-            mergedContexts[i] = msgCtxs[appIndex];
-
-            i++;
         }
 
-        for (Integer joinIndex : indexes.get(commandType.JOIN)) {
-            mergedCommands[i] = commands[joinIndex];
-            mergedContexts[i] = msgCtxs[joinIndex];
-            i++;
-        }
+        Map<Integer, Map.Entry<byte[][], MessageContext[]>> result = new HashMap<>();
 
-        return new CommandContextPair(mergedCommands, mergedContexts);
-    }
+        for (Integer cid : map.keySet()) {
 
-    private class CommandContextPair {
-        byte[][] commands;
-        MessageContext[] msgCtxs;
+            List<Map.Entry<byte[], MessageContext>> value = map.get(cid);
 
-        public CommandContextPair(byte[][] commands, MessageContext[] msgCtxs) {
-            this.commands = commands;
-            this.msgCtxs = msgCtxs;
-        }
+            byte[][] trans = new byte[value.size()][];
+            MessageContext[] ctxs = new MessageContext[value.size()];
 
-        public byte[][] getCommands() {
-            return this.commands;
-        }
+            for (int i = 0; i < value.size(); i++) {
 
-        public MessageContext[] getMsgCtxs() {
-            return this.msgCtxs;
-        }
-    }
+                trans[i] = value.get(i).getKey();
+                ctxs[i] = value.get(i).getValue();
+            }
 
-    private byte[][] concatArray(byte[][]... arrays) {
-        // Determine the length of the result array
-        int totalLength = 0;
-        for (int i = 0; i < arrays.length; i++) {
-            totalLength += arrays[i].length;
-        }
-
-        // create the result array
-        byte[][] result = new byte[totalLength][];
-
-        // copy the source arrays into the result array
-        int currentIndex = 0;
-        for (int i = 0; i < arrays.length; i++) {
-            System.arraycopy(arrays[i], 0, result, currentIndex, arrays[i].length);
-            currentIndex += arrays[i].length;
+            result.put(cid, new HashMap.SimpleEntry<>(trans, ctxs));
         }
 
         return result;
     }
 
+    private void sendCommit(byte[] payload) throws IOException {
+
+        try {
+
+            timerLock.lock();
+
+            TOMMessage commitMsg = new TOMMessage(config.getProcessId(),
+                    session, commitSeq, requestID, payload, controller.getCurrentViewId(), TOMMessageType.UNORDERED_REQUEST);
+
+            byte[] data = serializeTOMMsg(commitMsg);
+
+            commitMsg.serializedMessage = data;
+            commitMsg.serializedMessageSignature = TOMUtil.signMessage(controller.getStaticConf().getPrivateKey(), data);
+            commitMsg.signed = true;
+
+            commSystem.send(controller.getCurrentViewAcceptors(),
+                    new ForwardedMessage(this.controller.getStaticConf().getProcessId(), commitMsg));
+
+            requestID++;
+            commitSeq++;
+
+        } finally {
+
+            timerLock.unlock();
+        }
+    }
+
+    private void sendTimeout(byte[] payload) {
+
+        try {
+
+            timerLock.lock();
+
+            TOMMessage timeoutMsg = new TOMMessage(config.getProcessId(),
+                    session, timeoutSeq, requestID, payload, controller.getCurrentViewId(), TOMMessageType.ORDERED_REQUEST);
+
+            byte[] data = serializeTOMMsg(timeoutMsg);
+
+            timeoutMsg.serializedMessage = data;
+
+            if (config.getUseSignatures() == 1) {
+
+                timeoutMsg.serializedMessageSignature = TOMUtil.signMessage(controller.getStaticConf().getPrivateKey(), data);
+                timeoutMsg.signed = true;
+
+            }
+
+            commSystem.send(controller.getCurrentViewAcceptors(),
+                    new ForwardedMessage(this.controller.getStaticConf().getProcessId(), timeoutMsg));
+
+            requestID++;
+            timeoutSeq++;
+
+        } catch (IOException ex) {
+            logger.error("Error while sending timeout message.", ex);
+        } finally {
+
+            timerLock.unlock();
+        }
+
+    }
+
+    private void writeCheckpointToDisk(int cid, byte[] checkpoint) throws IOException {
+        long writeDiskStartTime = System.currentTimeMillis();
+
+        String checkpointPath = batchDir + "checkpoint." + config.getProcessId() + "." + cid + ".log";
+
+        RandomAccessFile log = new RandomAccessFile(checkpointPath, "rwd");
+
+        log.write(checkpoint);
+
+        log.close();
+
+        logger.info("DURATION writing checkpoint to disk: {}", (System.currentTimeMillis() - writeDiskStartTime) / 1000.0 + " s");
+
+    }
+
+    private byte[] serializeTOMMsg(TOMMessage msg) throws IOException {
+
+        DataOutputStream dos = null;
+        byte[] data = null;
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        dos = new DataOutputStream(baos);
+        msg.wExternal(dos);
+        dos.flush();
+        return baos.toByteArray();
+    }
+
+    private byte[] computeBlockHash(int number, int lastCheckpoint, int lastReconf, byte[] transHash, byte[] resultsHash, byte[] prevBlock) throws NoSuchAlgorithmException {
+
+        ByteBuffer buff = ByteBuffer.allocate(Integer.BYTES * 6 + (prevBlock.length + transHash.length + resultsHash.length));
+
+        buff.putInt(number);
+        buff.putInt(lastCheckpoint);
+        buff.putInt(lastReconf);
+
+        buff.putInt(transHash.length);
+        buff.put(transHash);
+
+        buff.putInt(resultsHash.length);
+        buff.put(resultsHash);
+
+        buff.putInt(prevBlock.length);
+        buff.put(prevBlock);
+
+        MessageDigest md = TOMUtil.getHashEngine();
+
+        return md.digest(buff.array());
+    }
+
+    public boolean verifyBatch(byte[][] commands, MessageContext[] msgCtxs) {
+
+        //first off, re-create the batch received in the PROPOSE message of the consensus instance
+        int totalMsgsSize = 0;
+        byte[][] messages = new byte[commands.length][];
+        byte[][] signatures = new byte[commands.length][];
+
+        for (int i = 0; i < commands.length; i++) {
+
+            TOMMessage msg = msgCtxs[i].recreateTOMMessage(commands[i]);
+            messages[i] = msg.serializedMessage;
+            signatures[i] = msg.serializedMessageSignature;
+            totalMsgsSize += msg.serializedMessage.length;
+        }
+
+        BatchBuilder builder = new BatchBuilder(0);
+        byte[] serializeddBatch = builder.createBatch(msgCtxs[0].getTimestamp(), msgCtxs[0].getNumOfNonces(), msgCtxs[0].getSeed(),
+                commands.length, totalMsgsSize, true, messages, signatures);
+
+        // now we can obtain the hash contained in the ACCEPT messages from the proposed value
+        byte[] hashedBatch = TOMUtil.computeHash(serializeddBatch);
+
+        //we are now ready to verify each message that comprises the proof
+        int countValid = 0;
+        int certificate = (2 * controller.getCurrentViewF()) + 1;
+
+        HashSet<Integer> alreadyCounted = new HashSet<>();
+
+        for (ConsensusMessage consMsg : msgCtxs[0].getProof()) {
+
+            ConsensusMessage cm = new ConsensusMessage(consMsg.getType(), consMsg.getNumber(),
+                    consMsg.getEpoch(), consMsg.getSender(), consMsg.getValue());
+
+            ByteArrayOutputStream bOut = new ByteArrayOutputStream(248);
+            try {
+                new ObjectOutputStream(bOut).writeObject(cm);
+            } catch (IOException ex) {
+                logger.error("Could not serialize message", ex);
+            }
+
+            byte[] data = bOut.toByteArray();
+
+            PublicKey pubKey = config.getPublicKey(consMsg.getSender());
+
+            byte[] signature = (byte[]) consMsg.getProof();
+
+            if (Arrays.equals(consMsg.getValue(), hashedBatch)
+                    && TOMUtil.verifySignature(pubKey, data, signature) && !alreadyCounted.contains(consMsg.getSender())) {
+
+                alreadyCounted.add(consMsg.getSender());
+                countValid++;
+            } else {
+                logger.error("Invalid signature in message from " + consMsg.getSender());
+            }
+        }
+
+        boolean ret = countValid >= certificate;
+        logger.info("Proof for CID {} is {} ({} valid messages, needed {})",
+                msgCtxs[0].getConsensusId(), (ret ? "valid" : "invalid"), countValid, certificate);
+        return ret;
+    }
+
+    @Override
+    public byte[][] executeBatch(byte[][] operations, MessageContext[] msgCtxs) {
+
+        return appExecuteBatch(operations, msgCtxs, true);
+    }
+
+    @Override
+    public byte[] executeUnordered(byte[] command, MessageContext msgCtx) {
+
+        return appExecuteUnordered(command, msgCtx);
+    }
+
     private byte[][] executeJoinRequests(byte[][] commands, MessageContext[] msgCtxs) {
         byte[][] replies = new byte[commands.length][];
 
+
         for (int i = 0; i < commands.length; i++) {
+
             replies[i] = processEachJoinRequest(commands[i], msgCtxs[i]);
         }
 
@@ -882,8 +1057,10 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
             }
 
         } catch (IOException e) {
+            e.printStackTrace();
             logger.error("Exception creating JOIN request: " + e.getMessage());
         }
+
         return new byte[0];
     }
 
@@ -919,194 +1096,6 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
         }
     }
 
-
-    private void sendCommit(byte[] payload) throws IOException {
-
-        try {
-
-            timerLock.lock();
-
-            TOMMessage commitMsg = TOMgen.getNextUnordered(payload);
-
-            byte[] data = TOMMessageGenerator.serializeTOMMsg(commitMsg);
-
-            commitMsg.serializedMessage = data;
-            commitMsg.serializedMessageSignature = TOMUtil.signMessage(controller.getStaticConf().getPrivateKey(),
-                    data);
-            commitMsg.signed = true;
-
-            commSystem.send(controller.getCurrentViewAcceptors(),
-                    new ForwardedMessage(this.controller.getStaticConf().getProcessId(), commitMsg));
-
-        } finally {
-
-            timerLock.unlock();
-        }
-    }
-
-    private void sendTimeout(byte[] payload) {
-
-        try {
-
-            timerLock.lock();
-
-            TOMMessage timeoutMsg = TOMgen.getNextOrdered(payload);
-
-            byte[] data = TOMMessageGenerator.serializeTOMMsg(timeoutMsg);
-
-            timeoutMsg.serializedMessage = data;
-
-            if (config.getUseSignatures() == 1) {
-
-                timeoutMsg.serializedMessageSignature = TOMUtil.signMessage(controller.getStaticConf().getPrivateKey(),
-                        data);
-                timeoutMsg.signed = true;
-
-            }
-
-            commSystem.send(controller.getCurrentViewAcceptors(),
-                    new ForwardedMessage(this.controller.getStaticConf().getProcessId(), timeoutMsg));
-
-        } catch (IOException ex) {
-            logger.error("Error while sending timeout message.", ex);
-        } finally {
-
-            timerLock.unlock();
-        }
-
-    }
-
-    private byte[] computeBlockHash(int number, int lastCheckpoint, int lastReconf, byte[] transHash,
-                                    byte[] resultsHash, byte[] prevBlock) throws NoSuchAlgorithmException {
-
-        ByteBuffer buff = ByteBuffer
-                .allocate(Integer.BYTES * 6 + (prevBlock.length + transHash.length + resultsHash.length));
-
-        buff.putInt(number);
-        buff.putInt(lastCheckpoint);
-        buff.putInt(lastReconf);
-
-        buff.putInt(transHash.length);
-        buff.put(transHash);
-
-        buff.putInt(resultsHash.length);
-        buff.put(resultsHash);
-
-        buff.putInt(prevBlock.length);
-        buff.put(prevBlock);
-
-        MessageDigest md = TOMUtil.getHashEngine();
-
-        return md.digest(buff.array());
-    }
-
-    private void initLog() throws FileNotFoundException, NoSuchAlgorithmException {
-
-        if (config.getLogBatchType().equalsIgnoreCase("buffer")) {
-            log = BufferBatchLogger.getInstance(config.getProcessId(), batchDir);
-        } else if (config.getLogBatchType().equalsIgnoreCase("parallel")) {
-            log = ParallelBatchLogger.getInstance(config.getProcessId(), batchDir);
-        } else if (config.getLogBatchType().equalsIgnoreCase("async")) {
-            log = AsyncBatchLogger.getInstance(config.getProcessId(), batchDir);
-        } else {
-            log = VoidBatchLogger.getInstance(config.getProcessId(), batchDir);
-        }
-
-    }
-
-    public boolean verifyBatch(byte[][] commands, MessageContext[] msgCtxs) {
-
-        //first off, re-create the batch received in the PROPOSE message of the consensus instance
-        int totalMsgsSize = 0;
-        byte[][] messages = new byte[commands.length][];
-        byte[][] signatures = new byte[commands.length][];
-
-        for (int i = 0; i < commands.length; i++) {
-
-            TOMMessage msg = msgCtxs[i].recreateTOMMessage(commands[i]);
-            messages[i] = msg.serializedMessage;
-            signatures[i] = msg.serializedMessageSignature;
-            totalMsgsSize += msg.serializedMessage.length;
-        }
-
-        BatchBuilder builder = new BatchBuilder(0);
-        byte[] serializeddBatch = builder.createBatch(msgCtxs[0].getTimestamp(), msgCtxs[0].getNumOfNonces(),
-                msgCtxs[0].getSeed(), commands.length, totalMsgsSize, true, messages, signatures);
-
-        // now we can obtain the hash contained in the ACCEPT messages from the proposed value
-        byte[] hashedBatch = TOMUtil.computeHash(serializeddBatch);
-
-        // we are now ready to verify each message that comprises the proof
-        int countValid = 0;
-        int certificate = (2 * controller.getCurrentViewF()) + 1;
-
-        HashSet<Integer> alreadyCounted = new HashSet<>();
-
-        for (ConsensusMessage consMsg : msgCtxs[0].getProof()) {
-
-            ConsensusMessage cm = new ConsensusMessage(consMsg.getType(), consMsg.getNumber(), consMsg.getEpoch(),
-                    consMsg.getSender(), consMsg.getValue());
-
-            cm.setCheckpointHash(consMsg.getCheckpointHash());
-
-            ByteArrayOutputStream bOut = new ByteArrayOutputStream(248);
-            try {
-                new ObjectOutputStream(bOut).writeObject(cm);
-            } catch (IOException ex) {
-                logger.error("Could not serialize message", ex);
-            }
-
-            byte[] data = bOut.toByteArray();
-
-            PublicKey pubKey = config.getPublicKey(consMsg.getSender());
-
-            byte[] signature = (byte[]) consMsg.getProof();
-
-            if (Arrays.equals(consMsg.getValue(), hashedBatch) && TOMUtil.verifySignature(pubKey, data, signature)
-                    && !alreadyCounted.contains(consMsg.getSender())) {
-
-                alreadyCounted.add(consMsg.getSender());
-                countValid++;
-            } else {
-                logger.error("Invalid signature in message from " + consMsg.getSender());
-            }
-        }
-
-        boolean ret = countValid >= certificate;
-        logger.info("Proof for CID {} is {} ({} valid messages, needed {})", msgCtxs[0].getConsensusId(),
-                (ret ? "valid" : "invalid"), countValid, certificate);
-        return ret;
-    }
-
-    private void writeCheckpointToDisk(int cid, byte[] checkpoint) throws IOException {
-        long writeDiskStartTime = System.currentTimeMillis();
-
-        String checkpointPath = batchDir + "checkpoint." + config.getProcessId() + "." + cid + ".log";
-
-        RandomAccessFile log = new RandomAccessFile(checkpointPath, "rwd");
-
-        log.write(checkpoint);
-
-        log.close();
-
-        logger.info("DURATION writing checkpoint to disk: {}", (System.currentTimeMillis() - writeDiskStartTime) / 1000.0 + " s");
-
-
-    }
-
-    @Override
-    public byte[][] executeBatch(byte[][] operations, MessageContext[] msgCtxs) {
-
-        // not used
-        return null;
-    }
-
-    @Override
-    public byte[] executeUnordered(byte[] command, MessageContext msgCtx) {
-
-        return appExecuteUnordered(command, msgCtx);
-    }
-
     /**
      * Given a snapshot received from the state transfer protocol, install it
      *
@@ -1124,10 +1113,11 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
     /**
      * Execute a batch of ordered requests
      *
-     * @param commands      The batch of requests
-     * @param msgCtxs       The context associated to each request
-     * @param fromConsensus true if the request arrived from a consensus execution,
-     *                      false if it arrives from the state transfer protocol
+     * @param commands The batch of requests
+     * @param msgCtxs The context associated to each request
+     * @param fromConsensus true if the request arrived from a consensus
+     * execution, false if it arrives from the state transfer protocol
+     *
      * @return the respective replies for each request
      */
     public abstract byte[][] appExecuteBatch(byte[][] commands, MessageContext[] msgCtxs, boolean fromConsensus);
@@ -1136,7 +1126,8 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
      * Execute an unordered request
      *
      * @param command The unordered request
-     * @param msgCtx  The context associated to the request
+     * @param msgCtx The context associated to the request
+     *
      * @return the reply for the request issued by the client
      */
     public abstract byte[] appExecuteUnordered(byte[] command, MessageContext msgCtx);
