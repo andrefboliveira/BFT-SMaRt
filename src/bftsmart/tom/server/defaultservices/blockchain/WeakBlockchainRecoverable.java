@@ -6,6 +6,8 @@
 package bftsmart.tom.server.defaultservices.blockchain;
 
 import bftsmart.communication.ServerCommunicationSystem;
+import bftsmart.tom.server.defaultservices.blockchain.logger.ParallelBatchLogger;
+import bftsmart.tom.server.defaultservices.blockchain.logger.BufferBatchLogger;
 import bftsmart.consensus.messages.ConsensusMessage;
 import bftsmart.reconfiguration.ServerViewController;
 import bftsmart.reconfiguration.util.TOMConfiguration;
@@ -21,14 +23,9 @@ import bftsmart.tom.server.BatchExecutable;
 import bftsmart.tom.server.Recoverable;
 import bftsmart.tom.server.ServerJoiner;
 import bftsmart.tom.server.defaultservices.blockchain.logger.AsyncBatchLogger;
-import bftsmart.tom.server.defaultservices.blockchain.logger.BufferBatchLogger;
-import bftsmart.tom.server.defaultservices.blockchain.logger.ParallelBatchLogger;
 import bftsmart.tom.server.defaultservices.blockchain.logger.VoidBatchLogger;
 import bftsmart.tom.util.BatchBuilder;
 import bftsmart.tom.util.TOMUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -37,9 +34,20 @@ import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Random;
+import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.locks.ReentrantLock;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -55,7 +63,7 @@ public abstract class WeakBlockchainRecoverable implements Recoverable, BatchExe
     private ServerViewController controller;
     private StateManager stateManager;
     private ServerCommunicationSystem commSystem;
-
+    
     private int session;
     private int timeoutSeq;
     private int requestID;
@@ -67,7 +75,7 @@ public abstract class WeakBlockchainRecoverable implements Recoverable, BatchExe
     private int lastCheckpoint;
     private int lastReconfig;
     private byte[] lastBlockHash;
-
+    
     private Timer timer;
     private Map<Integer, Set<Integer>> timeouts;
     
@@ -94,7 +102,7 @@ public abstract class WeakBlockchainRecoverable implements Recoverable, BatchExe
             controller = replicaContext.getSVController();
             
             commSystem = replicaContext.getServerCommunicationSystem();
-
+        
             Random rand = new Random(System.nanoTime());
             session = rand.nextInt();
             requestID = 0;
@@ -102,12 +110,12 @@ public abstract class WeakBlockchainRecoverable implements Recoverable, BatchExe
             
             //batchDir = config.getConfigHome().concat(System.getProperty("file.separator")) +
             batchDir =    "files".concat(System.getProperty("file.separator"));
-
+            
             if (config.getLogBatchType().equalsIgnoreCase("buffer")) {
                 log = BufferBatchLogger.getInstance(config.getProcessId(), batchDir);
-            } else if (config.getLogBatchType().equalsIgnoreCase("parallel")) {
+            } else if(config.getLogBatchType().equalsIgnoreCase("parallel")) {
                 log = ParallelBatchLogger.getInstance(config.getProcessId(), batchDir);
-            } else if (config.getLogBatchType().equalsIgnoreCase("async")) {
+            } else if(config.getLogBatchType().equalsIgnoreCase("async")) {
                 log = AsyncBatchLogger.getInstance(config.getProcessId(), batchDir);
             } else {
                 log = VoidBatchLogger.getInstance(config.getProcessId(), batchDir);
@@ -116,7 +124,7 @@ public abstract class WeakBlockchainRecoverable implements Recoverable, BatchExe
             //write genesis block
             byte[] transHash = log.markEndTransactions()[0];
             log.storeHeader(nextNumber, lastCheckpoint, lastReconfig, transHash, new byte[0], lastBlockHash);
-
+            
             if (config.isToWriteSyncLog()) log.sync();
                         
             lastBlockHash = computeBlockHash(nextNumber, lastCheckpoint, lastReconfig, transHash, lastBlockHash);
@@ -156,13 +164,13 @@ public abstract class WeakBlockchainRecoverable implements Recoverable, BatchExe
 
     @Override
     public void noOp(int CID, byte[][] operations, MessageContext[] msgCtxs) {
-
+        
         executeBatch(-1, -1, operations, msgCtxs, true);
     }
 
     @Override
     public TOMMessage[] executeBatch(int processID, int viewID, byte[][] operations, MessageContext[] msgCtxs) {
-
+        
         return executeBatch(processID, viewID, operations, msgCtxs, false);
     }
 
@@ -178,41 +186,41 @@ public abstract class WeakBlockchainRecoverable implements Recoverable, BatchExe
     }
 
     private TOMMessage[] executeBatch(int processID, int viewID, byte[][] ops, MessageContext[] ctxs, boolean noop) {
-
+        
         //int cid = msgCtxs[0].getConsensusId();
         TOMMessage[] replies = new TOMMessage[0];
         boolean timeout = false;
-
+        
         logger.info("Received batch with {} txs", ops.length);
-
+        
         Map<Integer, Entry<byte[][], MessageContext[]>> split = splitCIDs(ops, ctxs);
                 
         try {
-
+            
             Integer[] cids = new Integer[split.keySet().size()];
-
+        
             split.keySet().toArray(cids);
 
             Arrays.sort(cids);
-
+            
             int count = 0;
-
+            
             for (Integer i : cids) {
-
+                
                 count += split.get(i).getKey().length;
             }
-
+        
             logger.info("Batch contains {} decisions with a total of {} txs", cids.length, count);
-
+            
             for (Integer cid : cids) {
-
+                
                 byte[][] operations = split.get(cid).getKey();
                 MessageContext[] msgCtxs = split.get(cid).getValue();
-
+                
                 LinkedList<byte[]> transList = new LinkedList<>();
-                LinkedList<MessageContext> ctxList = new LinkedList<>();
+                LinkedList<MessageContext> ctxList = new LinkedList<>(); 
 
-                for (int i = 0; i < operations.length; i++) {
+                for (int i = 0; i < operations.length ; i++) {
 
                     if (controller.isCurrentViewMember(msgCtxs[i].getSender())) {
 
@@ -268,7 +276,7 @@ public abstract class WeakBlockchainRecoverable implements Recoverable, BatchExe
 
                     for (int i = 0; i < resultsApp.length; i++) {
 
-                        TOMMessage reply = getTOMMessage(processID, viewID, transApp[i], ctxApp[i], resultsApp[i]);
+                        TOMMessage reply = getTOMMessage(processID,viewID,transApp[i], ctxApp[i], resultsApp[i]);
 
                         this.results.add(reply);
                     }
@@ -293,9 +301,9 @@ public abstract class WeakBlockchainRecoverable implements Recoverable, BatchExe
 
                     }, config.getLogBatchTimeout());
                 }
-
+            
                 log.storeTransactions(cid, operations, msgCtxs);
-
+            
                 boolean isCheckpoint = cid > 0 && cid % config.getCheckpointPeriod() == 0;
 
                 if (timeout | isCheckpoint ||  /*(cid % config.getLogBatchLimit() == 0)*/
@@ -312,11 +320,11 @@ public abstract class WeakBlockchainRecoverable implements Recoverable, BatchExe
 
                     this.results.toArray(reps);
                     this.results.clear();
-
+                    
                     replies = TOMUtil.concat(replies, reps);
 
                     if (isCheckpoint) log.clearCached();
-
+                
                     long ts = System.currentTimeMillis();
                     if (config.isToWriteSyncLog()) {
 
@@ -325,17 +333,17 @@ public abstract class WeakBlockchainRecoverable implements Recoverable, BatchExe
                         logger.info("Synched log at CID {} and Block {} (elapsed time was {} ms)", cid, (nextNumber - 1), (System.currentTimeMillis() - ts));
 
                     }
-
-                    timeouts.remove(nextNumber - 1);
-
+                
+                    timeouts.remove(nextNumber-1);
+                    
                 }
             }
-
+                       
             if (timer != null && this.results.isEmpty()) {
                 timer.cancel();
                 timer = null;
             }
-
+            
             logger.info("Returning {} replies", replies.length);
             
             return replies;
@@ -345,42 +353,42 @@ public abstract class WeakBlockchainRecoverable implements Recoverable, BatchExe
         } 
                 
     }
-
+        
     private Map<Integer, Entry<byte[][], MessageContext[]>> splitCIDs(byte[][] operations, MessageContext[] msgCtxs) {
-
+        
         Map<Integer, List<Entry<byte[], MessageContext>>> map = new HashMap<>();
         for (int i = 0; i < operations.length; i++) {
-
+            
             List<Entry<byte[], MessageContext>> list = map.get(msgCtxs[i].getConsensusId());
             if (list == null) {
-
+                
                 list = new LinkedList<>();
                 map.put(msgCtxs[i].getConsensusId(), list);
             }
-
+                            
             Entry<byte[], MessageContext> entry = new HashMap.SimpleEntry<>(operations[i], msgCtxs[i]);
             list.add(entry);
-
-        }
-
+            
+        }        
+        
         Map<Integer, Entry<byte[][], MessageContext[]>> result = new HashMap<>();
-
+        
         for (Integer cid : map.keySet()) {
-
+        
             List<Entry<byte[], MessageContext>> value = map.get(cid);
-
+            
             byte[][] trans = new byte[value.size()][];
             MessageContext[] ctxs = new MessageContext[value.size()];
-
+            
             for (int i = 0; i < value.size(); i++) {
-
+                
                 trans[i] = value.get(i).getKey();
                 ctxs[i] = value.get(i).getValue();
             }
-
+        
             result.put(cid, new HashMap.SimpleEntry<>(trans, ctxs));
         }
-
+        
         return result;
     }
     
@@ -389,10 +397,10 @@ public abstract class WeakBlockchainRecoverable implements Recoverable, BatchExe
         try {
             
             timerLock.lock();
-
+                    
             TOMMessage timeoutMsg = new TOMMessage(config.getProcessId(),
                     session, timeoutSeq, requestID, payload, controller.getCurrentViewId(), TOMMessageType.ORDERED_REQUEST);
-
+            
             byte[] data = serializeTOMMsg(timeoutMsg);
             
             timeoutMsg.serializedMessage = data;
@@ -406,10 +414,10 @@ public abstract class WeakBlockchainRecoverable implements Recoverable, BatchExe
             
             commSystem.send(controller.getCurrentViewAcceptors(),
                     new ForwardedMessage(this.controller.getStaticConf().getProcessId(), timeoutMsg));
-
+            
             requestID++;
             timeoutSeq++;
-
+            
             logger.info("Timeout sent");
             
         } catch (IOException ex) {
@@ -420,12 +428,12 @@ public abstract class WeakBlockchainRecoverable implements Recoverable, BatchExe
         }
         
     }
-
+    
     private byte[] serializeTOMMsg(TOMMessage msg) throws IOException {
-
+        
         DataOutputStream dos = null;
-        byte[] data = null;
-
+            byte[] data = null;
+            
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         dos = new DataOutputStream(baos);
         msg.wExternal(dos);
@@ -451,8 +459,8 @@ public abstract class WeakBlockchainRecoverable implements Recoverable, BatchExe
         
         return md.digest(buff.array());
     }
-
-
+    
+    
     public boolean verifyBatch(byte[][] commands, MessageContext[] msgCtxs){
         
         //first off, re-create the batch received in the PROPOSE message of the consensus instance

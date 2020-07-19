@@ -34,9 +34,9 @@ public interface BatchExecutable extends Executable {
      * @return
      */
 
-    byte[][] executeBatch(byte[][] command, MessageContext[] msgCtx);
-
-    default TOMMessage[] executeBatch(int processID, int viewID, byte[][] command, MessageContext[] msgCtx) {
+    public byte[][] executeBatch(byte[][] command, MessageContext[] msgCtx);
+    
+    public default TOMMessage[] executeBatch(int processID, int viewID, byte[][] command, MessageContext[] msgCtx) {
         
         TOMMessage[] replies = new TOMMessage[command.length];
         
@@ -49,7 +49,7 @@ public interface BatchExecutable extends Executable {
         
         return replies;
     }
-
-    boolean appVerifyJoinRequest(byte[] command);
+    
+    public boolean appVerifyJoinRequest(byte[] command);
 
 }

@@ -15,7 +15,6 @@ limitations under the License.
 */
 package bftsmart.communication.client.netty;
 
-import bftsmart.reconfiguration.ClientViewController;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.MessageToByteEncoder;
@@ -24,15 +23,18 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 
-public class NettyClientPipelineFactory{
+import bftsmart.reconfiguration.ClientViewController;
 
+
+public class NettyClientPipelineFactory{
+	
     NettyClientServerCommunicationSystemClientSide ncs;
-    ConcurrentHashMap<Integer, NettyClientServerSession> sessionTable;
+	ConcurrentHashMap<Integer, NettyClientServerSession> sessionTable;
     ClientViewController controller;
     ReentrantReadWriteLock rl;
 
-    public NettyClientPipelineFactory(NettyClientServerCommunicationSystemClientSide ncs,
-                                      ConcurrentHashMap<Integer, NettyClientServerSession> sessionTable, ClientViewController controller, ReentrantReadWriteLock rl) {
+    public NettyClientPipelineFactory(NettyClientServerCommunicationSystemClientSide ncs, 
+    		ConcurrentHashMap<Integer, NettyClientServerSession> sessionTable, ClientViewController controller, ReentrantReadWriteLock rl) {
         this.ncs = ncs;
         this.sessionTable = sessionTable;
         this.rl = rl;
@@ -41,12 +43,12 @@ public class NettyClientPipelineFactory{
 
 
     public ByteToMessageDecoder getDecoder(){
-        return new NettyTOMMessageDecoder(true, sessionTable,
-                controller, rl);
+    	return new NettyTOMMessageDecoder(true, sessionTable,
+    			controller,rl);	
     }
     
     public MessageToByteEncoder getEncoder(){
-        return new NettyTOMMessageEncoder(true, sessionTable, rl);
+    	return new NettyTOMMessageEncoder(true, sessionTable,rl);	
     }
     
     public SimpleChannelInboundHandler getHandler(){

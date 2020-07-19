@@ -15,21 +15,32 @@ limitations under the License.
 */
 package bftsmart.demo.microbenchmarks;
 
+import java.io.IOException;
+
 import bftsmart.tom.ServiceProxy;
 import bftsmart.tom.util.Storage;
 import bftsmart.tom.util.TOMUtil;
-
 import java.io.FileWriter;
-import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.security.*;
+import java.security.InvalidKeyException;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PrivateKey;
+import java.security.Security;
+import java.security.Signature;
+import java.security.SignatureException;
 import java.security.spec.EncodedKeySpec;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Random;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Example client that updates a BFT replicated service (a counter).
@@ -57,7 +68,7 @@ public class ThroughputLatencyClient {
                                     "EwEB/wQCMAAwKwYDVR0jBCQwIoAginORIhnPEFZUhXm6eWBkm7K7Zc8R4/z7LW4H" +
                                     "ossDlCswCgYIKoZIzj0EAwIDRwAwRAIgVikIUZzgfuFsGLQHWJUVJCU7pDaETkaz" +
                                     "PzFgsCiLxUACICgzJYlW7nvZxP7b6tbeu3t8mrhMXQs956mD4+BoKuNI";*/
-
+    
     public static String privKey = "MD4CAQAwEAYHKoZIzj0CAQYFK4EEAAoEJzAlAgEBBCBnhIob4JXH+WpaNiL72BlbtUMAIBQoM852d+tKFBb7fg==";
     public static String pubKey = "MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEavNEKGRcmB7u49alxowlwCi1s24ANOpOQ9UiFBxgqnO/RfOl3BJm0qE2IJgCnvL7XUetwj5C/8MnMWi9ux2aeQ==";
     
@@ -72,17 +83,17 @@ public class ThroughputLatencyClient {
         initId = Integer.parseInt(args[0]);
         latencies = new LinkedBlockingQueue<>();
         writerThread = new Thread() {
-
+            
             public void run() {
-
+                
                 FileWriter f = null;
                 try {
                     f = new FileWriter("./latencies_" + initId + ".txt");
                     while (true) {
-
+                        
                         f.write(latencies.take());
-                    }
-
+                    }   
+                    
                 } catch (IOException | InterruptedException ex) {
                     ex.printStackTrace();
                 } finally {
@@ -232,14 +243,14 @@ public class ThroughputLatencyClient {
                 if (verbose) System.out.print("Sending req " + req + "...");
 
                 long last_send_instant = System.nanoTime();
-
+                
                 byte[] reply = null;
                 if(readOnly)
-                    reply = proxy.invokeUnordered(request);
+                        reply = proxy.invokeUnordered(request);
                 else
-                    reply = proxy.invokeOrdered(request);
+                        reply = proxy.invokeOrdered(request);
                 long latency = System.nanoTime() - last_send_instant;
-
+                
                 try {
                     if (reply != null) latencies.put(id + "\t" + System.currentTimeMillis() + "\t" + latency + "\n");
                 } catch (InterruptedException ex) {
@@ -250,20 +261,21 @@ public class ThroughputLatencyClient {
 
                 if (verbose && (req % 1000 == 0)) System.out.println(this.id + " // " + req + " operations sent!");
 
-                try {
+		try {
                         
                         //sleeps interval ms before sending next request
-                    if (interval > 0) {
-
-                        Thread.sleep(interval);
-                    } else if (this.rampup > 0) {
-                        Thread.sleep(this.rampup);
-                    }
-                    this.rampup -= 100;
+                        if (interval > 0) {
+                            
+                            Thread.sleep(interval);
+                        }
+                        else if (this.rampup > 0) {
+                            Thread.sleep(this.rampup);
+                        }
+                        this.rampup -= 100;
                         
                     } catch (InterruptedException ex) {
-                    ex.printStackTrace();
-                }
+                        ex.printStackTrace();
+                    }
             }
 
             Storage st = new Storage(numberOfOps / 2);
@@ -279,7 +291,7 @@ public class ThroughputLatencyClient {
                 else
                         proxy.invokeOrdered(request);
                 long latency = System.nanoTime() - last_send_instant;
-
+                
                 try {
                     latencies.put(id + "\t" + System.currentTimeMillis() + "\t" + latency + "\n");
                 } catch (InterruptedException ex) {
@@ -291,12 +303,13 @@ public class ThroughputLatencyClient {
 
                 
                     try {
-
+                        
                         //sleeps interval ms before sending next request
                         if (interval > 0) {
-
+                            
                             Thread.sleep(interval);
-                        } else if (this.rampup > 0) {
+                        }
+                        else if (this.rampup > 0) {
                             Thread.sleep(this.rampup);
                         }
                         this.rampup -= 100;
@@ -304,8 +317,8 @@ public class ThroughputLatencyClient {
                     } catch (InterruptedException ex) {
                         ex.printStackTrace();
                     }
-
-
+                
+                                
                 if (verbose && (req % 1000 == 0)) System.out.println(this.id + " // " + req + " operations sent!");
             }
 

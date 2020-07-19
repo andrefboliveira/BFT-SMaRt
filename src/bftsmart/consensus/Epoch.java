@@ -15,16 +15,17 @@ limitations under the License.
 */
 package bftsmart.consensus;
 
-import bftsmart.consensus.messages.ConsensusMessage;
-import bftsmart.reconfiguration.ServerViewController;
-import bftsmart.reconfiguration.views.View;
-import bftsmart.tom.core.messages.TOMMessage;
-import org.apache.commons.codec.binary.Base64;
-
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+
+import org.apache.commons.codec.binary.Base64;
+
+import bftsmart.consensus.messages.ConsensusMessage;
+import bftsmart.reconfiguration.ServerViewController;
+import bftsmart.reconfiguration.views.View;
+import bftsmart.tom.core.messages.TOMMessage;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -97,8 +98,8 @@ public class Epoch implements Serializable {
             this.write = new byte[n][];
             this.accept = new byte[n][];
 
-            Arrays.fill(write, null);
-            Arrays.fill(accept, null);
+            Arrays.fill((Object[]) write, null);
+            Arrays.fill((Object[]) accept, null);
             
         } else {
             Epoch previousEpoch = consensus.getEpoch(timestamp - 1, controller);
@@ -334,7 +335,7 @@ public class Epoch implements Serializable {
      * @return Amount of replicas from which this process received the specified value
      */
     public int countWrite(byte[] value) {
-        return count(writeSetted, write, value);
+        return count(writeSetted,write, value);
     }
 
     /**
@@ -343,7 +344,7 @@ public class Epoch implements Serializable {
      * @return Amount of replicas from which this process accepted the specified value
      */
     public int countAccept(byte[] value) {
-        return count(acceptSetted, accept, value);
+        return count(acceptSetted,accept, value);
     }
     
     /**
@@ -424,7 +425,7 @@ public class Epoch implements Serializable {
      * @param value Value to count
      * @return Ammount of times that 'value' was find in 'array'
      */
-    private int count(boolean[] arraySetted, byte[][] array, byte[] value) {
+    private int count(boolean[] arraySetted,byte[][] array, byte[] value) {
         if (value != null) {
             int counter = 0;
             for (int i = 0; i < array.length; i++) {
@@ -489,8 +490,8 @@ public class Epoch implements Serializable {
         this.write = new byte[n][];
         this.accept = new byte[n][];
 
-        Arrays.fill(write, null);
-        Arrays.fill(accept, null);
+        Arrays.fill((Object[]) write, null);
+        Arrays.fill((Object[]) accept, null);
         
         this.proof = new HashSet<ConsensusMessage>();
         

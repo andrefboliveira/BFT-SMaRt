@@ -17,22 +17,36 @@ package bftsmart.demo.microbenchmarks;
 
 import bftsmart.tom.MessageContext;
 import bftsmart.tom.ServiceReplica;
-import bftsmart.tom.server.defaultservices.CommandsInfo;
 import bftsmart.tom.server.defaultservices.blockchain.StrongBlockchainRecoverable;
+import bftsmart.tom.server.defaultservices.CommandsInfo;
 import bftsmart.tom.util.Storage;
 import bftsmart.tom.util.TOMUtil;
-
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectOutputStream;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
-import java.security.*;
+import java.security.InvalidKeyException;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PublicKey;
+import java.security.Security;
+import java.security.Signature;
+import java.security.SignatureException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.spec.EncodedKeySpec;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -40,19 +54,19 @@ import java.util.logging.Logger;
  * Simple server that just acknowledge the reception of a request.
  */
 public final class StrongThroughputServer extends StrongBlockchainRecoverable {
-
+    
     private int interval;
     private byte[] reply;
     private float maxTp = -1;
     private boolean context;
     private boolean prettyPrint;
     private int signed;
-
+    
     private byte[] state;
-
+    
     private int iterations = 0;
     private long throughputMeasurementStartTime = System.currentTimeMillis();
-
+            
     private Storage totalLatency = null;
     private Storage consensusLatency = null;
     private Storage preConsLatency = null;
@@ -62,9 +76,9 @@ public final class StrongThroughputServer extends StrongBlockchainRecoverable {
     private Storage acceptLatency = null;
     
     private Storage batchSize = null;
-
+    
     private ServiceReplica replica;
-
+    
     private RandomAccessFile randomAccessFile = null;
     private FileChannel channel = null;
 
@@ -74,15 +88,15 @@ public final class StrongThroughputServer extends StrongBlockchainRecoverable {
         this.context = context;
         this.prettyPrint = prettyPrint;
         this.signed = signed;
-
+        
         this.reply = new byte[replySize];
-
-        for (int i = 0; i < replySize; i++)
+        
+        for (int i = 0; i < replySize ;i++)
             reply[i] = (byte) i;
-
+        
         this.state = new byte[stateSize];
-
-        for (int i = 0; i < stateSize; i++)
+        
+        for (int i = 0; i < stateSize ;i++)
             state[i] = (byte) i;
 
         totalLatency = new Storage(interval);
@@ -94,19 +108,19 @@ public final class StrongThroughputServer extends StrongBlockchainRecoverable {
         acceptLatency = new Storage(interval);
         
         batchSize = new Storage(interval);
-
+        
         if (write > 0) {
-
+            
             try {
-                final File f = File.createTempFile("bft-" + id + "-", Long.toString(System.nanoTime()));
+                final File f = File.createTempFile("bft-"+id+"-", Long.toString(System.nanoTime()));
                 randomAccessFile = new RandomAccessFile(f, (write > 1 ? "rwd" : "rw"));
                 channel = randomAccessFile.getChannel();
-
+                
                 Runtime.getRuntime().addShutdownHook(new Thread() {
-
+                    
                     @Override
                     public void run() {
-
+                        
                         f.delete();
                     }
                 });
@@ -128,25 +142,25 @@ public final class StrongThroughputServer extends StrongBlockchainRecoverable {
         
         replica = new ServiceReplica(id, this, this, this);
     }
-
+    
     @Override
     public byte[][] appExecuteBatch(byte[][] commands, MessageContext[] msgCtxs, boolean iCheckpoint) {
-
+        
         batchSize.store(commands.length);
-
+                
         byte[][] replies = new byte[commands.length][];
-
+        
         for (int i = 0; i < commands.length; i++) {
-
-            replies[i] = execute(commands[i], msgCtxs[i]);
-
+            
+            replies[i] = execute(commands[i],msgCtxs[i]);
+            
         }
-
+        
         if (randomAccessFile != null) {
-
+                
             ObjectOutputStream oos = null;
             try {
-                CommandsInfo cmd = new CommandsInfo(commands, msgCtxs);
+                CommandsInfo cmd = new CommandsInfo(commands,msgCtxs);
                 ByteArrayOutputStream bos = new ByteArrayOutputStream();
                 oos = new ObjectOutputStream(bos);
                 oos.writeObject(cmd);
@@ -154,16 +168,16 @@ public final class StrongThroughputServer extends StrongBlockchainRecoverable {
                 byte[] bytes = bos.toByteArray();
                 oos.close();
                 bos.close();
-
+                
                 ByteBuffer bb = ByteBuffer.allocate(bytes.length);
                 bb.put(bytes);
                 bb.flip();
-
+                
                 channel.write(bb);
                 channel.force(false);
             } catch (IOException ex) {
                 Logger.getLogger(StrongThroughputServer.class.getName()).log(Level.SEVERE, null, ex);
-
+                
             } finally {
                 try {
                     oos.close();
@@ -172,41 +186,41 @@ public final class StrongThroughputServer extends StrongBlockchainRecoverable {
                 }
             }
         }
-
+                    
         return replies;
     }
-
+    
     @Override
     public byte[] appExecuteUnordered(byte[] command, MessageContext msgCtx) {
-        return execute(command, msgCtx);
+        return execute(command,msgCtx);
     }
-
+    
     public byte[] execute(byte[] command, MessageContext msgCtx) {
-
+        
         ByteBuffer buffer = ByteBuffer.wrap(command);
         int l = buffer.getInt();
         byte[] request = new byte[l];
         buffer.get(request);
         l = buffer.getInt();
         byte[] signature = new byte[l];
-
+        
         buffer.get(signature);
         Signature eng;
-
+        
         try {
-
+            
             if (signed > 0) {
-
+                
                 if (signed == 1) {
-
+                    
                     eng = TOMUtil.getSigEngine();
                     eng.initVerify(replica.getReplicaContext().getStaticConfiguration().getPublicKey());
                 } else {
-
+                
                     eng = Signature.getInstance("SHA256withECDSA", "SunEC");
                     Base64.Decoder b64 = Base64.getDecoder();
                     CertificateFactory kf = CertificateFactory.getInstance("X.509");
-
+                
                     //byte[] cert = b64.decode(ThroughputLatencyClient.pubKey);
                     //InputStream certstream = new ByteArrayInputStream (cert);
 
@@ -221,12 +235,12 @@ public final class StrongThroughputServer extends StrongBlockchainRecoverable {
                 }
                 eng.update(request);
                 if (!eng.verify(signature)) {
-
+                    
                     System.out.println("Client sent invalid signature!");
                     System.exit(0);
                 }
             }
-
+            
         } catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException | CertificateException | InvalidKeySpecException ex) {
             ex.printStackTrace();
             System.exit(0);
@@ -234,18 +248,18 @@ public final class StrongThroughputServer extends StrongBlockchainRecoverable {
             ex.printStackTrace();
             System.exit(0);
         }
-
+        
         boolean readOnly = false;
-
+        
         iterations++;
 
         if (msgCtx != null && msgCtx.getFirstInBatch() != null) {
-
+            
 
             readOnly = msgCtx.readOnly;
-
+                    
             msgCtx.getFirstInBatch().executedTime = System.nanoTime();
-
+                        
             totalLatency.store(msgCtx.getFirstInBatch().executedTime - msgCtx.getFirstInBatch().receptionTime);
 
             if (readOnly == false) {
@@ -253,61 +267,60 @@ public final class StrongThroughputServer extends StrongBlockchainRecoverable {
                 consensusLatency.store(msgCtx.getFirstInBatch().decisionTime - msgCtx.getFirstInBatch().consensusStartTime);
                 long temp = msgCtx.getFirstInBatch().consensusStartTime - msgCtx.getFirstInBatch().receptionTime;
                 preConsLatency.store(temp > 0 ? temp : 0);
-                posConsLatency.store(msgCtx.getFirstInBatch().executedTime - msgCtx.getFirstInBatch().decisionTime);
+                posConsLatency.store(msgCtx.getFirstInBatch().executedTime - msgCtx.getFirstInBatch().decisionTime);            
                 proposeLatency.store(msgCtx.getFirstInBatch().writeSentTime - msgCtx.getFirstInBatch().consensusStartTime);
                 writeLatency.store(msgCtx.getFirstInBatch().acceptSentTime - msgCtx.getFirstInBatch().writeSentTime);
                 acceptLatency.store(msgCtx.getFirstInBatch().decisionTime - msgCtx.getFirstInBatch().acceptSentTime);
-
+                
 
             } else {
-
-
+            
+           
                 consensusLatency.store(0);
                 preConsLatency.store(0);
-                posConsLatency.store(0);
+                posConsLatency.store(0);            
                 proposeLatency.store(0);
                 writeLatency.store(0);
                 acceptLatency.store(0);
-
-
+                
+                
             }
-
+            
         } else {
-
-
-            consensusLatency.store(0);
-            preConsLatency.store(0);
-            posConsLatency.store(0);
-            proposeLatency.store(0);
-            writeLatency.store(0);
-            acceptLatency.store(0);
+            
+            
+                consensusLatency.store(0);
+                preConsLatency.store(0);
+                posConsLatency.store(0);            
+                proposeLatency.store(0);
+                writeLatency.store(0);
+                acceptLatency.store(0);
                 
                
         }
-
+        
         float tp = -1;
-        if (iterations % interval == 0) {
-            if (context)
-                System.out.println("--- (Context)  iterations: " + iterations + " // regency: " + msgCtx.getRegency() + " // consensus: " + msgCtx.getConsensusId() + " ---");
-
+        if(iterations % interval == 0) {
+            if (context) System.out.println("--- (Context)  iterations: "+ iterations + " // regency: " + msgCtx.getRegency() + " // consensus: " + msgCtx.getConsensusId() + " ---");
+            
             //System.out.println("--- Measurements after "+ iterations+" ops ("+interval+" samples) ---");
-
-            tp = interval * 1000 / (float) (System.currentTimeMillis() - throughputMeasurementStartTime);
-
+            
+            tp = (float)(interval*1000/(float)(System.currentTimeMillis()-throughputMeasurementStartTime));
+            
             if (tp > maxTp) maxTp = tp;
-
+            
             if (prettyPrint) {
-                System.out.println("Throughput = " + tp + " operations/sec (Maximum observed: " + maxTp + " ops/sec)");
+                System.out.println("Throughput = " + tp +" operations/sec (Maximum observed: " + maxTp + " ops/sec)");            
 
-                System.out.println("Total latency = " + totalLatency.getAverage(false) / 1000 + " (+/- " + (long) totalLatency.getDP(false) / 1000 + ") us ");
-                System.out.println("Consensus latency = " + consensusLatency.getAverage(false) / 1000 + " (+/- " + (long) consensusLatency.getDP(false) / 1000 + ") us ");
-                System.out.println("Pre-consensus latency = " + preConsLatency.getAverage(false) / 1000 + " (+/- " + (long) preConsLatency.getDP(false) / 1000 + ") us ");
-                System.out.println("Pos-consensus latency = " + posConsLatency.getAverage(false) / 1000 + " (+/- " + (long) posConsLatency.getDP(false) / 1000 + ") us ");
-                System.out.println("Propose latency = " + proposeLatency.getAverage(false) / 1000 + " (+/- " + (long) proposeLatency.getDP(false) / 1000 + ") us ");
-                System.out.println("Write latency = " + writeLatency.getAverage(false) / 1000 + " (+/- " + (long) writeLatency.getDP(false) / 1000 + ") us ");
-                System.out.println("Accept latency = " + acceptLatency.getAverage(false) / 1000 + " (+/- " + (long) acceptLatency.getDP(false) / 1000 + ") us ");
+                System.out.println("Total latency = " + totalLatency.getAverage(false) / 1000 + " (+/- "+ (long)totalLatency.getDP(false) / 1000 +") us ");
+                System.out.println("Consensus latency = " + consensusLatency.getAverage(false) / 1000 + " (+/- "+ (long)consensusLatency.getDP(false) / 1000 +") us ");
+                System.out.println("Pre-consensus latency = " + preConsLatency.getAverage(false) / 1000 + " (+/- "+ (long)preConsLatency.getDP(false) / 1000 +") us ");
+                System.out.println("Pos-consensus latency = " + posConsLatency.getAverage(false) / 1000 + " (+/- "+ (long)posConsLatency.getDP(false) / 1000 +") us ");
+                System.out.println("Propose latency = " + proposeLatency.getAverage(false) / 1000 + " (+/- "+ (long)proposeLatency.getDP(false) / 1000 +") us ");
+                System.out.println("Write latency = " + writeLatency.getAverage(false) / 1000 + " (+/- "+ (long)writeLatency.getDP(false) / 1000 +") us ");
+                System.out.println("Accept latency = " + acceptLatency.getAverage(false) / 1000 + " (+/- "+ (long)acceptLatency.getDP(false) / 1000 +") us ");
 
-                System.out.println("Batch average size = " + batchSize.getAverage(false) + " (+/- " + (long) batchSize.getDP(false) + ") requests");
+                System.out.println("Batch average size = " + batchSize.getAverage(false) + " (+/- "+ (long)batchSize.getDP(false) +") requests");
             } else {
                 
                /* System.out.println(System.currentTimeMillis() + "\t" + iterations + "\t" + tp+"\t" + maxTp +
@@ -319,9 +332,9 @@ public final class StrongThroughputServer extends StrongBlockchainRecoverable {
                         "\t" + writeLatency.getAverage(false) + "\t" + writeLatency.getDP(false) +
                         "\t" + acceptLatency.getAverage(false) + "\t" + acceptLatency.getDP(false) +
                         "\t" + batchSize.getAverage(false) + "\t" + batchSize.getDP(false));*/
-                System.out.println(System.currentTimeMillis() + "\t" + iterations + "\t" + tp + "\t" + maxTp);
+               System.out.println(System.currentTimeMillis() + "\t" + iterations + "\t" + tp+"\t" + maxTp);
             }
-
+            
             totalLatency.reset();
             consensusLatency.reset();
             preConsLatency.reset();
@@ -330,15 +343,15 @@ public final class StrongThroughputServer extends StrongBlockchainRecoverable {
             writeLatency.reset();
             acceptLatency.reset();
             batchSize.reset();
-
+            
             throughputMeasurementStartTime = System.currentTimeMillis();
         }
 
         return reply;
     }
 
-    public static void main(String[] args) {
-        if (args.length < 7) {
+    public static void main(String[] args){
+        if(args.length < 7) {
             System.out.println("Usage: ... ThroughputLatencyServer <processId> <measurement interval> <reply size> <state size> <context?> <pretty print?>  <nosig | default | ecdsa> [rwd | rw]");
             System.exit(-1);
         }
@@ -353,26 +366,26 @@ public final class StrongThroughputServer extends StrongBlockchainRecoverable {
         String write = args.length > 7 ? args[7] : "";
         
         int s = 0;
-
+        
         if (!signed.equalsIgnoreCase("nosig")) s++;
         if (signed.equalsIgnoreCase("ecdsa")) s++;
-
+        
         if (s == 2 && Security.getProvider("SunEC") == null) {
-
+            
             System.out.println("Option 'ecdsa' requires SunEC provider to be available.");
             System.exit(0);
         }
-
+        
         int w = 0;
-
+        
         if (!write.equalsIgnoreCase("")) w++;
         if (write.equalsIgnoreCase("rwd")) w++;
 
-        new StrongThroughputServer(processId, interval, replySize, stateSize, context, prettyPrint, s, w);
+        new StrongThroughputServer(processId,interval,replySize, stateSize, context, prettyPrint, s, w);        
     }
-
-
-    @Override
+    
+    
+     @Override
     public void installSnapshot(byte[] state) {
         //nothing
         this.state = state;
@@ -395,5 +408,5 @@ public final class StrongThroughputServer extends StrongBlockchainRecoverable {
         return "ASK_JOIN".equals(input);
     }
 
-
+    
 }

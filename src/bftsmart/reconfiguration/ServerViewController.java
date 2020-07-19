@@ -97,7 +97,7 @@ public class ServerViewController extends ViewController {
 
 	private InetSocketAddress[] getInitAdddresses() {
 
-        int[] nextV = getStaticConf().getInitialView();
+		int nextV[] = getStaticConf().getInitialView();
 		InetSocketAddress[] addresses = new InetSocketAddress[nextV.length];
 		for (int i = 0; i < nextV.length; i++) {
 			addresses[i] = getStaticConf().getRemoteAddress(nextV[i]);
@@ -204,7 +204,11 @@ public class ServerViewController extends ViewController {
 
 		if (isCurrentViewMember(Integer.parseInt(value))) {
 
-            return Integer.parseInt(value) == request.getSender();
+			if (Integer.parseInt(value) != request.getSender()) {
+				return false;
+			} else {
+				return true;
+			}
 		}
 		return false;
 	}
@@ -278,7 +282,7 @@ public class ServerViewController extends ViewController {
 			PublicKey signingPubKey = conf.getPublicKey(replicaCertificate.getSigningReplicaID());
 
 			try (ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
-                 DataOutputStream dos = new DataOutputStream(byteOut)) {
+			     DataOutputStream dos = new DataOutputStream(byteOut);) {
 
 				CoreCertificate certificateToVerify = CoreCertificate.generateCoreCertificate(fullCertificate, replicaCertificate);
 				certificateToVerify.serialize(dos);
@@ -333,7 +337,7 @@ public class ServerViewController extends ViewController {
 							jSet.add(id);
 							String host = str.nextToken();
 							int port = Integer.valueOf(str.nextToken());
-                            this.getStaticConf().addHostInfo(id, host, port, port + 1);
+							this.getStaticConf().addHostInfo(id, host, port,port+1);
 						}
 					}
 				} else if (key == REMOVE_SERVER || key == FORCE_REMOVE_SERVER) {
@@ -467,7 +471,7 @@ public class ServerViewController extends ViewController {
 			this.lastJoinStet[i] = id;
 			String host = str.nextToken();
 			int port = Integer.valueOf(str.nextToken());
-            this.getStaticConf().addHostInfo(id, host, port, port + 1);
+			this.getStaticConf().addHostInfo(id, host, port,port+1);
 		}
 	}
 

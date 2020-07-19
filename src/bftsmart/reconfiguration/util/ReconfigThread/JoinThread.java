@@ -32,221 +32,223 @@ public class JoinThread implements Runnable {
 	private final Scanner sc;
 	//private View currentView;
 	private ServerJoiner joiner;
-    public ServiceProxy client;
+         public ServiceProxy client;
 
 
-    public JoinThread(int id, TOMConfiguration joiningReplicaConfig, View currentView, Scanner sc, ServerJoiner joiner) {
-        this.id = id;
-        this.joiningReplicaConfig = joiningReplicaConfig;
-        //this.currentView = currentView;
-        this.sc = sc;
-        this.joiner = joiner;
+	public JoinThread(int id, TOMConfiguration joiningReplicaConfig, View currentView, Scanner sc, ServerJoiner joiner) {
+		this.id = id;
+		this.joiningReplicaConfig = joiningReplicaConfig;
+		//this.currentView = currentView;
+		this.sc = sc;
+		this.joiner = joiner;
+                
+                this.client = new ServiceProxy(joiningReplicaConfig.getTTPId(), joiningReplicaConfig.getConfigHome(),
+				new Comparator<byte[]>() {
+					@Override
+					public int compare(byte[] o1, byte[] o2) {
+						CoreCertificate reply1 = null;
+						CoreCertificate reply2 = null;
 
-        this.client = new ServiceProxy(joiningReplicaConfig.getTTPId(), joiningReplicaConfig.getConfigHome(),
-                new Comparator<byte[]>() {
-                    @Override
-                    public int compare(byte[] o1, byte[] o2) {
-                        CoreCertificate reply1 = null;
-                        CoreCertificate reply2 = null;
+						try {
+							try (ByteArrayInputStream byteIn = new ByteArrayInputStream(o1);
+							     DataInputStream dis = new DataInputStream(byteIn)) {
+								ReplicaReconfigReply replicaReply1 = ReplicaReconfigReply.desSerialize(dis);
 
-                        try {
-                            try (ByteArrayInputStream byteIn = new ByteArrayInputStream(o1);
-                                 DataInputStream dis = new DataInputStream(byteIn)) {
-                                ReplicaReconfigReply replicaReply1 = ReplicaReconfigReply.desSerialize(dis);
+								reply1 = replicaReply1.getCertificateValues();
 
-                                reply1 = replicaReply1.getCertificateValues();
+							}
 
-                            }
+							try (ByteArrayInputStream byteIn = new ByteArrayInputStream(o2);
+							     DataInputStream dis = new DataInputStream(byteIn)) {
 
-                            try (ByteArrayInputStream byteIn = new ByteArrayInputStream(o2);
-                                 DataInputStream dis = new DataInputStream(byteIn)) {
+								ReplicaReconfigReply replicaReply2 = ReplicaReconfigReply.desSerialize(dis);
 
-                                ReplicaReconfigReply replicaReply2 = ReplicaReconfigReply.desSerialize(dis);
+								reply2 = replicaReply2.getCertificateValues();
+							}
 
-                                reply2 = replicaReply2.getCertificateValues();
-                            }
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
 
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+						return CoreCertificate.compareCertificates(reply1, reply2) ? 0 : -1;
+					}
+				},
+				new Extractor() {
 
-                        return CoreCertificate.compareCertificates(reply1, reply2) ? 0 : -1;
-                    }
-                },
-                new Extractor() {
+					@Override
+					public TOMMessage extractResponse(TOMMessage[] replies, int sameContent, int lastReceived) {
 
-                    @Override
-                    public TOMMessage extractResponse(TOMMessage[] replies, int sameContent, int lastReceived) {
+						TOMMessage newReply = null;
+						byte[] newContent = new byte[0];
 
-                        TOMMessage newReply = null;
-                        byte[] newContent = new byte[0];
 
+						try {
 
-                        try {
+							List<PartialCertificate> certificate = new ArrayList<PartialCertificate>();
 
-                            List<PartialCertificate> certificate = new ArrayList<PartialCertificate>();
+							byte[] proof = null;
+							boolean accepted = false;
+							int joiningReplicaID = -1;
+							long consensusTimestamp = -1;
 
-                            byte[] proof = null;
-                            boolean accepted = false;
-                            int joiningReplicaID = -1;
-                            long consensusTimestamp = -1;
 
+							for (TOMMessage reply : replies) {
+								if (reply != null) {
+									byte[] content = reply.getContent();
 
-                            for (TOMMessage reply : replies) {
-                                if (reply != null) {
-                                    byte[] content = reply.getContent();
+									try (ByteArrayInputStream byteIn = new ByteArrayInputStream(content);
+									     DataInputStream dis = new DataInputStream(byteIn)) {
 
-                                    try (ByteArrayInputStream byteIn = new ByteArrayInputStream(content);
-                                         DataInputStream dis = new DataInputStream(byteIn)) {
+										ReplicaReconfigReply replicaReply = ReplicaReconfigReply.desSerialize(dis);
 
-                                        ReplicaReconfigReply replicaReply = ReplicaReconfigReply.desSerialize(dis);
+										CoreCertificate certificateValues = replicaReply.getCertificateValues();
 
-                                        CoreCertificate certificateValues = replicaReply.getCertificateValues();
+										joiningReplicaID = certificateValues.getToReconfigureReplicaID();
+										consensusTimestamp = certificateValues.getConsensusTimestamp();
+										proof = certificateValues.getInputProof();
+										accepted = certificateValues.isAcceptedRequest();
 
-                                        joiningReplicaID = certificateValues.getToReconfigureReplicaID();
-                                        consensusTimestamp = certificateValues.getConsensusTimestamp();
-                                        proof = certificateValues.getInputProof();
-                                        accepted = certificateValues.isAcceptedRequest();
+										PartialCertificate partialCertificate = new PartialCertificate(certificateValues.getExecutingReplicaID(), replicaReply.getSignature());
 
-                                        PartialCertificate partialCertificate = new PartialCertificate(certificateValues.getExecutingReplicaID(), replicaReply.getSignature());
 
+										certificate.add(partialCertificate);
 
-                                        certificate.add(partialCertificate);
 
+									}
 
-                                    }
+								}
 
-                                }
+							}
 
-                            }
 
+							try (ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
+							     DataOutputStream dos = new DataOutputStream(byteOut)) {
 
-                            try (ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
-                                 DataOutputStream dos = new DataOutputStream(byteOut)) {
+								FullCertificate fullCertificate = new FullCertificate(joiningReplicaID, accepted, proof,
+										consensusTimestamp, certificate);
 
-                                FullCertificate fullCertificate = new FullCertificate(joiningReplicaID, accepted, proof,
-                                        consensusTimestamp, certificate);
 
+								fullCertificate.serialize(dos);
 
-                                fullCertificate.serialize(dos);
+								dos.flush();
+								byteOut.flush();
 
-                                dos.flush();
-                                byteOut.flush();
+								newContent = byteOut.toByteArray();
+							}
 
-                                newContent = byteOut.toByteArray();
-                            }
+						} catch (IOException e) {
+							e.printStackTrace();
 
-                        } catch (IOException e) {
-                            e.printStackTrace();
+						}
 
-                        }
+						try {
+							newReply = (TOMMessage) replies[lastReceived].clone();
+							newReply.setContent(newContent);
+						} catch (CloneNotSupportedException e) {
+							e.printStackTrace();
+						}
 
-                        try {
-                            newReply = (TOMMessage) replies[lastReceived].clone();
-                            newReply.setContent(newContent);
-                        } catch (CloneNotSupportedException e) {
-                            e.printStackTrace();
-                        }
+						return newReply;
+					}
+				}, null);
 
-                        return newReply;
-                    }
-                }, null);
+	}
 
-    }
 
+	@Override
+	public void run() {
 
-    @Override
-    public void run() {
+		boolean keep_running = true;
+		int attempts = 0;
 
-        boolean keep_running = true;
-        int attempts = 0;
 
+		while (keep_running && attempts <= 10) {
+			try {
+				logger.info("Type: \"JOIN\" (\"J\") to add THIS replica to view.");
 
-        while (keep_running && attempts <= 10) {
-            try {
-                logger.info("Type: \"JOIN\" (\"J\") to add THIS replica to view.");
 
+				String userReply = sc.next();
+				logger.info("You typed {}", userReply);
 
-                String userReply = sc.next();
-                logger.info("You typed {}", userReply);
+				if ("JOIN".equalsIgnoreCase(userReply) || "J".equalsIgnoreCase(userReply)) {
 
-                if ("JOIN".equalsIgnoreCase(userReply) || "J".equalsIgnoreCase(userReply)) {
+					logger.info("Attempting to JOIN.");
 
-                    logger.info("Attempting to JOIN.");
+					byte[] reply = makeInitialJoinRequest();
 
-                    byte[] reply = makeInitialJoinRequest();
+                                        //System.out.println("CHEGOU AQUI 1");
+                                        
+					FullCertificate fullCertificate = extractCertificateFromJoinRequest(reply);
 
-                    //System.out.println("CHEGOU AQUI 1");
+                                       // System.out.println("CHEGOU AQUI 2");
+                                        
+					if (fullCertificate != null) {
+						boolean success = addReplicaProtocol(fullCertificate);
 
-                    FullCertificate fullCertificate = extractCertificateFromJoinRequest(reply);
+						if (success) {
+							keep_running = false;
+						}
+					}
+					attempts = 0;
 
-                    // System.out.println("CHEGOU AQUI 2");
+				} else if ("WAIT".equalsIgnoreCase(userReply) || "W".equalsIgnoreCase(userReply)) {
+					logger.info("Input number of seconds to wait: ");
+					int waitTime = sc.nextInt();
+					logger.info("Waiting {} s ...", waitTime);
+					Thread.sleep(waitTime * 1000);
+					attempts = 0;
+                                        
+                                        logger.info("Attempting to JOIN.");
 
-                    if (fullCertificate != null) {
-                        boolean success = addReplicaProtocol(fullCertificate);
+                                        //System.out.println("Join start time: "+  System.currentTimeMillis());
+                                        
+					byte[] reply = makeInitialJoinRequest();
 
-                        if (success) {
-                            keep_running = false;
-                        }
-                    }
-                    attempts = 0;
+					FullCertificate fullCertificate = extractCertificateFromJoinRequest(reply);
 
-                } else if ("WAIT".equalsIgnoreCase(userReply) || "W".equalsIgnoreCase(userReply)) {
-                    logger.info("Input number of seconds to wait: ");
-                    int waitTime = sc.nextInt();
-                    logger.info("Waiting {} s ...", waitTime);
-                    Thread.sleep(waitTime * 1000);
-                    attempts = 0;
+					if (fullCertificate != null) {
+						boolean success = addReplicaProtocol(fullCertificate);
 
-                    logger.info("Attempting to JOIN.");
+						if (success) {
+							keep_running = false;
+						}
+					}
+                                        
+				} else if ("QUIT".equalsIgnoreCase(userReply) || "Q".equalsIgnoreCase(userReply)) {
+					keep_running = false;
+					logger.info("Quit join selector");
+				} else {
+					attempts++;
+				}
+			} catch (Exception e) {
+				logger.error("Error while processing Join request");
+				e.printStackTrace();
+				attempts++;
+			}
 
-                    //System.out.println("Join start time: "+  System.currentTimeMillis());
+		}
 
-                    byte[] reply = makeInitialJoinRequest();
+		logger.info("Exit join selector");
 
-                    FullCertificate fullCertificate = extractCertificateFromJoinRequest(reply);
 
-                    if (fullCertificate != null) {
-                        boolean success = addReplicaProtocol(fullCertificate);
+	}
 
-                        if (success) {
-                            keep_running = false;
-                        }
-                    }
-
-                } else if ("QUIT".equalsIgnoreCase(userReply) || "Q".equalsIgnoreCase(userReply)) {
-                    keep_running = false;
-                    logger.info("Quit join selector");
-                } else {
-                    attempts++;
-                }
-            } catch (Exception e) {
-                logger.error("Error while processing Join request");
-                e.printStackTrace();
-                attempts++;
-            }
-
-        }
-
-        logger.info("Exit join selector");
-
-
-    }
-
-    private byte[] makeInitialJoinRequest() {
+	private byte[] makeInitialJoinRequest() {
 //		ServiceProxy client = new ServiceProxy(7003);
 
 //		ServiceProxy client = new ServiceProxy(7003, null,
 
+		
 
-        byte[] request = createJoinRequest();
 
-        byte[] reply = client.invokeOrdered(request);
-        client.close();
+		byte[] request = createJoinRequest();
 
-        return reply;
+		byte[] reply = client.invokeOrdered(request);
+		client.close();
 
-    }
+		return reply;
+
+	}
 
 	private byte[] createJoinRequest() {
 

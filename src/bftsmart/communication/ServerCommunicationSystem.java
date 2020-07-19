@@ -15,6 +15,11 @@ limitations under the License.
 */
 package bftsmart.communication;
 
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+
+import javax.crypto.SecretKey;
+
 import bftsmart.communication.client.CommunicationSystemServerSide;
 import bftsmart.communication.client.CommunicationSystemServerSideFactory;
 import bftsmart.communication.client.RequestReceiver;
@@ -24,12 +29,9 @@ import bftsmart.reconfiguration.ServerViewController;
 import bftsmart.tom.ServiceReplica;
 import bftsmart.tom.core.TOMLayer;
 import bftsmart.tom.core.messages.TOMMessage;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.crypto.SecretKey;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
 
 /**
  *
@@ -43,7 +45,7 @@ public class ServerCommunicationSystem extends Thread {
     public final long MESSAGE_WAIT_TIME = 100;
     private LinkedBlockingQueue<SystemMessage> inQueue = null;//new LinkedBlockingQueue<SystemMessage>(IN_QUEUE_SIZE);
     protected MessageHandler messageHandler;
-
+    
     private ServersCommunicationLayer serversConn;
     private CommunicationSystemServerSide clientsConn;
     private ServerViewController controller;
@@ -139,7 +141,7 @@ public class ServerCommunicationSystem extends Thread {
         if (sm instanceof TOMMessage) {
             clientsConn.send(targets, (TOMMessage) sm, false);
         } else {
-            logger.debug("--> sending message from: {} -> {}" + sm.getSender(), targets);
+        	logger.debug("--> sending message from: {} -> {}" + sm.getSender(), targets);
             serversConn.send(targets, sm, true);
         }
     }
@@ -165,8 +167,8 @@ public class ServerCommunicationSystem extends Thread {
         clientsConn.shutdown();
         serversConn.shutdown();
     }
-
+    
     public SecretKey getSecretKey(int id) {
-        return serversConn.getSecretKey(id);
-    }
+		return serversConn.getSecretKey(id);
+	}
 }

@@ -20,6 +20,8 @@ import io.netty.channel.Channel;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import javax.crypto.Mac;
+
 
 /**
  *

@@ -10,24 +10,25 @@ import bftsmart.statemanagement.ApplicationState;
 import bftsmart.statemanagement.standard.StandardSMMessage;
 
 /**
+ *
  * @author joao
  */
 public class BlockchainSMMessage extends StandardSMMessage {
-
+    
     public BlockchainSMMessage(int sender, int cid, int type, int replica, ApplicationState state, View view, int regency, int leader) {
         super(sender, cid, type, replica, state, view, regency, leader);
     }
-
+    
     @Override
     public boolean equals(Object o) {
-
+        
         return (o instanceof BlockchainSMMessage && ((BlockchainSMMessage) o).getSender() == getSender());
     }
-
+    
     @Override
     public int hashCode() {
-
+        
         return 47 * getSender();
     }
-
+    
 }

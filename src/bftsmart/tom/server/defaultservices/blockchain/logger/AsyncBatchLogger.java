@@ -5,13 +5,10 @@
  */
 package bftsmart.tom.server.defaultservices.blockchain.logger;
 
+import bftsmart.tom.server.defaultservices.blockchain.BatchLogger;
 import bftsmart.tom.MessageContext;
 import bftsmart.tom.server.defaultservices.CommandsInfo;
-import bftsmart.tom.server.defaultservices.blockchain.BatchLogger;
 import bftsmart.tom.util.TOMUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -23,6 +20,8 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -69,16 +68,19 @@ public class AsyncBatchLogger implements BatchLogger {
         this.logDir = logDir;
         
         logger.info("Asynchronous batch logger instantiated");
+        
+        
+        
 
-
+        
     }
     
     public void startNewFile(int cid, int period) throws IOException {
         
         if (log != null) log.close();
         if (channel != null) channel.close();
-
-        logPath = logDir + this.id + "." + cid + "." + (cid + period) + ".log";
+        
+        logPath = logDir + String.valueOf(this.id) + "." + cid + "."  +  (cid + period) + ".log";
         
         logger.debug("Logging to file " + logPath);
         log = new RandomAccessFile(logPath, "rw");
@@ -90,8 +92,8 @@ public class AsyncBatchLogger implements BatchLogger {
         
         if (log != null) log.close();
         if (channel != null) channel.close();
-
-        logPath = logDir + this.id + "." + cid + "." + (cid + period) + ".log";
+        
+        logPath = logDir + String.valueOf(this.id) + "." + cid + "."  +  (cid + period) + ".log";
         
         logger.debug("Opening file " + logPath);
         

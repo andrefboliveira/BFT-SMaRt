@@ -1,12 +1,12 @@
 /**
  * Copyright (c) 2007-2013 Alysson Bessani, Eduardo Alchieri, Paulo Sousa, and the authors indicated in the @author tags
- * <p>
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * <p>
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,10 +21,18 @@ import bftsmart.tom.server.ServerJoiner;
 import bftsmart.tom.server.durability.DurabilityCoordinator;
 import bftsmart.tom.util.Storage;
 import bftsmart.tom.util.TOMUtil;
-
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.security.*;
+import java.security.InvalidKeyException;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PublicKey;
+import java.security.Security;
+import java.security.Signature;
+import java.security.SignatureException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.spec.EncodedKeySpec;
@@ -35,7 +43,7 @@ import java.util.Base64;
 /**
  * Simple server that just acknowledge the reception of a request.
  */
-public final class DurableThroughputServer extends DurabilityCoordinator implements ServerJoiner {
+public final class DurableThroughputServer extends DurabilityCoordinator implements ServerJoiner{
 
     private int interval;
     private byte[] reply;
@@ -214,7 +222,7 @@ public final class DurableThroughputServer extends DurabilityCoordinator impleme
             }
 
             //System.out.println("--- Measurements after "+ iterations+" ops ("+interval+" samples) ---");
-            tp = interval * 1000 / (float) (System.currentTimeMillis() - throughputMeasurementStartTime);
+            tp = (float) (interval * 1000 / (float) (System.currentTimeMillis() - throughputMeasurementStartTime));
 
             if (tp > maxTp) {
                 maxTp = tp;
@@ -293,7 +301,7 @@ public final class DurableThroughputServer extends DurabilityCoordinator impleme
         new DurableThroughputServer(processId, interval, replySize, stateSize, context, prettyPrint, s);
     }
 
-    @Override
+     @Override
     public void installSnapshot(byte[] state) {
         //nothing
         this.state = state;

@@ -15,21 +15,27 @@ limitations under the License.
 */
 package bftsmart.clientsmanagement;
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Set;
+import java.util.Map.Entry;
+import java.util.concurrent.locks.ReentrantLock;
 import bftsmart.communication.ServerCommunicationSystem;
 import bftsmart.reconfiguration.ServerViewController;
 import bftsmart.tom.core.messages.TOMMessage;
 import bftsmart.tom.leaderchange.RequestsTimer;
 import bftsmart.tom.server.RequestVerifier;
 import bftsmart.tom.util.TOMUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Signature;
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.Random;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -43,12 +49,12 @@ public class ClientsManager {
     private RequestsTimer timer;
     private HashMap<Integer, ClientData> clientsData = new HashMap<Integer, ClientData>();
     private RequestVerifier verifier;
-
+    
     //Used when the intention is to perform benchmarking with signature verification, but
     //without having to make the clients create one first. Useful to optimize resources
     private byte[] benchMsg = null;
     private byte[] benchSig = null;
-    private HashMap<String, Signature> benchEngines = new HashMap<>();
+    private HashMap<String,Signature> benchEngines = new HashMap<>();
     
     private ReentrantLock clientsLock = new ReentrantLock();
 
@@ -56,10 +62,10 @@ public class ClientsManager {
         this.controller = controller;
         this.timer = timer;
         this.verifier = verifier;
-
+        
         if (controller.getStaticConf().getUseSignatures() == 2) {
-            benchMsg = new byte[]{3, 5, 6, 7, 4, 3, 5, 6, 4, 7, 4, 1, 7, 7, 5, 4, 3, 1, 4, 85, 7, 5, 7, 3};
-            benchSig = TOMUtil.signMessage(controller.getStaticConf().getPrivateKey(), benchMsg);
+            benchMsg = new byte []{3,5,6,7,4,3,5,6,4,7,4,1,7,7,5,4,3,1,4,85,7,5,7,3};
+            benchSig = TOMUtil.signMessage(controller.getStaticConf().getPrivateKey(), benchMsg);            
         }
     }
 
@@ -105,22 +111,22 @@ public class ClientsManager {
         
         clientsLock.lock();
         /******* BEGIN CLIENTS CRITICAL SECTION ******/
-
+        
         List<Entry<Integer, ClientData>> clientsEntryList = new ArrayList<>(clientsData.entrySet().size());
         clientsEntryList.addAll(clientsData.entrySet());
-
+        
         if (controller.getStaticConf().getFairBatch()) // ensure fairness
             Collections.shuffle(clientsEntryList);
 
         logger.debug("Number of active clients: {}", clientsEntryList.size());
         
         for (int i = 0; true; i++) {
-
+                        
             Iterator<Entry<Integer, ClientData>> it = clientsEntryList.iterator();
             int noMoreMessages = 0;
             
             logger.debug("Fetching requests with internal index {}", i);
-
+            
             while (it.hasNext()
                     && allReq.size() < controller.getStaticConf().getMaxBatchSize()
                     && noMoreMessages < clientsEntryList.size()) {
@@ -340,16 +346,16 @@ public class ClientsManager {
             boolean isValid = (!controller.getStaticConf().isBFT() || verifier.isValidRequest(request));
 
             Signature engine = benchEngines.get(Thread.currentThread().getName());
-
+            
             if (engine == null) {
-
+                
                 try {
                     engine = TOMUtil.getSigEngine();
                     engine.initVerify(controller.getStaticConf().getPublicKey());
-
+                    
                     benchEngines.put(Thread.currentThread().getName(), engine);
                 } catch (NoSuchAlgorithmException | InvalidKeyException ex) {
-                    logger.error("Signature error.", ex);
+                    logger.error("Signature error.",ex);
                     engine = null;
                 }
             }

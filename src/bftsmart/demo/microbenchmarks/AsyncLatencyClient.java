@@ -15,22 +15,31 @@
  */
 package bftsmart.demo.microbenchmarks;
 
+import java.io.IOException;
+import java.util.Arrays;
+
 import bftsmart.communication.client.ReplyListener;
+import static bftsmart.demo.microbenchmarks.ThroughputLatencyClient.privKey;
 import bftsmart.tom.AsynchServiceProxy;
 import bftsmart.tom.RequestContext;
 import bftsmart.tom.core.messages.TOMMessage;
 import bftsmart.tom.core.messages.TOMMessageType;
 import bftsmart.tom.util.Storage;
 import bftsmart.tom.util.TOMUtil;
-
 import java.io.FileWriter;
-import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.security.*;
+import java.security.InvalidKeyException;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PrivateKey;
+import java.security.Security;
+import java.security.Signature;
+import java.security.SignatureException;
 import java.security.spec.EncodedKeySpec;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
-import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Random;
@@ -38,8 +47,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
-
-import static bftsmart.demo.microbenchmarks.ThroughputLatencyClient.privKey;
 
 /**
  *
@@ -61,17 +68,17 @@ public class AsyncLatencyClient {
         initId = Integer.parseInt(args[0]);
         latencies = new LinkedBlockingQueue<>();
         writerThread = new Thread() {
-
+            
             public void run() {
-
+                
                 FileWriter f = null;
                 try {
                     f = new FileWriter("./latencies_" + initId + ".txt");
                     while (true) {
-
+                        
                         f.write(latencies.take());
-                    }
-
+                    }   
+                    
                 } catch (IOException | InterruptedException ex) {
                     ex.printStackTrace();
                 } finally {
@@ -186,7 +193,7 @@ public class AsyncLatencyClient {
                         //Base64.Decoder b64 = Base64.getDecoder();
                         //PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(b64.decode(ThroughputLatencyClient.privKey));
                         //eng.initSign(kf.generatePrivate(spec));
-
+                        
                         KeyFactory keyFactory = KeyFactory.getInstance("EC");
                         EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(org.apache.commons.codec.binary.Base64.decodeBase64(privKey));
                         PrivateKey privateKey = keyFactory.generatePrivate(privateKeySpec);

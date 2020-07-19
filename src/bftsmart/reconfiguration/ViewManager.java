@@ -61,7 +61,7 @@ public class ViewManager {
 
     public void addServer(int id, String ip, int port, FullCertificate fullCertificate) {
         //Fix me!!! It is necessary to use the ports below as in the hosts.config file
-        this.controller.getStaticConf().addHostInfo(id, ip, port, port + 1);
+        this.controller.getStaticConf().addHostInfo(id, ip, port, port+1);
         rec.addServer(id, ip, port, fullCertificate);
         addIds.add(id);
     }

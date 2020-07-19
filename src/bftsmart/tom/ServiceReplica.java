@@ -16,7 +16,13 @@
  */
 package bftsmart.tom;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
+
 import bftsmart.communication.ServerCommunicationSystem;
+import bftsmart.tom.core.ExecutionManager;
 import bftsmart.consensus.messages.MessageFactory;
 import bftsmart.consensus.roles.Acceptor;
 import bftsmart.consensus.roles.Proposer;
@@ -25,26 +31,30 @@ import bftsmart.reconfiguration.ServerViewController;
 import bftsmart.reconfiguration.VMMessage;
 import bftsmart.reconfiguration.util.ReconfigThread.JoinThread;
 import bftsmart.reconfiguration.util.ReconfigThread.ReconfigSelectorThread;
-import bftsmart.tom.core.ExecutionManager;
 import bftsmart.tom.core.ReplyManager;
 import bftsmart.tom.core.TOMLayer;
 import bftsmart.tom.core.messages.TOMMessage;
 import bftsmart.tom.core.messages.TOMMessageType;
 import bftsmart.tom.leaderchange.CertifiedDecision;
-import bftsmart.tom.server.*;
+import bftsmart.tom.server.BatchExecutable;
+import bftsmart.tom.server.Executable;
+import bftsmart.tom.server.Recoverable;
+import bftsmart.tom.server.Replier;
+import bftsmart.tom.server.RequestVerifier;
+import bftsmart.tom.server.ServerJoiner;
+import bftsmart.tom.server.SingleExecutable;
+
 import bftsmart.tom.server.defaultservices.DefaultReplier;
 import bftsmart.tom.util.KeyLoader;
 import bftsmart.tom.util.ShutdownHookThread;
 import bftsmart.tom.util.TOMUtil;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.security.Provider;
+import java.util.Scanner;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.security.Provider;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * This class receives messages from DeliveryThread and manages the execution
@@ -75,8 +85,8 @@ public class ServiceReplica {
     private Replier replier = null;
     private RequestVerifier verifier = null;
 
-    public long replicaStartTime;
-
+    public  long replicaStartTime;
+    
     private ServerJoiner joiner;
     /**
      * Constructor
@@ -116,8 +126,8 @@ public class ServiceReplica {
      *
      * @see bellow
      */
-    public ServiceReplica(int id, Executable executor, Recoverable recoverer, RequestVerifier verifier,
-                          Replier replier, KeyLoader loader, Provider provider, ServerJoiner joiner) {
+    public ServiceReplica(int id, Executable executor, Recoverable recoverer, RequestVerifier verifier, 
+            Replier replier, KeyLoader loader, Provider provider, ServerJoiner joiner) {
         this(id, "", executor, recoverer, verifier, replier, loader, joiner);
     }
 
@@ -134,8 +144,8 @@ public class ServiceReplica {
      * @param loader Used to load signature keys from disk
      * @param joiner
      */
-    public ServiceReplica(int id, String configHome, Executable executor, Recoverable recoverer,
-                          RequestVerifier verifier, Replier replier, KeyLoader loader, ServerJoiner joiner) {
+    public ServiceReplica(int id, String configHome, Executable executor, Recoverable recoverer, 
+            RequestVerifier verifier, Replier replier, KeyLoader loader, ServerJoiner joiner) {
         this.id = id;
         this.SVController = new ServerViewController(id, configHome, loader);
         this.executor = executor;
@@ -146,7 +156,7 @@ public class ServiceReplica {
         this.init();
         this.recoverer.setReplicaContext(replicaCtx);
         this.replier.setReplicaContext(replicaCtx);
-        this.replicaStartTime = 0;
+         this.replicaStartTime = 0;
     }
 
     // this method initializes the object
@@ -176,7 +186,7 @@ public class ServiceReplica {
 
             //Not in the initial view, just waiting for the view where the join has been executed
 //            logger.info("Waiting for the TTP: " + this.SVController.getCurrentView());
-
+          
             Thread askToJoin = new Thread(new JoinThread(this.id, this.SVController.getStaticConf(), this.SVController.getCurrentView(), scThread, joiner));
 //            Thread askToJoin = new Thread(new JoinThread(this.id, this.SVController.getCurrentView()));
             askToJoin.start();
@@ -190,7 +200,7 @@ public class ServiceReplica {
 
         }
         initReplica();
-
+        
         Thread reconfigSelectorThread = new Thread(new ReconfigSelectorThread(this.id, this.SVController.getStaticConf(), scThread));
         reconfigSelectorThread.start();
 
@@ -206,12 +216,12 @@ public class ServiceReplica {
                 logger.error("File stdin not found");
             }
         } else {*/
-        sc = new Scanner(System.in);
+            sc = new Scanner(System.in);
         //}
 
         return sc;
     }
-
+    
     /**
      *
      * @deprecated
@@ -248,7 +258,7 @@ public class ServiceReplica {
         //applications to log it or keep any proof.
         response = executor.executeUnordered(id, SVController.getCurrentViewId(),
                 (message.getReqType() == TOMMessageType.UNORDERED_HASHED_REQUEST
-                        && message.getReplyServer() != this.id), message.getContent(), msgCtx);
+                && message.getReplyServer() != this.id), message.getContent(), msgCtx);
 
         if (response != null) {
             if (SVController.getStaticConf().getNumRepliers() > 0) {
@@ -320,7 +330,7 @@ public class ServiceReplica {
      *
      * @deprecated
      */
-    public void receiveMessages(int[] consId, int[] regencies, int[] leaders, CertifiedDecision[] cDecs, TOMMessage[][] requests) {
+    public void receiveMessages(int consId[], int regencies[], int leaders[], CertifiedDecision[] cDecs, TOMMessage[][] requests) {
         int numRequests = 0;
         int consensusCount = 0;
         List<TOMMessage> toBatch = new ArrayList<>();
@@ -332,8 +342,9 @@ public class ServiceReplica {
             TOMMessage firstRequest = requestsFromConsensus[0];
             int requestCount = 0;
             noop = true;
-
-
+            
+            
+            
             for (TOMMessage request : requestsFromConsensus) {
 
                 logger.debug("Processing TOMMessage from client " + request.getSender() + " with sequence number " + request.getSequence() + " for session " + request.getSession() + " decided in consensus " + consId[consensusCount]);
@@ -345,8 +356,9 @@ public class ServiceReplica {
                     } else {
                         switch (request.getReqType()) {
                             case ORDERED_REQUEST:
-
-
+                                
+                                
+                                
                                 noop = false;
                                 numRequests++;
                                 MessageContext msgCtx = new MessageContext(request.getSender(), request.getViewID(),
@@ -361,7 +373,8 @@ public class ServiceReplica {
                                 request.deliveryTime = System.nanoTime();
                                 if (executor instanceof BatchExecutable) {
 
-
+                                    
+                                    
                                     logger.debug("Batching request from " + request.getSender());
 
                                     // This is used to deliver the content decided by a consensus instance directly to
@@ -401,8 +414,8 @@ public class ServiceReplica {
                                 }
                                 break;
                             case RECONFIG:
-
-
+                                
+                                
                                 SVController.enqueueUpdate(request, firstRequest.timestamp);
                                 break;
                             default: //this code should never be executed

@@ -16,25 +16,28 @@ limitations under the License.
 package bftsmart.communication.client.netty;
 
 
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import bftsmart.tom.core.messages.TOMMessage;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
 
 public class NettyTOMMessageEncoder extends MessageToByteEncoder<TOMMessage> {
     
     private boolean isClient;
-    private ConcurrentHashMap<Integer, NettyClientServerSession> sessionTable;
+    private ConcurrentHashMap<Integer, NettyClientServerSession>  sessionTable;
     private ReentrantReadWriteLock rl;
+    
 
-
-    public NettyTOMMessageEncoder(boolean isClient,
-                                  ConcurrentHashMap<Integer, NettyClientServerSession> sessionTable,
-                                  ReentrantReadWriteLock rl) {
+    public NettyTOMMessageEncoder(boolean isClient, 
+    		ConcurrentHashMap<Integer, NettyClientServerSession> sessionTable,
+    		ReentrantReadWriteLock rl){
         this.isClient = isClient;
         this.sessionTable = sessionTable;
         this.rl = rl;

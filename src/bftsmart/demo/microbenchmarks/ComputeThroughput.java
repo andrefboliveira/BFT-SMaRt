@@ -11,10 +11,11 @@ import java.util.LinkedList;
 import java.util.StringTokenizer;
 
 /**
+ *
  * @author eduardo
  */
 public class ComputeThroughput {
-
+    
     public static void main(String[] args) {
 
         /*File f = new File(args[0]);
@@ -35,7 +36,7 @@ public class ComputeThroughput {
             String line = null;
             //int j = 0;
             LinkedList<Double> l = new LinkedList<Double>();
-
+            
             while (((line = rd.readLine()) != null)) {
                 StringTokenizer st = new StringTokenizer(line, "\t");
                 try {
@@ -43,7 +44,7 @@ public class ComputeThroughput {
                     st.nextToken();
                     double d = Double.parseDouble(st.nextToken());
                     l.add(d);
-
+                           
                 } catch (Exception e) {
                     e.printStackTrace();
                     //e.printStackTrace();
@@ -56,54 +57,57 @@ public class ComputeThroughput {
             //System.out.println("Size: " + l.size());
 
             //double sum = 0;
-
-
+            
+            
             double[] values = new double[l.size()];
-            for (int i = 0; i < values.length; i++) {
+            for(int i = 0; i < values.length; i++){
                 values[i] = l.get(i);
-                System.out.println("value: " + values[i]);
+                System.out.println("value: "+values[i]);
             }
-
-
+            
+            
+            
+            
+            
             //System.out.println("Sum: " + sum);
-            System.out.println("Throughput: " + computeAverage(values, true));
-            System.out.println("DP: " + computeDP(values, true));
+            System.out.println("Throughput: " + computeAverage(values,true));
+            System.out.println("DP: " + computeDP(values,true));
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-
-    private static double computeAverage(double[] values, boolean percent) {
+    
+     private static double computeAverage(double[] values, boolean percent){
         java.util.Arrays.sort(values);
         int limit = 0;
-        if (percent) {
-            limit = values.length / 10;
+        if(percent){
+            limit = values.length/10;
         }
         double count = 0;
-        for (int i = limit; i < values.length - limit; i++) {
+        for(int i = limit; i < values.length - limit;i++){
             count = count + values[i];
         }
-        return count / (double) (values.length - 2 * limit);
+        return (double) count/ (double) (values.length - 2*limit);
     }
-
-    private static double computeDP(double[] values, boolean percent) {
-        if (values.length <= 1) {
+     
+    private static double computeDP(double[] values, boolean percent){
+        if(values.length <= 1){
             return 0;
         }
         java.util.Arrays.sort(values);
         int limit = 0;
-        if (percent) {
-            limit = values.length / 10;
+        if(percent){
+            limit = values.length/10;
         }
         long num = 0;
-        double med = computeAverage(values, percent);
+        double med = computeAverage(values,percent);
         double quad = 0;
-
-        for (int i = limit; i < values.length - limit; i++) {
+        
+        for(int i = limit; i < values.length - limit;i++){
             num++;
-            quad = quad + values[i] * values[i]; //Math.pow(values[i],2);
+            quad = quad + values[i]*values[i]; //Math.pow(values[i],2);
         }
-        double var = (quad - (num * (med * med))) / (num - 1);
+        double var = (quad - (num*(med*med)))/(num-1);
         ////br.ufsc.das.util.Logger.println("mim: "+values[limit]);
         ////br.ufsc.das.util.Logger.println("max: "+values[values.length-limit-1]);
         return Math.sqrt(var);

@@ -7,15 +7,16 @@ package bftsmart.demo.microbenchmarks;
 
 import bftsmart.reconfiguration.util.TOMConfiguration;
 import bftsmart.tom.util.TOMUtil;
-
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
+ *
  * @author eduardo
  */
 public class BlockTest {
@@ -47,16 +48,16 @@ public class BlockTest {
             byte[] mySig2 = TOMUtil.signMessage(config.getPrivateKey(), blockhash);
             byte[] mySig3 = TOMUtil.signMessage(config.getPrivateKey(), blockhash);
 
-            int[] numbers = new int[args.length];
-            for (int i = 0; i < args.length; i++) {
-                numbers[i] = Integer.parseInt(args[i]);
+            int numbers[] = new int[args.length];
+            for(int i = 0; i < args.length; i++){
+              numbers[i] = Integer.parseInt(args[i]);
             }
             Arrays.sort(numbers);
             //int numbers[] = {500, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000};
             int x = 0;
             //processar os blocos
             long init = System.nanoTime();
-            for (int i = 1; i <= numbers[numbers.length - 1]; i++) {
+            for (int i = 1; i <= numbers[numbers.length-1]; i++) {
 
                 //block validation
                 byte[] transHashCheck = computeHash(operations);
@@ -113,7 +114,7 @@ public class BlockTest {
     }
 
     private static byte[] computeBlockHash(int number, int lastCheckpoint, int lastReconf, byte[] transHash,
-                                           byte[] resultsHash, byte[] prevBlock) throws NoSuchAlgorithmException {
+            byte[] resultsHash, byte[] prevBlock) throws NoSuchAlgorithmException {
 
         ByteBuffer buff = ByteBuffer
                 .allocate(Integer.BYTES * 6 + (prevBlock.length + transHash.length + resultsHash.length));

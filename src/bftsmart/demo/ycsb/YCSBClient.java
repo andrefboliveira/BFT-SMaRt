@@ -1,12 +1,12 @@
 /**
  * Copyright (c) 2007-2013 Alysson Bessani, Eduardo Alchieri, Paulo Sousa, and the authors indicated in the @author tags
- * <p>
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * <p>
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,15 +15,22 @@
  */
 package bftsmart.demo.ycsb;
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Properties;
+import java.util.Set;
+import java.util.Vector;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import bftsmart.tom.ServiceProxy;
+
 import com.yahoo.ycsb.ByteIterator;
 import com.yahoo.ycsb.DB;
 
-import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
-
 /**
+ *
  * @author Marcel Santos
+ *
  */
 public class YCSBClient extends DB {
 
@@ -50,7 +57,7 @@ public class YCSBClient extends DB {
 
     @Override
     public int insert(String table, String key,
-                      HashMap<String, ByteIterator> values) {
+            HashMap<String, ByteIterator> values) {
 
         Iterator<String> keys = values.keySet().iterator();
         HashMap<String, byte[]> map = new HashMap<>();
@@ -66,7 +73,7 @@ public class YCSBClient extends DB {
 
     @Override
     public int read(String table, String key,
-                    Set<String> fields, HashMap<String, ByteIterator> result) {
+            Set<String> fields, HashMap<String, ByteIterator> result) {
         HashMap<String, byte[]> results = new HashMap<>();
         YCSBMessage request = YCSBMessage.newReadRequest(table, key, fields, results);
         byte[] reply = proxy.invokeUnordered(request.getBytes());
@@ -76,13 +83,13 @@ public class YCSBClient extends DB {
 
     @Override
     public int scan(String arg0, String arg1, int arg2, Set<String> arg3,
-                    Vector<HashMap<String, ByteIterator>> arg4) {
+            Vector<HashMap<String, ByteIterator>> arg4) {
         throw new UnsupportedOperationException();
     }
 
     @Override
     public int update(String table, String key,
-                      HashMap<String, ByteIterator> values) {
+            HashMap<String, ByteIterator> values) {
         Iterator<String> keys = values.keySet().iterator();
         HashMap<String, byte[]> map = new HashMap<>();
         while (keys.hasNext()) {

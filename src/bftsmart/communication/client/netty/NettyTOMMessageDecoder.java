@@ -15,19 +15,20 @@ limitations under the License.
 */
 package bftsmart.communication.client.netty;
 
-import bftsmart.reconfiguration.ViewController;
-import bftsmart.tom.core.messages.TOMMessage;
-import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.ByteToMessageDecoder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import bftsmart.reconfiguration.ViewController;
+import bftsmart.tom.core.messages.TOMMessage;
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.ByteToMessageDecoder;
 
 /**
  *
@@ -47,12 +48,12 @@ public class NettyTOMMessageDecoder extends ByteToMessageDecoder {
     private ViewController controller;
     private boolean firstTime;
     private ReentrantReadWriteLock rl;
-
-
-    public NettyTOMMessageDecoder(boolean isClient,
-                                  ConcurrentHashMap<Integer, NettyClientServerSession> sessionTable,
-                                  ViewController controller,
-                                  ReentrantReadWriteLock rl) {
+    
+    
+    public NettyTOMMessageDecoder(boolean isClient, 
+    		ConcurrentHashMap<Integer, NettyClientServerSession> sessionTable, 
+    		ViewController controller, 
+    		ReentrantReadWriteLock rl) {
         this.isClient = isClient;
         this.sessionTable = sessionTable;
         this.controller = controller;
@@ -60,16 +61,16 @@ public class NettyTOMMessageDecoder extends ByteToMessageDecoder {
         this.rl = rl;
         logger.debug("new NettyTOMMessageDecoder!!, isClient=" + isClient);
         logger.trace("\n\t isClient: {};"
-                        + "\n\t sessionTable: {};"
-                        + "\n\t controller: {};"
-                        + "\n\t firstTime: {};"
-                        + "\n\t rl: {};"
-                        + "\n\t signatureSize: {};",
-                isClient,
-                sessionTable.toString(),
-                controller,
-                firstTime,
-                rl);
+        		+ 	 "\n\t sessionTable: {};"
+        		+ 	 "\n\t controller: {};"
+        		+ 	 "\n\t firstTime: {};"
+        		+ 	 "\n\t rl: {};"
+        		+ 	 "\n\t signatureSize: {};", 
+        		new Object[] {isClient, 
+        					  sessionTable.toString(),
+        					  controller, 
+        					  firstTime, 
+        					  rl});
     }
 
     @Override
@@ -119,22 +120,22 @@ public class NettyTOMMessageDecoder extends ByteToMessageDecoder {
                 sm.signed = true;
             }
 
-            if (!isClient) {
-                rl.readLock().lock();
+            if (!isClient) {                
+                rl.readLock().lock();                
                 if (!sessionTable.containsKey(sm.getSender())) {
                     rl.readLock().unlock();
-
+              
                     NettyClientServerSession cs = new NettyClientServerSession(
-                            context.channel(),
-                            sm.getSender());
+                    		context.channel(), 
+                    		sm.getSender());
                                        
                     rl.writeLock().lock();
                     sessionTable.put(sm.getSender(), cs);
                     logger.debug("Active clients: " + sessionTable.size());
                     rl.writeLock().unlock();
-
-                } else {
-                    rl.readLock().unlock();
+                    
+                }else {
+                	rl.readLock().unlock();   
                 }
             }
             logger.debug("Decoded reply from " + sm.getSender() + " with sequence number " + sm.getSequence());

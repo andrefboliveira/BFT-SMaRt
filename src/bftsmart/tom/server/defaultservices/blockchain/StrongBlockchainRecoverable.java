@@ -6,6 +6,8 @@
 package bftsmart.tom.server.defaultservices.blockchain;
 
 import bftsmart.communication.ServerCommunicationSystem;
+import bftsmart.tom.server.defaultservices.blockchain.logger.ParallelBatchLogger;
+import bftsmart.tom.server.defaultservices.blockchain.logger.BufferBatchLogger;
 import bftsmart.consensus.messages.ConsensusMessage;
 import bftsmart.reconfiguration.ServerViewController;
 import bftsmart.reconfiguration.util.ReconfigThread.pojo.CoreCertificate;
@@ -14,6 +16,7 @@ import bftsmart.reconfiguration.util.TOMConfiguration;
 import bftsmart.statemanagement.ApplicationState;
 import bftsmart.statemanagement.SMMessage;
 import bftsmart.statemanagement.StateManager;
+import bftsmart.statemanagement.standard.StandardStateManager;
 import bftsmart.tom.MessageContext;
 import bftsmart.tom.ReplicaContext;
 import bftsmart.tom.core.messages.ForwardedMessage;
@@ -24,24 +27,37 @@ import bftsmart.tom.server.Recoverable;
 import bftsmart.tom.server.ServerJoiner;
 import bftsmart.tom.server.defaultservices.CommandsInfo;
 import bftsmart.tom.server.defaultservices.blockchain.logger.AsyncBatchLogger;
-import bftsmart.tom.server.defaultservices.blockchain.logger.BufferBatchLogger;
-import bftsmart.tom.server.defaultservices.blockchain.logger.ParallelBatchLogger;
 import bftsmart.tom.server.defaultservices.blockchain.logger.VoidBatchLogger;
 import bftsmart.tom.util.BatchBuilder;
 import bftsmart.tom.util.TOMUtil;
-import org.apache.commons.codec.binary.Base64;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
+import org.apache.commons.codec.binary.Base64;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -284,7 +300,8 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
 
                                 if (flag.equals((new String(b)))) {
 
-
+                                   
+                                    
                                     int messageSize = buff.getInt();
                                     byte[] messageBytes = new byte[messageSize];
                                     buff.get(messageBytes);
@@ -295,8 +312,8 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
                                     ctxjoinRequestList.add(msgCtxs[i]);
 
                                 } else {
-
-
+                                   
+                                    
                                     transListApp.add(commands[i]);
                                     ctxListApp.add(msgCtxs[i]);
 
@@ -472,9 +489,9 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
                 byte[][] operations = split.get(cid).getKey();
                 MessageContext[] msgCtxs = split.get(cid).getValue();
 
-                // Map<commandType, List<Integer>> commandIndexes = new HashMap<commandType, List<Integer>>();
+               // Map<commandType, List<Integer>> commandIndexes = new HashMap<commandType, List<Integer>>();
                 //commandIndexes.put(commandType.APP, new ArrayList<Integer>());
-                // commandIndexes.put(commandType.JOIN, new ArrayList<Integer>());
+               // commandIndexes.put(commandType.JOIN, new ArrayList<Integer>());
 
                 LinkedList<byte[]> transListApp = new LinkedList<>();
                 LinkedList<MessageContext> ctxListApp = new LinkedList<>();
@@ -539,11 +556,12 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
                             buff.get(b);
 
                             String flag = "JOIN_REQUEST";
-
-
+                            
+                            
                             if (flag.equals((new String(b)))) {
 
-
+                            
+                                
                                 //commandIndexes.get(commandType.JOIN).add(i);
 
                                 int messageSize = buff.getInt();
@@ -556,8 +574,9 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
                                 ctxjoinRequestList.add(msgCtxs[i]);
 
                             } else {
-
-
+                                
+                                
+                                
                                 //commandIndexes.get(commandType.APP).add(i);
 
                                 transListApp.add(operations[i]);
@@ -568,7 +587,7 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
                             }
                         } else {
                             //commandIndexes.get(commandType.APP).add(i);
-
+                            
                             transListApp.add(operations[i]);
                             ctxListApp.add(msgCtxs[i]);
 
@@ -581,9 +600,9 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
                 }
 
                 if (transListApp.size() > 0 || joinRequestList.size() > 0) {
-
+                    
                     if (transListApp.size() > 0) {
-
+                    
                         byte[][] transApp = new byte[transListApp.size()][];
                         MessageContext[] ctxApp = new MessageContext[ctxListApp.size()];
 
@@ -628,28 +647,31 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
                         }, config.getLogBatchTimeout());
                     }
 
-
+                     
                     if (joinRequestList.size() > 0) {
-
-
+                        
+                        
                         byte[][] repliesJoin = new byte[joinRequestList.size()][];
-
+                        
                         byte[][] commandsJoin = new byte[joinRequestList.size()][];
                         joinRequestList.toArray(commandsJoin);
 
                         MessageContext[] msgCtxsJoin = new MessageContext[ctxjoinRequestList.size()];
                         ctxjoinRequestList.toArray(msgCtxsJoin);
 
-
+                        
+                        
+                        
                         repliesJoin = executeJoinRequests(commandsJoin, msgCtxsJoin);
-
-
-                        for (int i = 0; i < repliesJoin.length; i++) {
+                        
+                        
+                        
+                         for (int i = 0; i < repliesJoin.length; i++) {
 
                             TOMMessage reply = getTOMMessage(processID, viewID, commandsJoin[i], msgCtxsJoin[i], repliesJoin[i]);
 
                             this.results.add(reply);
-
+                           
                         }
 
                     }
@@ -661,9 +683,10 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
                 //boolean isCheckpoint = cid > 0 && cid % config.getCheckpointPeriod() == 0;
                 boolean isCheckpoint = nextNumber > 0 && nextNumber % config.getCheckpointPeriod() == 0;
 
-
+                
+                
                 if (joinRequestList.size() > 0 || (timeout | isCheckpoint
-                        || /*(cid % config.getLogBatchLimit() == 0)*/
+                        || /*(cid % config.getLogBatchLimit() == 0)*/ 
                         (this.results.size() > config.getMaxBatchSize())) /* * config.getLogBatchLimit())*/) {
 
                     byte[][] hashes = log.markEndTransactions();
@@ -692,10 +715,10 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
                     if (isCheckpoint) {
 
                         //logger.info("Performing checkpoint at CID {}", cid);
-                        logger.info("Performing checkpoint at block {}", nextNumber - 1);
+                        logger.info("Performing checkpoint at block {}", nextNumber-1);
 
                         long t1 = System.currentTimeMillis();
-
+                        
                         log.clearCached();
                         lastCheckpoint = cid;
 
@@ -705,10 +728,10 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
                         logger.info("Storing checkpoint at CID {}", cid);
 
                         writeCheckpointToDisk(cid, appState);
-
+                        
                         long total = System.currentTimeMillis() - t1;
-
-                        System.out.println("Toral ckpt time : " + total);
+                        
+                        System.out.println("Toral ckpt time : "+total);
 
                     }
 
@@ -1030,9 +1053,10 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
     private byte[][] executeJoinRequests(byte[][] commands, MessageContext[] msgCtxs) {
         byte[][] replies = new byte[commands.length][];
 
-
+        
+        
         for (int i = 0; i < commands.length; i++) {
-
+        
             replies[i] = processEachJoinRequest(commands[i], msgCtxs[i]);
         }
 
@@ -1041,7 +1065,7 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
 
     private byte[] processEachJoinRequest(byte[] command, MessageContext msgCtx) {
         try (ByteArrayInputStream byteIn = new ByteArrayInputStream(command);
-             DataInputStream dis = new DataInputStream(byteIn)) {
+                DataInputStream dis = new DataInputStream(byteIn)) {
 
             int joiningReplicaID = dis.readInt();
 
@@ -1060,12 +1084,12 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
             e.printStackTrace();
             logger.error("Exception creating JOIN request: " + e.getMessage());
         }
-
+       
         return new byte[0];
     }
 
     private byte[] serversMakeCertificate(int joiningReplicaID, boolean acceptedRequest, byte[] input,
-                                          long consensusTimestamp, TOMConfiguration executingReplicaConf) throws IOException {
+            long consensusTimestamp, TOMConfiguration executingReplicaConf) throws IOException {
 
         CoreCertificate certificateValues = new CoreCertificate(joiningReplicaID, acceptedRequest, input,
                 consensusTimestamp, executingReplicaConf.getProcessId());
@@ -1073,7 +1097,7 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
         byte[] signature;
 
         try (ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
-             DataOutputStream dos = new DataOutputStream(byteOut)) {
+                DataOutputStream dos = new DataOutputStream(byteOut)) {
 
             certificateValues.serialize(dos);
 
@@ -1084,7 +1108,7 @@ public abstract class StrongBlockchainRecoverable implements Recoverable, BatchE
         }
 
         try (ByteArrayOutputStream out = new ByteArrayOutputStream();
-             DataOutputStream dos = new DataOutputStream(out)) {
+                DataOutputStream dos = new DataOutputStream(out)) {
 
             ReplicaReconfigReply reply = new ReplicaReconfigReply(certificateValues, signature);
 

@@ -110,7 +110,7 @@ public class Decision {
     }
 
     public TOMMessage[] getDeserializedValue() {
-
+        
         LoggerFactory.getLogger(this.getClass()).debug("getting deserialized value for CID " + cid);
         
         while (deserializedValue == null) {

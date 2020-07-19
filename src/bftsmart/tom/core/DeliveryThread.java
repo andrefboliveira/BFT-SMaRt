@@ -1,19 +1,26 @@
 /**
- Copyright (c) 2007-2013 Alysson Bessani, Eduardo Alchieri, Paulo Sousa, and the authors indicated in the @author tags
+Copyright (c) 2007-2013 Alysson Bessani, Eduardo Alchieri, Paulo Sousa, and the authors indicated in the @author tags
 
- Licensed under the Apache License, Version 2.0 (the "License");
- you may not use this file except in compliance with the License.
- You may obtain a copy of the License at
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
- http://www.apache.org/licenses/LICENSE-2.0
+http://www.apache.org/licenses/LICENSE-2.0
 
- Unless required by applicable law or agreed to in writing, software
- distributed under the License is distributed on an "AS IS" BASIS,
- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- See the License for the specific language governing permissions and
- limitations under the License.
- */
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
 package bftsmart.tom.core;
+
+import java.util.ArrayList;
+import java.util.concurrent.LinkedBlockingQueue;
+
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import bftsmart.consensus.Decision;
 import bftsmart.reconfiguration.ServerViewController;
@@ -25,14 +32,9 @@ import bftsmart.tom.core.messages.TOMMessageType;
 import bftsmart.tom.leaderchange.CertifiedDecision;
 import bftsmart.tom.server.Recoverable;
 import bftsmart.tom.util.BatchReader;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * This class implements a thread which will deliver totally ordered requests to
@@ -190,10 +192,10 @@ public final class DeliveryThread extends Thread {
 				if (init) {
 					logger.info(
 							"\n\t\t###################################"
-									+ "\n\t\t    Ready to process operations    "
-									+ "\n\t\t###################################");
+					      + "\n\t\t    Ready to process operations    "
+						  + "\n\t\t###################################");
 					init = false;
-					System.out.println("Ready to process operations! time: " + System.currentTimeMillis());
+                                        System.out.println("Ready to process operations! time: "+  System.currentTimeMillis());
 				}
 			}
 			try {
@@ -259,10 +261,10 @@ public final class DeliveryThread extends Thread {
 						}
 						if (lastReconfig > -2 && lastReconfig <= lastDecision.getConsensusId()) {
 
-							if (controller.hasDiscardedUpdates()) {
+                                                         if (controller.hasDiscardedUpdates()) {
 								processUnexecutedReconfigMessages();
 							}
-
+                                                    
 							// set the consensus associated to the last decision as the last executed
 							logger.debug("Setting last executed consensus to " + lastDecision.getConsensusId());
 							tomLayer.setLastExec(lastDecision.getConsensusId());
@@ -296,14 +298,14 @@ public final class DeliveryThread extends Thread {
 		logger.info("DeliveryThread stopped.");
 
 	}
-
-	private void processUnexecutedReconfigMessages() {
+        
+        private void processUnexecutedReconfigMessages() {
 		byte[] response = new byte[0];
 		TOMMessage[] dests = controller.clearDiscardedUpdates();
 
 		if (controller.getCurrentView().isMember(receiver.getId())) {
 			for (int i = 0; i < dests.length; i++) {
-				tomLayer.getCommunication().send(new int[]{dests[i].getSender()},
+				tomLayer.getCommunication().send(new int[] { dests[i].getSender() },
 						new TOMMessage(controller.getStaticConf().getProcessId(), dests[i].getSession(),
 								dests[i].getSequence(), dests[i].getOperationId(), response,
 								controller.getCurrentViewId(), TOMMessageType.RECONFIG));
@@ -312,7 +314,7 @@ public final class DeliveryThread extends Thread {
 	}
 
 	private TOMMessage[] extractMessagesFromDecision(Decision dec) {
-		TOMMessage[] requests = dec.getDeserializedValue();
+		TOMMessage[] requests = (TOMMessage[]) dec.getDeserializedValue();
 		if (requests == null) {
 			// there are no cached deserialized requests
 			// this may happen if this batch proposal was not verified
@@ -342,14 +344,14 @@ public final class DeliveryThread extends Thread {
 		receiver.receiveReadonlyMessage(request, msgCtx);
 	}
 
-	private void deliverMessages(int[] consId, int[] regencies, int[] leaders, CertifiedDecision[] cDecs,
-	                             TOMMessage[][] requests) {
+	private void deliverMessages(int consId[], int regencies[], int leaders[], CertifiedDecision[] cDecs,
+			TOMMessage[][] requests) {
 		receiver.receiveMessages(consId, regencies, leaders, cDecs, requests);
 	}
 
 	private void processReconfigMessages(int consId) {
-
-
+            
+                
 		byte[] response = controller.executeUpdates(consId);
 		TOMMessage[] dests = controller.clearCorrectUpdates();
 
