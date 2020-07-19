@@ -2,502 +2,100 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="3b3aeae7-06ad-4fef-9979-03402145d16e" name="Default Changelist" comment="JavaDoc">
-      <change afterPath="$PROJECT_DIR$/.idea/ant.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/checkstyle-idea.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/checkstyleidea-libs/lib/commons-codec-1.11.jar" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/checkstyleidea-libs/lib/commons-text-1.4.jar" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/checkstyleidea-libs/lib/core-0.1.4.jar" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/checkstyleidea-libs/lib/logback-classic-1.2.3.jar" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/checkstyleidea-libs/lib/logback-core-1.2.3.jar" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/checkstyleidea-libs/lib/netty-all-4.1.30.Final.jar" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/checkstyleidea-libs/lib/slf4j-api-1.7.25.jar" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/checkstyleidea-libs/readme.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/codeStyles/codeStyleConfig.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/libraries/bcpkix_jdk15on_160.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/uiDesigner.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace(1).xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/BFT-SMaRt_reconfig.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/clientsmanagement/ClientData.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/clientsmanagement/ClientsManager.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/clientsmanagement/RequestList.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/communication/MessageHandler.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/communication/ServerCommunicationSystem.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/communication/SystemMessage.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/communication/client/CommunicationSystemClientSide.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/communication/client/CommunicationSystemClientSideFactory.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/communication/client/CommunicationSystemServerSide.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/communication/client/CommunicationSystemServerSideFactory.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/communication/client/ReplyListener.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/communication/client/ReplyReceiver.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/communication/client/RequestReceiver.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/communication/client/netty/NettyClientPipelineFactory.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/communication/client/netty/NettyClientServerCommunicationSystemClientSide$1.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/communication/client/netty/NettyClientServerCommunicationSystemClientSide$2.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/communication/client/netty/NettyClientServerCommunicationSystemClientSide$SyncListener.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/communication/client/netty/NettyClientServerCommunicationSystemClientSide.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/communication/client/netty/NettyClientServerCommunicationSystemServerSide$1.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/communication/client/netty/NettyClientServerCommunicationSystemServerSide.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/communication/client/netty/NettyClientServerSession.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/communication/client/netty/NettyServerPipelineFactory.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/communication/client/netty/NettyTOMMessageDecoder.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/communication/client/netty/NettyTOMMessageEncoder.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/communication/server/ServerConnection$1.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/communication/server/ServerConnection$ReceiverThread.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/communication/server/ServerConnection$SenderThread.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/communication/server/ServerConnection$TTPReceiverThread.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/communication/server/ServerConnection.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/communication/server/ServersCommunicationLayer$PendingConnection.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/communication/server/ServersCommunicationLayer.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/communication/server/Test.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/communication/server/TestSerialization.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/consensus/Consensus.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/consensus/Decision.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/consensus/Epoch.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/consensus/TimestampValuePair.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/consensus/messages/ConsensusMessage.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/consensus/messages/MessageFactory.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/consensus/roles/Acceptor.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/consensus/roles/Proposer.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/demo/counter/CounterClient.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/demo/counter/CounterServer.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/demo/map/MapClient.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/demo/map/MapInteractiveClient.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/demo/map/MapRequestType.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/demo/map/MapServer$1.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/demo/map/MapServer.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/demo/microbenchmarks/AsyncLatencyClient$1.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/demo/microbenchmarks/AsyncLatencyClient$Client$1.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/demo/microbenchmarks/AsyncLatencyClient$Client.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/demo/microbenchmarks/AsyncLatencyClient.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/demo/microbenchmarks/BlockTest.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/demo/microbenchmarks/ComputeThroughput.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/demo/microbenchmarks/CrashRecovery.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/demo/microbenchmarks/DurableThroughputServer.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/demo/microbenchmarks/MemoryThroughputServer$1.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/demo/microbenchmarks/MemoryThroughputServer.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/demo/microbenchmarks/StrongThroughputServer$1.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/demo/microbenchmarks/StrongThroughputServer.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/demo/microbenchmarks/ThroughputLatencyClient$1.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/demo/microbenchmarks/ThroughputLatencyClient$Client.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/demo/microbenchmarks/ThroughputLatencyClient.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/demo/microbenchmarks/WeakThroughputServer$1.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/demo/microbenchmarks/WeakThroughputServer.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/demo/ycsb/YCSBClient.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/demo/ycsb/YCSBMessage$Entity.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/demo/ycsb/YCSBMessage$Type.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/demo/ycsb/YCSBMessage.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/demo/ycsb/YCSBServer$1.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/demo/ycsb/YCSBServer.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/demo/ycsb/YCSBTable.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/reconfiguration/ClientViewController.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/reconfiguration/Reconfiguration.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/reconfiguration/ReconfigurationTest.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/reconfiguration/ReconfigureReply.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/reconfiguration/ReconfigureRequest.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/reconfiguration/ServerViewController.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/reconfiguration/VMMessage.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/reconfiguration/VMServices.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/reconfiguration/View.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/reconfiguration/ViewController.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/reconfiguration/ViewManager.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/reconfiguration/util/Configuration.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/reconfiguration/util/DefaultVMServices.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/reconfiguration/util/ECDSAKeyLoader.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/reconfiguration/util/HostsConfig$Config.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/reconfiguration/util/HostsConfig.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/reconfiguration/util/RSAKeyLoader.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/reconfiguration/util/ReconfigThread/JoinThread$1.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/reconfiguration/util/ReconfigThread/JoinThread$2.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/reconfiguration/util/ReconfigThread/JoinThread.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/reconfiguration/util/ReconfigThread/JoinThread_bak.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/reconfiguration/util/ReconfigThread/LeaveClass.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/reconfiguration/util/ReconfigThread/ReconfigSelectorThread.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/reconfiguration/util/ReconfigThread/RemoveClass.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/reconfiguration/util/ReconfigThread/pojo/CoreCertificate.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/reconfiguration/util/ReconfigThread/pojo/FullCertificate.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/reconfiguration/util/ReconfigThread/pojo/PartialCertificate.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/reconfiguration/util/ReconfigThread/pojo/ReplicaReconfigReply.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/reconfiguration/util/SunECKeyLoader.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/reconfiguration/util/TOMConfiguration.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/reconfiguration/views/DefaultViewStorage.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/reconfiguration/views/TestViewSerialization.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/reconfiguration/views/View.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/reconfiguration/views/ViewStorage.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/statemanagement/ApplicationState.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/statemanagement/SMMessage.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/statemanagement/StateManager.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/statemanagement/durability/CSTRequest.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/statemanagement/durability/CSTRequestF1.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/statemanagement/durability/CSTRequestFGT1.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/statemanagement/durability/CSTSMMessage.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/statemanagement/durability/CSTState.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/statemanagement/durability/DurableStateManager$1.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/statemanagement/durability/DurableStateManager.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/statemanagement/durability/StateSender.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/statemanagement/durability/StateSenderServer.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/statemanagement/standard/StandardSMMessage.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/statemanagement/standard/StandardStateManager$1.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/statemanagement/standard/StandardStateManager.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/AsynchServiceProxy$1.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/AsynchServiceProxy.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/MessageContext.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/ReplicaContext.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/RequestContext.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/ServiceProxy$1.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/ServiceProxy$2.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/ServiceProxy$HashResponseController.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/ServiceProxy.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/ServiceReplica$1.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/ServiceReplica$2.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/ServiceReplica$3.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/ServiceReplica.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/core/DeliveryThread.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/core/ExecutionManager.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/core/ReplyManager.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/core/ReplyThread.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/core/Synchronizer.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/core/TOMLayer$1.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/core/TOMLayer.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/core/TOMSender.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/core/messages/ForwardedMessage.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/core/messages/TOMMessage.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/core/messages/TOMMessageType$1.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/core/messages/TOMMessageType.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/leaderchange/CertifiedDecision.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/leaderchange/CollectData.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/leaderchange/LCManager.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/leaderchange/LCMessage.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/leaderchange/RequestsTimer$RequestTimerTask.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/leaderchange/RequestsTimer$SendStopTask.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/leaderchange/RequestsTimer.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/server/BatchExecutable.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/server/Executable.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/server/Recoverable.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/server/Replier.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/server/RequestVerifier.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/server/ServerJoiner.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/server/SingleExecutable.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/server/defaultservices/CommandsInfo.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/server/defaultservices/DefaultApplicationState.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/server/defaultservices/DefaultRecoverable.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/server/defaultservices/DefaultReplier.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/server/defaultservices/DefaultSingleRecoverable.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/server/defaultservices/DiskStateLog.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/server/defaultservices/FileRecoverer$FileListFilter.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/server/defaultservices/FileRecoverer.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/server/defaultservices/StateLog.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/server/defaultservices/blockchain/BatchLogger.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/server/defaultservices/blockchain/BlockchainSMMessage.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/server/defaultservices/blockchain/BlockchainState.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/server/defaultservices/blockchain/BlockchainStateManager$1.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/server/defaultservices/blockchain/BlockchainStateManager$2.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/server/defaultservices/blockchain/BlockchainStateManager.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/server/defaultservices/blockchain/StrongBlockchainRecoverable$1.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/server/defaultservices/blockchain/StrongBlockchainRecoverable$commandType.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/server/defaultservices/blockchain/StrongBlockchainRecoverable.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/server/defaultservices/blockchain/TOMMessageGenerator.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/server/defaultservices/blockchain/WeakBlockchainRecoverable$1.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/server/defaultservices/blockchain/WeakBlockchainRecoverable.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/server/defaultservices/blockchain/logger/AsyncBatchLogger.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/server/defaultservices/blockchain/logger/BufferBatchLogger.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/server/defaultservices/blockchain/logger/ParallelBatchLogger.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/server/defaultservices/blockchain/logger/VoidBatchLogger.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/server/durability/DurabilityCoordinator.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/server/durability/DurableStateLog.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/util/BatchBuilder.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/util/BatchReader.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/util/DebugInfo.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/util/ECDSAKeyPairGenerator.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/util/Extractor.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/util/KeyLoader.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/util/RSAKeyPairGenerator.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/util/ShutdownHookThread.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/util/SignatureTest.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/util/Storage.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/build/classes/bftsmart/tom/util/TOMUtil.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/files/0.-1.999.log" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nbbuild.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nbproject/build-impl.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nbproject/genfiles.properties" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nbproject/private/config.properties" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nbproject/private/private.properties" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nbproject/private/private.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nbproject/project.properties" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nbproject/project.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/clientsmanagement/ClientData.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/clientsmanagement/ClientsManager.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/clientsmanagement/RequestList.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/MessageHandler.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/ServerCommunicationSystem.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/SystemMessage.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/client/CommunicationSystemClientSide.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/client/CommunicationSystemClientSideFactory.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/client/CommunicationSystemServerSide.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/client/CommunicationSystemServerSideFactory.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/client/ReplyListener.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/client/ReplyReceiver.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/client/RequestReceiver.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/client/netty/NettyClientPipelineFactory.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/client/netty/NettyClientServerCommunicationSystemClientSide$1.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/client/netty/NettyClientServerCommunicationSystemClientSide$2.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/client/netty/NettyClientServerCommunicationSystemClientSide$SyncListener.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/client/netty/NettyClientServerCommunicationSystemClientSide.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/client/netty/NettyClientServerCommunicationSystemServerSide$1.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/client/netty/NettyClientServerCommunicationSystemServerSide.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/client/netty/NettyClientServerSession.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/client/netty/NettyServerPipelineFactory.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/client/netty/NettyTOMMessageDecoder.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/client/netty/NettyTOMMessageEncoder.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/server/ServerConnection$1.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/server/ServerConnection$ReceiverThread.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/server/ServerConnection$SenderThread.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/server/ServerConnection$TTPReceiverThread.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/server/ServerConnection.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/server/ServersCommunicationLayer$PendingConnection.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/server/ServersCommunicationLayer.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/server/Test.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/server/TestSerialization.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/consensus/Consensus.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/consensus/Decision.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/consensus/Epoch.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/consensus/TimestampValuePair.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/consensus/messages/ConsensusMessage.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/consensus/messages/MessageFactory.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/consensus/roles/Acceptor.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/consensus/roles/Proposer.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/counter/CounterClient.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/counter/CounterServer.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/map/MapClient.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/map/MapInteractiveClient.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/map/MapRequestType.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/map/MapServer$1.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/map/MapServer.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/microbenchmarks/AsyncLatencyClient$1.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/microbenchmarks/AsyncLatencyClient$Client$1.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/microbenchmarks/AsyncLatencyClient$Client.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/microbenchmarks/AsyncLatencyClient.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/microbenchmarks/BlockTest.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/microbenchmarks/ComputeThroughput.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/microbenchmarks/CrashRecovery.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/microbenchmarks/DurableThroughputServer.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/microbenchmarks/MemoryThroughputServer$1.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/microbenchmarks/MemoryThroughputServer.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/microbenchmarks/StrongThroughputServer$1.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/microbenchmarks/StrongThroughputServer.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/microbenchmarks/ThroughputLatencyClient$1.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/microbenchmarks/ThroughputLatencyClient$Client.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/microbenchmarks/ThroughputLatencyClient.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/microbenchmarks/WeakThroughputServer$1.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/microbenchmarks/WeakThroughputServer.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/ycsb/YCSBClient.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/ycsb/YCSBMessage$Entity.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/ycsb/YCSBMessage$Type.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/ycsb/YCSBMessage.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/ycsb/YCSBServer$1.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/ycsb/YCSBServer.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/ycsb/YCSBTable.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/reconfiguration/ClientViewController.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/reconfiguration/Reconfiguration.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/reconfiguration/ReconfigurationTest.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/reconfiguration/ReconfigureReply.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/reconfiguration/ReconfigureRequest.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/reconfiguration/ServerViewController.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/reconfiguration/VMMessage.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/reconfiguration/VMServices.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/reconfiguration/View.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/reconfiguration/ViewController.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/reconfiguration/ViewManager.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/reconfiguration/util/Configuration.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/reconfiguration/util/DefaultVMServices.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/reconfiguration/util/ECDSAKeyLoader.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/reconfiguration/util/HostsConfig$Config.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/reconfiguration/util/HostsConfig.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/reconfiguration/util/RSAKeyLoader.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/reconfiguration/util/ReconfigThread/JoinThread$1.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/reconfiguration/util/ReconfigThread/JoinThread$2.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/reconfiguration/util/ReconfigThread/JoinThread.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/reconfiguration/util/ReconfigThread/JoinThread_bak.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/reconfiguration/util/ReconfigThread/LeaveClass.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/reconfiguration/util/ReconfigThread/ReconfigSelectorThread.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/reconfiguration/util/ReconfigThread/RemoveClass.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/reconfiguration/util/ReconfigThread/pojo/CoreCertificate.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/reconfiguration/util/ReconfigThread/pojo/FullCertificate.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/reconfiguration/util/ReconfigThread/pojo/PartialCertificate.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/reconfiguration/util/ReconfigThread/pojo/ReplicaReconfigReply.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/reconfiguration/util/SunECKeyLoader.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/reconfiguration/util/TOMConfiguration.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/reconfiguration/views/DefaultViewStorage.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/reconfiguration/views/TestViewSerialization.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/reconfiguration/views/View.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/reconfiguration/views/ViewStorage.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/statemanagement/ApplicationState.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/statemanagement/SMMessage.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/statemanagement/StateManager.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/statemanagement/durability/CSTRequest.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/statemanagement/durability/CSTRequestF1.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/statemanagement/durability/CSTRequestFGT1.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/statemanagement/durability/CSTSMMessage.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/statemanagement/durability/CSTState.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/statemanagement/durability/DurableStateManager$1.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/statemanagement/durability/DurableStateManager.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/statemanagement/durability/StateSender.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/statemanagement/durability/StateSenderServer.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/statemanagement/standard/StandardSMMessage.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/statemanagement/standard/StandardStateManager$1.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/statemanagement/standard/StandardStateManager.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/AsynchServiceProxy$1.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/AsynchServiceProxy.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/MessageContext.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/ReplicaContext.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/RequestContext.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/ServiceProxy$1.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/ServiceProxy$2.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/ServiceProxy$HashResponseController.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/ServiceProxy.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/ServiceReplica$1.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/ServiceReplica$2.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/ServiceReplica$3.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/ServiceReplica.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/core/DeliveryThread.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/core/ExecutionManager.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/core/ReplyManager.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/core/ReplyThread.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/core/Synchronizer.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/core/TOMLayer$1.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/core/TOMLayer.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/core/TOMSender.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/core/messages/ForwardedMessage.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/core/messages/TOMMessage.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/core/messages/TOMMessageType$1.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/core/messages/TOMMessageType.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/leaderchange/CertifiedDecision.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/leaderchange/CollectData.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/leaderchange/LCManager.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/leaderchange/LCMessage.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/leaderchange/RequestsTimer$RequestTimerTask.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/leaderchange/RequestsTimer$SendStopTask.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/leaderchange/RequestsTimer.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/BatchExecutable.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/Executable.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/Recoverable.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/Replier.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/RequestVerifier.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/ServerJoiner.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/SingleExecutable.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/defaultservices/CommandsInfo.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/defaultservices/DefaultApplicationState.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/defaultservices/DefaultRecoverable.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/defaultservices/DefaultReplier.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/defaultservices/DefaultSingleRecoverable.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/defaultservices/DiskStateLog.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/defaultservices/FileRecoverer$FileListFilter.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/defaultservices/FileRecoverer.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/defaultservices/StateLog.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/defaultservices/blockchain/BatchLogger.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/defaultservices/blockchain/BlockchainSMMessage.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/defaultservices/blockchain/BlockchainState.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/defaultservices/blockchain/BlockchainStateManager$1.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/defaultservices/blockchain/BlockchainStateManager$2.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/defaultservices/blockchain/BlockchainStateManager.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/defaultservices/blockchain/StrongBlockchainRecoverable$1.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/defaultservices/blockchain/StrongBlockchainRecoverable$commandType.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/defaultservices/blockchain/StrongBlockchainRecoverable.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/defaultservices/blockchain/TOMMessageGenerator.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/defaultservices/blockchain/WeakBlockchainRecoverable$1.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/defaultservices/blockchain/WeakBlockchainRecoverable.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/defaultservices/blockchain/logger/AsyncBatchLogger.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/defaultservices/blockchain/logger/BufferBatchLogger.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/defaultservices/blockchain/logger/ParallelBatchLogger.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/defaultservices/blockchain/logger/VoidBatchLogger.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/durability/DurabilityCoordinator.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/durability/DurableStateLog.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/util/BatchBuilder.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/util/BatchReader.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/util/DebugInfo.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/util/ECDSAKeyPairGenerator.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/util/Extractor.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/util/KeyLoader.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/util/RSAKeyPairGenerator.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/util/ShutdownHookThread.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/util/SignatureTest.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/util/Storage.class" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/util/TOMUtil.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bin/BFT-SMaRt.jar" beforeDir="false" afterPath="$PROJECT_DIR$/bin/BFT-SMaRt.jar" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/built-jar.properties" beforeDir="false" afterPath="$PROJECT_DIR$/build/built-jar.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/logback.xml" beforeDir="false" afterPath="$PROJECT_DIR$/config/logback.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/SMaRtChain.jar" beforeDir="false" afterPath="$PROJECT_DIR$/dist/SMaRtChain.jar" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/clientsmanagement/ClientsManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/clientsmanagement/ClientsManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/communication/MessageHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/communication/MessageHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/communication/ServerCommunicationSystem.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/communication/ServerCommunicationSystem.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/communication/client/netty/NettyClientPipelineFactory.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/communication/client/netty/NettyClientPipelineFactory.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/communication/client/netty/NettyClientServerCommunicationSystemClientSide.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/communication/client/netty/NettyClientServerCommunicationSystemClientSide.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/communication/client/netty/NettyClientServerCommunicationSystemServerSide.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/communication/client/netty/NettyClientServerCommunicationSystemServerSide.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/communication/client/netty/NettyClientServerSession.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/communication/client/netty/NettyClientServerSession.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/communication/client/netty/NettyServerPipelineFactory.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/communication/client/netty/NettyServerPipelineFactory.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/communication/client/netty/NettyTOMMessageDecoder.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/communication/client/netty/NettyTOMMessageDecoder.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/communication/client/netty/NettyTOMMessageEncoder.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/communication/client/netty/NettyTOMMessageEncoder.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/communication/server/ServerConnection.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/communication/server/ServerConnection.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/communication/server/ServersCommunicationLayer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/communication/server/ServersCommunicationLayer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/consensus/Decision.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/consensus/Decision.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/consensus/Epoch.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/consensus/Epoch.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/consensus/messages/ConsensusMessage.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/consensus/messages/ConsensusMessage.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/consensus/roles/Acceptor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/consensus/roles/Acceptor.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/demo/counter/CounterClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/demo/counter/CounterClient.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/demo/counter/CounterServer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/demo/counter/CounterServer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/demo/map/MapClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/demo/map/MapClient.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/demo/map/MapInteractiveClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/demo/map/MapInteractiveClient.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/demo/map/MapRequestType.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/demo/map/MapRequestType.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/demo/map/MapServer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/demo/map/MapServer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/demo/microbenchmarks/AsyncLatencyClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/demo/microbenchmarks/AsyncLatencyClient.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/demo/microbenchmarks/BlockTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/demo/microbenchmarks/BlockTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/demo/microbenchmarks/ComputeThroughput.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/demo/microbenchmarks/ComputeThroughput.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/demo/microbenchmarks/CrashRecovery.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/demo/microbenchmarks/CrashRecovery.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/demo/microbenchmarks/DurableThroughputServer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/demo/microbenchmarks/DurableThroughputServer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/demo/microbenchmarks/MemoryThroughputServer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/demo/microbenchmarks/MemoryThroughputServer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/demo/microbenchmarks/StrongThroughputServer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/demo/microbenchmarks/StrongThroughputServer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/demo/microbenchmarks/ThroughputLatencyClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/demo/microbenchmarks/ThroughputLatencyClient.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/demo/microbenchmarks/WeakThroughputServer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/demo/microbenchmarks/WeakThroughputServer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/demo/ycsb/YCSBClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/demo/ycsb/YCSBClient.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/demo/ycsb/YCSBMessage.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/demo/ycsb/YCSBMessage.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/demo/ycsb/YCSBServer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/demo/ycsb/YCSBServer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/demo/ycsb/YCSBTable.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/demo/ycsb/YCSBTable.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/reconfiguration/ServerViewController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/reconfiguration/ServerViewController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/reconfiguration/ViewManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/reconfiguration/ViewManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/reconfiguration/util/Configuration.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/reconfiguration/util/Configuration.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/reconfiguration/util/ECDSAKeyLoader.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/reconfiguration/util/ECDSAKeyLoader.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/reconfiguration/util/HostsConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/reconfiguration/util/HostsConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/reconfiguration/util/RSAKeyLoader.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/reconfiguration/util/RSAKeyLoader.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/reconfiguration/util/ReconfigThread/JoinThread.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/reconfiguration/util/ReconfigThread/JoinThread.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/reconfiguration/util/ReconfigThread/ReconfigSelectorThread.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/reconfiguration/util/ReconfigThread/ReconfigSelectorThread.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/reconfiguration/util/SunECKeyLoader.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/reconfiguration/util/SunECKeyLoader.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/reconfiguration/util/TOMConfiguration.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/reconfiguration/util/TOMConfiguration.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/statemanagement/durability/DurableStateManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/statemanagement/durability/DurableStateManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/tom/ServiceProxy.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/tom/ServiceProxy.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/tom/ServiceReplica.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/tom/ServiceReplica.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/tom/core/DeliveryThread.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/tom/core/DeliveryThread.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/tom/core/Synchronizer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/tom/core/Synchronizer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/tom/core/TOMLayer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/tom/core/TOMLayer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/tom/core/TOMSender.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/tom/core/TOMSender.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/tom/core/messages/TOMMessage.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/tom/core/messages/TOMMessage.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/tom/leaderchange/LCManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/tom/leaderchange/LCManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/tom/server/BatchExecutable.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/tom/server/BatchExecutable.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/tom/server/defaultservices/DefaultRecoverable.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/tom/server/defaultservices/DefaultRecoverable.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/tom/server/defaultservices/FileRecoverer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/tom/server/defaultservices/FileRecoverer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/tom/server/defaultservices/blockchain/BlockchainSMMessage.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/tom/server/defaultservices/blockchain/BlockchainSMMessage.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/tom/server/defaultservices/blockchain/BlockchainState.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/tom/server/defaultservices/blockchain/BlockchainState.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/tom/server/defaultservices/blockchain/BlockchainStateManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/tom/server/defaultservices/blockchain/BlockchainStateManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/tom/server/defaultservices/blockchain/StrongBlockchainRecoverable.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/tom/server/defaultservices/blockchain/StrongBlockchainRecoverable.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/tom/server/defaultservices/blockchain/WeakBlockchainRecoverable.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/tom/server/defaultservices/blockchain/WeakBlockchainRecoverable.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/tom/server/defaultservices/blockchain/logger/AsyncBatchLogger.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/tom/server/defaultservices/blockchain/logger/AsyncBatchLogger.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/bftsmart/tom/util/TOMUtil.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/bftsmart/tom/util/TOMUtil.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/clientsmanagement/ClientsManager.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/clientsmanagement/ClientsManager.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/MessageHandler.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/MessageHandler.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/ServerCommunicationSystem.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/ServerCommunicationSystem.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/client/netty/NettyClientPipelineFactory.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/client/netty/NettyClientPipelineFactory.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/client/netty/NettyClientServerCommunicationSystemClientSide$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/client/netty/NettyClientServerCommunicationSystemClientSide$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/client/netty/NettyClientServerCommunicationSystemClientSide$2.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/client/netty/NettyClientServerCommunicationSystemClientSide$2.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/client/netty/NettyClientServerCommunicationSystemClientSide$SyncListener.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/client/netty/NettyClientServerCommunicationSystemClientSide$SyncListener.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/client/netty/NettyClientServerCommunicationSystemClientSide.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/client/netty/NettyClientServerCommunicationSystemClientSide.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/client/netty/NettyClientServerCommunicationSystemServerSide$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/client/netty/NettyClientServerCommunicationSystemServerSide$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/client/netty/NettyClientServerCommunicationSystemServerSide.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/client/netty/NettyClientServerCommunicationSystemServerSide.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/client/netty/NettyClientServerSession.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/client/netty/NettyClientServerSession.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/client/netty/NettyServerPipelineFactory.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/client/netty/NettyServerPipelineFactory.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/client/netty/NettyTOMMessageDecoder.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/client/netty/NettyTOMMessageDecoder.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/client/netty/NettyTOMMessageEncoder.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/client/netty/NettyTOMMessageEncoder.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/server/ServerConnection$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/server/ServerConnection$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/server/ServerConnection$ReceiverThread.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/server/ServerConnection$ReceiverThread.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/server/ServerConnection$SenderThread.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/server/ServerConnection$SenderThread.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/server/ServerConnection$TTPReceiverThread.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/server/ServerConnection$TTPReceiverThread.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/server/ServerConnection.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/server/ServerConnection.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/server/ServersCommunicationLayer$PendingConnection.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/server/ServersCommunicationLayer$PendingConnection.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/server/ServersCommunicationLayer.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/communication/server/ServersCommunicationLayer.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/consensus/Epoch.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/consensus/Epoch.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/consensus/roles/Acceptor.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/consensus/roles/Acceptor.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/counter/CounterClient.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/counter/CounterClient.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/counter/CounterServer.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/counter/CounterServer.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/map/MapClient.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/map/MapClient.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/map/MapRequestType.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/map/MapRequestType.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/map/MapServer$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/map/MapServer$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/map/MapServer.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/map/MapServer.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/microbenchmarks/AsyncLatencyClient$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/microbenchmarks/AsyncLatencyClient$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/microbenchmarks/AsyncLatencyClient$Client$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/microbenchmarks/AsyncLatencyClient$Client$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/microbenchmarks/AsyncLatencyClient$Client.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/microbenchmarks/AsyncLatencyClient$Client.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/microbenchmarks/AsyncLatencyClient.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/microbenchmarks/AsyncLatencyClient.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/microbenchmarks/BlockTest.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/microbenchmarks/BlockTest.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/microbenchmarks/ComputeThroughput.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/microbenchmarks/ComputeThroughput.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/microbenchmarks/CrashRecovery.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/microbenchmarks/CrashRecovery.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/microbenchmarks/DurableThroughputServer.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/microbenchmarks/DurableThroughputServer.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/microbenchmarks/MemoryThroughputServer$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/microbenchmarks/MemoryThroughputServer$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/microbenchmarks/MemoryThroughputServer.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/microbenchmarks/MemoryThroughputServer.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/microbenchmarks/StrongThroughputServer$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/microbenchmarks/StrongThroughputServer$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/microbenchmarks/StrongThroughputServer.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/microbenchmarks/StrongThroughputServer.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/microbenchmarks/ThroughputLatencyClient$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/microbenchmarks/ThroughputLatencyClient$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/microbenchmarks/ThroughputLatencyClient$Client.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/microbenchmarks/ThroughputLatencyClient$Client.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/microbenchmarks/ThroughputLatencyClient.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/microbenchmarks/ThroughputLatencyClient.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/microbenchmarks/WeakThroughputServer$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/microbenchmarks/WeakThroughputServer$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/microbenchmarks/WeakThroughputServer.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/microbenchmarks/WeakThroughputServer.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/ycsb/YCSBClient.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/ycsb/YCSBClient.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/ycsb/YCSBMessage$Entity.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/ycsb/YCSBMessage$Entity.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/ycsb/YCSBMessage$Type.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/ycsb/YCSBMessage$Type.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/ycsb/YCSBMessage.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/ycsb/YCSBMessage.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/ycsb/YCSBServer$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/ycsb/YCSBServer$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/ycsb/YCSBServer.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/ycsb/YCSBServer.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/ycsb/YCSBTable.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/demo/ycsb/YCSBTable.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/reconfiguration/ServerViewController.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/reconfiguration/ServerViewController.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/reconfiguration/util/Configuration.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/reconfiguration/util/Configuration.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/reconfiguration/util/ECDSAKeyLoader.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/reconfiguration/util/ECDSAKeyLoader.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/reconfiguration/util/HostsConfig$Config.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/reconfiguration/util/HostsConfig$Config.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/reconfiguration/util/HostsConfig.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/reconfiguration/util/HostsConfig.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/reconfiguration/util/RSAKeyLoader.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/reconfiguration/util/RSAKeyLoader.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/reconfiguration/util/ReconfigThread/JoinThread.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/reconfiguration/util/ReconfigThread/JoinThread.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/reconfiguration/util/SunECKeyLoader.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/reconfiguration/util/SunECKeyLoader.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/reconfiguration/util/TOMConfiguration.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/reconfiguration/util/TOMConfiguration.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/statemanagement/durability/DurableStateManager$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/statemanagement/durability/DurableStateManager$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/statemanagement/durability/DurableStateManager.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/statemanagement/durability/DurableStateManager.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/ServiceProxy$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/ServiceProxy$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/ServiceProxy$2.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/ServiceProxy$2.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/ServiceProxy$HashResponseController.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/ServiceProxy$HashResponseController.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/ServiceProxy.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/ServiceProxy.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/ServiceReplica$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/ServiceReplica$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/ServiceReplica$2.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/ServiceReplica$2.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/ServiceReplica$3.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/ServiceReplica$3.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/ServiceReplica.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/ServiceReplica.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/core/DeliveryThread.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/core/DeliveryThread.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/core/Synchronizer.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/core/Synchronizer.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/core/TOMLayer$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/core/TOMLayer$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/core/TOMLayer.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/core/TOMLayer.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/core/TOMSender.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/core/TOMSender.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/core/messages/TOMMessage.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/core/messages/TOMMessage.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/leaderchange/LCManager.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/leaderchange/LCManager.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/defaultservices/DefaultRecoverable.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/defaultservices/DefaultRecoverable.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/defaultservices/FileRecoverer$FileListFilter.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/defaultservices/FileRecoverer$FileListFilter.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/defaultservices/FileRecoverer.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/defaultservices/FileRecoverer.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/defaultservices/blockchain/BlockchainSMMessage.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/defaultservices/blockchain/BlockchainSMMessage.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/defaultservices/blockchain/BlockchainState.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/defaultservices/blockchain/BlockchainState.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/defaultservices/blockchain/BlockchainStateManager$2.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/defaultservices/blockchain/BlockchainStateManager$2.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/defaultservices/blockchain/BlockchainStateManager.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/defaultservices/blockchain/BlockchainStateManager.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/defaultservices/blockchain/StrongBlockchainRecoverable$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/defaultservices/blockchain/StrongBlockchainRecoverable$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/defaultservices/blockchain/StrongBlockchainRecoverable$commandType.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/defaultservices/blockchain/StrongBlockchainRecoverable$commandType.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/defaultservices/blockchain/StrongBlockchainRecoverable.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/defaultservices/blockchain/StrongBlockchainRecoverable.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/defaultservices/blockchain/WeakBlockchainRecoverable$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/defaultservices/blockchain/WeakBlockchainRecoverable$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/defaultservices/blockchain/WeakBlockchainRecoverable.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/defaultservices/blockchain/WeakBlockchainRecoverable.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/defaultservices/blockchain/logger/AsyncBatchLogger.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/server/defaultservices/blockchain/logger/AsyncBatchLogger.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/util/TOMUtil.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/production/BFT-SMaRt_reconfig/bftsmart/tom/util/TOMUtil.class" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -1075,6 +673,7 @@
       <workItem from="1580067715177" duration="3000" />
       <workItem from="1594597393344" duration="2324000" />
       <workItem from="1595198891111" duration="222000" />
+      <workItem from="1595202788984" duration="205000" />
     </task>
     <task id="LOCAL-00002" summary="All protocols from reconfig are working.&#10;Automatically set F now.">
       <created>1543292765504</created>
@@ -1475,6 +1074,7 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT" value="true" />
+    <option name="SHOW_UNVERSIONED_FILES_WHILE_COMMIT" value="false" />
     <MESSAGE value="updated demo example" />
     <MESSAGE value="Test: update code to duplicated view class&#10;Added debug print of f" />
     <MESSAGE value="Print the time to write to disk the checkpoint" />
@@ -1505,10 +1105,10 @@
     <option name="REFORMAT_BEFORE_PROJECT_COMMIT" value="true" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="2251" y="0" key="CommitChangelistDialog2" timestamp="1595199111633">
+    <state x="2251" y="0" key="CommitChangelistDialog2" timestamp="1595202967792">
       <screen x="1920" y="0" width="1920" height="1040" />
     </state>
-    <state x="2251" y="0" key="CommitChangelistDialog2/0.0.1536.824/1920.0.1920.1040@1920.0.1920.1040" timestamp="1595199111633" />
+    <state x="2251" y="0" key="CommitChangelistDialog2/0.0.1536.824/1920.0.1920.1040@1920.0.1920.1040" timestamp="1595202967792" />
     <state x="265" y="0" key="CommitChangelistDialog2/0.0.1536.824@0.0.1536.824" timestamp="1594598974113" />
     <state x="473" y="153" key="FileChooserDialogImpl" timestamp="1594597593469">
       <screen x="0" y="0" width="1536" height="824" />
